@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoinBot.Business\CoinBot.Business.Entities.csproj" />
+    <ProjectReference Include="..\CoinBot.Core\CoinBot.Core.csproj" />
+    <ProjectReference Include="..\CoinBot.Data.Interface\CoinBot.Data.Interface.csproj" />
+  </ItemGroup>
+
+</Project>
