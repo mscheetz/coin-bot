@@ -1,25 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace CoinBot.Business.Entities
 {
     public enum Interval
     {
-        1m,
-        3m,
-        5m,
-        15m,
-        30m,
-        1h,
-        2h,
-        4h,
-        6h,
-        8h,
-        12h,
-        1d,
-        3d,
-        1w,
-        1M
+        [Description("1m")]
+        OneM,
+        [Description("3m")]
+        ThreeM,
+        [Description("5m")]
+        FiveM,
+        [Description("15m")]
+        FifteenM,
+        [Description("30m")]
+        ThirtyM,
+        [Description("1h")]
+        OneH,
+        [Description("2h")]
+        TwoH,
+        [Description("4h")]
+        FourH,
+        [Description("6h")]
+        SixH,
+        [Description("8h")]
+        EightH,
+        [Description("12h")]
+        TwelveH,
+        [Description("1d")]
+        OneD,
+        [Description("3d")]
+        ThredD,
+        [Description("1w")]
+        OneW,
+        [Description("1M")]
+        OneMo
     }
 }

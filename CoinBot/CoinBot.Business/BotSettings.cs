@@ -11,6 +11,10 @@ namespace CoinBot.Business.Entities
         /// </summary>
         public string tradingPair { get; set; }
         /// <summary>
+        /// Trading strategy
+        /// </summary>
+        public Strategy tradingStrategy { get; set; }
+        /// <summary>
         /// Buy Percent change from previous sell
         /// </summary>
         public double buyPercent { get; set; }

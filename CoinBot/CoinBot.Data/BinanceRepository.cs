@@ -55,11 +55,20 @@ namespace CoinBot.Data
             return response;
         }
 
-        public async Task<IEnumerable<Candlestick>> GetCandlestick(string symbol, Interval interval)
+        public async Task<IEnumerable<Candlestick>> GetCandlestick(string symbol, Interval interval, int limit = 500)
         {
-            string url = $"/api/v1/klines?symbol={symbol}&interval={interval.ToString()}";
+            var intervalDescription = Core.Helper.GetEnumDescription((Interval)interval);
 
-            var response = await _restRepo.GetApi<List<Candlestick>>(url);
+            var queryString = new List<string>
+            {
+                $"symbol={symbol}",
+                $"interval={intervalDescription}",
+                $"limit={limit.ToString()}"
+            };
+
+            string url = CreateUrl($"/api/v1/klines", false, queryString);
+
+            var response = await _restRepo.GetApiStream<Candlestick[]>(url);
 
             return response;
         }
@@ -83,17 +92,35 @@ namespace CoinBot.Data
             return headers;
         }
 
-        private string CreateUrl(string apiPath, bool secure = true)
+        private string CreateUrl(string apiPath, bool secure = true, List<string> queryString = null)
         {
+            var qsValues = string.Empty;
+            var url = string.Empty;
+            if(queryString != null)
+            {
+                foreach(var qs in queryString)
+                {
+                    qsValues += qsValues != string.Empty ? "&" : "";
+                    qsValues += qs;
+                }
+            }
             if (!secure)
             {
-                return baseUrl + $"{apiPath}";
+                url = baseUrl + $"{apiPath}";
+                if (qsValues != string.Empty)
+                    url += "?" + qsValues;
+
+                return url;
             }
             var timestamp = GetBinanceTime().ToString();
-            var queryString = $"timestamp={timestamp}";
-            var hmac = security.GetHMACSignature(_apiInfo.apiSecret, queryString);
+            var timeStampQS = $"timestamp={timestamp}";
+            var hmac = security.GetHMACSignature(_apiInfo.apiSecret, timeStampQS);
 
-            return baseUrl + $"{apiPath}?{queryString}&signature={hmac}";
+            url = baseUrl + $"{apiPath}?{timeStampQS}&signature={hmac}";
+            if (qsValues != string.Empty)
+                url += "&" + qsValues;
+
+            return url;
         }
     }
 }

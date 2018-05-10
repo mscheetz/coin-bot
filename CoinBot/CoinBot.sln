@@ -3,27 +3,33 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Data", "CoinBot\CoinBot.Data.csproj", "{D48A2835-506F-49EE-B88B-B0C20B392017}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Data", "CoinBot.Data\CoinBot.Data.csproj", "{D48A2835-506F-49EE-B88B-B0C20B392017}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{5E115B87-6147-4B2E-A37C-9C00F75B3815}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Data.Interface", "CoinBot.Data.Interface\CoinBot.Data.Interface.csproj", "{04255357-CB1C-48C7-ADF4-D08C6E5A2DFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Data.Interface", "CoinBot.Data.Interface\CoinBot.Data.Interface.csproj", "{04255357-CB1C-48C7-ADF4-D08C6E5A2DFB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{0FD344B8-AE0D-4C2C-B8AF-92C637FBC23C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Core", "CoinBot.Core\CoinBot.Core.csproj", "{7739FB1E-59A8-45EF-87D1-F6132C62FD89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Core", "CoinBot.Core\CoinBot.Core.csproj", "{7739FB1E-59A8-45EF-87D1-F6132C62FD89}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business", "Business", "{57D1400D-ED19-4B68-ADA6-5FCED4E117AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Business.Entities", "CoinBot.Business\CoinBot.Business.Entities.csproj", "{363F0406-E810-474C-9991-31B44DF20F48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Business.Entities", "CoinBot.Business\CoinBot.Business.Entities.csproj", "{363F0406-E810-474C-9991-31B44DF20F48}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Api", "Api", "{40FFE5FA-FE24-45C2-AAB6-A8CAB4DEF1C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Api", "CoinBot.Api\CoinBot.Api.csproj", "{6BC46532-7FCD-46B1-8B85-861C76374B2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Api", "CoinBot.Api\CoinBot.Api.csproj", "{6BC46532-7FCD-46B1-8B85-861C76374B2A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Manager", "CoinBot.Manager\CoinBot.Manager.csproj", "{346F4A21-089A-4458-971B-FC4A4DDB88D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Manager", "CoinBot.Manager\CoinBot.Manager.csproj", "{346F4A21-089A-4458-971B-FC4A4DDB88D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Service", "CoinBot.Service\CoinBot.Service.csproj", "{1B9B4006-C849-433B-90C9-8D2CFE73D091}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Service", "CoinBot.Service\CoinBot.Service.csproj", "{1B9B4006-C849-433B-90C9-8D2CFE73D091}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{675A3D00-0F07-46BF-8913-1884D9600ABD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Data.Tests", "CoinBot.Data.Tests\CoinBot.Data.Tests.csproj", "{CF7716A4-5232-4F9F-9444-0C05B9FFC2E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Business.Builders", "CoinBot.Business.Builders\CoinBot.Business.Builders.csproj", "{2620E9A5-5528-4725-8CC4-5F8AE3E655B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +65,14 @@ Global
 		{1B9B4006-C849-433B-90C9-8D2CFE73D091}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B9B4006-C849-433B-90C9-8D2CFE73D091}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B9B4006-C849-433B-90C9-8D2CFE73D091}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF7716A4-5232-4F9F-9444-0C05B9FFC2E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF7716A4-5232-4F9F-9444-0C05B9FFC2E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF7716A4-5232-4F9F-9444-0C05B9FFC2E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF7716A4-5232-4F9F-9444-0C05B9FFC2E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2620E9A5-5528-4725-8CC4-5F8AE3E655B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2620E9A5-5528-4725-8CC4-5F8AE3E655B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2620E9A5-5528-4725-8CC4-5F8AE3E655B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2620E9A5-5528-4725-8CC4-5F8AE3E655B9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -71,6 +85,8 @@ Global
 		{6BC46532-7FCD-46B1-8B85-861C76374B2A} = {40FFE5FA-FE24-45C2-AAB6-A8CAB4DEF1C8}
 		{346F4A21-089A-4458-971B-FC4A4DDB88D8} = {57D1400D-ED19-4B68-ADA6-5FCED4E117AD}
 		{1B9B4006-C849-433B-90C9-8D2CFE73D091} = {57D1400D-ED19-4B68-ADA6-5FCED4E117AD}
+		{CF7716A4-5232-4F9F-9444-0C05B9FFC2E7} = {675A3D00-0F07-46BF-8913-1884D9600ABD}
+		{2620E9A5-5528-4725-8CC4-5F8AE3E655B9} = {57D1400D-ED19-4B68-ADA6-5FCED4E117AD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {21F9BD6F-E920-45CB-AFA6-7525CB02C5CF}

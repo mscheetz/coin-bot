@@ -16,7 +16,7 @@ namespace CoinBot.Data.Interface
 
         Task<IEnumerable<BinanceTick>> GetCrytpos();
 
-        Task<IEnumerable<Candlestick>> GetCandlestick(string symbol, Interval interval);
+        Task<IEnumerable<Candlestick>> GetCandlestick(string symbol, Interval interval, int limit = 500);
 
         long GetBinanceTime();
     }
