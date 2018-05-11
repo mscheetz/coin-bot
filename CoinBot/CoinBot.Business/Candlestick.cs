@@ -11,13 +11,13 @@ namespace CoinBot.Business.Entities
         [JsonProperty(Order = 1)]
         public long openTime { get; set; }
         [JsonProperty(Order = 2)]
-        public double open { get; set; }
+        public decimal open { get; set; }
         [JsonProperty(Order = 3)]
-        public double high { get; set; }
+        public decimal high { get; set; }
         [JsonProperty(Order = 4)]
-        public double low { get; set; }
+        public decimal low { get; set; }
         [JsonProperty(Order = 5)]
-        public double close { get; set; }
+        public decimal close { get; set; }
         [JsonProperty(Order = 6)]
         public double volume { get; set; }
         [JsonProperty(Order = 7)]
