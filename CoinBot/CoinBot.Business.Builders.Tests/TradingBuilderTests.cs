@@ -48,7 +48,7 @@ namespace CoinBot.Business.Builders.Tests
         [Fact]
         public void BollingerBands_FiveMin_Test()
         {
-            var symbol = "GNTBTC";
+            var symbol = "ICXBTC";
             var interval = Interval.FiveM;
             _repo = new BinanceRepository();
             _bldr = new TradingBuilder(_repo);
