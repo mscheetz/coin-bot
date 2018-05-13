@@ -30,5 +30,7 @@ namespace CoinBot.Business.Entities
         public double takerBase { get; set; }
         [JsonProperty(Order = 11)]
         public double takerQuote { get; set; }
+        public double volumeChange { get; set; } 
+        public double volumePercentChange { get; set; }
     }
 }
