@@ -78,5 +78,63 @@ namespace CoinBot.Data
                 return JsonConvert.DeserializeObject<T>(responseMessage);
             }
         }
+
+        /// <summary>
+        /// Post call to api
+        /// </summary>
+        /// <typeparam name="T">Type to return</typeparam>
+        /// <typeparam name="U">Type to post</typeparam>
+        /// <param name="url">Url to access</param>
+        /// <param name="data">Data object being sent</param>
+        /// <param name="headers">Http Request headers (optional)</param>
+        /// <returns>Type requested</returns>
+        public async Task<T> PostApi<T, U>(string url, U data, Dictionary<string, string> headers = null)
+        {
+            using (var client = new HttpClient())
+            {
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync(url, content);
+
+                string responseMessage = await response.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<T>(responseMessage);
+            }
+        }
+
+        /// <summary>
+        /// Delete call to api
+        /// </summary>
+        /// <typeparam name="T">Type to return</typeparam>
+        /// <param name="url">Url to access</param>
+        /// <param name="headers">Http Request headers (optional)</param>
+        /// <returns>Type requested</returns>
+        public async Task<T> DeleteApi<T>(string url, Dictionary<string, string> headers = null)
+        {
+            using (var client = new HttpClient())
+            {
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+
+                var response = await client.DeleteAsync(url);
+
+                string responseMessage = await response.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<T>(responseMessage);
+            }
+        }
     }
 }
