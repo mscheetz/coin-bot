@@ -46,6 +46,33 @@ namespace CoinBot.Data
             return response;
         }
 
+        public async Task<TradeResponse> PostTrade(TradeParams tradeParams)
+        {
+            string url = CreateUrl("/api/v3/order");
+
+            var response = await _restRepo.PostApi<TradeResponse, TradeParams>(url, tradeParams, GetRequestHeaders());
+
+            return response;
+        }
+
+        public async Task<TradeResponse> DeleteTrade(CancelTradeParams tradeParams)
+        {
+            string url = CreateUrl("/api/v3/order");
+
+            var headers = GetRequestHeaders();
+
+            headers.Add("symbol", tradeParams.symbol);
+            if(tradeParams.orderId != 0)
+                headers.Add("orderId", tradeParams.orderId.ToString());
+            if (!string.IsNullOrEmpty(tradeParams.origClientOrderId))
+                headers.Add("origClientOrderId", tradeParams.origClientOrderId);
+            headers.Add("timestamp", GetBinanceTime().ToString());
+            
+            var response = await _restRepo.DeleteApi<TradeResponse>(url, headers);
+
+            return response;
+        }
+
         public async Task<IEnumerable<BinanceTick>> GetCrytpos()
         {
             string url = "v1/open/tick";
@@ -55,7 +82,7 @@ namespace CoinBot.Data
             return response;
         }
 
-        public async Task<IEnumerable<Candlestick>> GetCandlestick(string symbol, Interval interval, int limit = 500)
+        public async Task<Candlestick[]> GetCandlestick(string symbol, Interval interval, int limit = 500)
         {
             var intervalDescription = Core.Helper.GetEnumDescription((Interval)interval);
 

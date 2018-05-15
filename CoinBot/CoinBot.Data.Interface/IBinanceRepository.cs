@@ -12,11 +12,15 @@ namespace CoinBot.Data.Interface
 
         Task<IEnumerable<Transaction>> GetTransactions();
 
-        Task<Account> GetBalance();
-
         Task<IEnumerable<BinanceTick>> GetCrytpos();
 
-        Task<IEnumerable<Candlestick>> GetCandlestick(string symbol, Interval interval, int limit = 500);
+        Task<Candlestick[]> GetCandlestick(string symbol, Interval interval, int limit = 500);
+
+        Task<Account> GetBalance();
+
+        Task<TradeResponse> PostTrade(TradeParams tradeParams);
+
+        Task<TradeResponse> DeleteTrade(CancelTradeParams tradeParams);
 
         long GetBinanceTime();
     }
