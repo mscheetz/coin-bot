@@ -14,6 +14,7 @@ namespace CoinBot.Business.Builders.Interface
         /// <returns>decimal of SMA</returns>
         decimal Get21DaySMA(string symbol);
 
-        SortedList<long, Dictionary<string, decimal>> GetBollingerBands(string symbol, Interval interval);
+        //SortedList<long, Dictionary<string, decimal>> GetBollingerBands(string symbol, Interval interval);
+        Candlestick[] GetBollingerBands(string symbol, Interval interval);
     }
 }

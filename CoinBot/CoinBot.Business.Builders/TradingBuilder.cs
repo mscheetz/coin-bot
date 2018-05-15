@@ -5,6 +5,7 @@ using CoinBot.Data.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CoinBot.Business.Builders
 {
@@ -12,6 +13,10 @@ namespace CoinBot.Business.Builders
     {
         private IBinanceRepository _repo;
         private const int candlestickCount = 21;
+        private BotSettings botSettings;
+        private List<Bag> bags;
+        private List<TradeInformation> tradeInformation;
+        private decimal availableToTrade;
 
         /// <summary>
         /// Constructor
@@ -20,6 +25,16 @@ namespace CoinBot.Business.Builders
         public TradingBuilder(IBinanceRepository repo)
         {
             this._repo = repo;
+            bags = new List<Bag>();
+            tradeInformation = new List<TradeInformation>();
+            availableToTrade = 0;
+        }
+
+        public bool SetBotSettings(BotSettings settings)
+        {
+            botSettings = settings;
+
+            return true;
         }
 
         /// <summary>
@@ -41,17 +56,26 @@ namespace CoinBot.Business.Builders
         public void TradeCoin(string pair, Interval interval)
         {
             long last_open = 0;
-            var bbs = GetBollingerBands(pair, interval);
             TradeType tradeType;
+            var currentStick = new Candlestick();
+            var previousStick = new Candlestick();
 
             bool trade = false;
             while(!trade)
             {
-                int i = bbs.Count;
-                var latestStick = bbs[i - 1];
-                var prevStick = bbs[i - 2];
+                var bbs = GetBollingerBands(pair, interval);
+                int i = bbs.Length;
+                currentStick = bbs[i];
 
-                //if(latestStick.Values["bollingerTop"])
+                if (previousStick.close == 0)
+                    previousStick = bbs[i];
+
+                Task.Run(async () =>
+                {
+                    await Task.Delay(botSettings.priceCheck);
+
+
+                });
             }
         }
 
@@ -60,39 +84,23 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="pair">Trading pair</param>
         /// <param name="interval">Candlestick interval</param>
-        /// <returns>SortedList of values</returns>
-        public SortedList<long, Dictionary<string, decimal>> GetBollingerBands(string pair, Interval interval)
+        /// <returns>Array of Candlesticks</returns>
+        public Candlestick[] GetBollingerBands(string pair, Interval interval)
         {
             var candlesticks = GetCandlesticks(pair, interval, candlestickCount)
                                     .OrderByDescending(c => c.closeTime)
-                                    .ToList();
+                                    .ToArray();
+            
+            AddBollingerBands(ref candlesticks);
 
-            var dataList = new SortedList<long, Dictionary<string, decimal>>();
-            
-            foreach(var candle in candlesticks)
-            {
-                var dict = new Dictionary<string, decimal>
-                {
-                    { "openTime", candle.openTime },
-                    { "close", candle.close },
-                    { "closeTime", candle.closeTime },
-                    { "volume", (decimal)candle.volume }
-                };
-                dataList.Add(candle.closeTime, dict);
-            }
-
-            AddBollingerBands(ref dataList);
-            
-            var returner = dataList.Values[dataList.Count-1];
-            
-            return dataList;
+            return candlesticks.Where(c => c.bollingerBand != null).ToArray();
         }
 
         /// <summary>
         /// Add Bollinger Bands and Volume data to list
         /// </summary>
-        /// <param name="data">SortedList to update</param>
-        private void AddBollingerBands(ref SortedList<long, Dictionary<string, decimal>> data)
+        /// <param name="candlesticks">Array of Candlesticks</param>
+        private void AddBollingerBands(ref Candlestick[] candlesticks)
         {
             int period = candlestickCount;
             int factor = 2;
@@ -100,33 +108,39 @@ namespace CoinBot.Business.Builders
             decimal total_squares = 0;
             decimal prev_vol = 0;
 
-            for (int i = 0; i < data.Count(); i++)
+            for (int i = 0; i < candlesticks.Length; i++)
             {
-                total_average += data.Values[i]["close"];
-                total_squares += (decimal)Math.Pow((double)data.Values[i]["close"], 2);
-                prev_vol = prev_vol == 0 ? data.Values[i]["volume"] : prev_vol;
+                total_average += candlesticks[i].close;
+                total_squares += (decimal)Math.Pow((double)candlesticks[i].close, 2);
+                prev_vol = prev_vol == 0 ? candlesticks[i].volume : prev_vol;
 
-                var volData = CalculateVolumeChanges(data.Values[i]["volume"], prev_vol);
+                var volData = CalculateVolumeChanges(candlesticks[i].volume, prev_vol);
 
-                foreach(var vol in volData)
+                if(volData != null)
                 {
-                    data.Values[i].Add(vol.Key, vol.Value);
+                    if(volData.ContainsKey("volumeDifference"))
+                        candlesticks[i].volumeChange = volData["volumeDifference"];
+
+                    if (volData.ContainsKey("volumePercentChange"))
+                        candlesticks[i].volumePercentChange = volData["volumePercentChange"];
                 }
 
                 if (i >= period - 1)
                 {
+                    var bollingerBand = new BollingerBand();
                     decimal average = total_average / period;
 
                     decimal stdev = (decimal)Math.Sqrt((double)(total_squares - (decimal)Math.Pow((double)total_average, 2) / period) / period);
-                    data.Values[i]["bollingerAverage"] = average;
-                    data.Values[i]["bollingerTop"] = average + factor * stdev;
-                    data.Values[i]["bollingerBottom"] = average - factor * stdev;
+                    bollingerBand.movingAvg = average;
+                    bollingerBand.topBand = average + factor * stdev;
+                    bollingerBand.bottomBand = average - factor * stdev;
 
-                    total_average -= data.Values[i - period + 1]["close"];
-                    total_squares -= (decimal)Math.Pow((double)data.Values[i - period + 1]["close"], 2);
+                    candlesticks[i].bollingerBand = bollingerBand;
+                    total_average -= candlesticks[i - period + 1].close;
+                    total_squares -= (decimal)Math.Pow((double)candlesticks[i - period + 1].close, 2);
                 }
 
-                prev_vol = data.Values[i]["volume"];
+                prev_vol = candlesticks[i].volume;
             }
         }
 
@@ -143,8 +157,8 @@ namespace CoinBot.Business.Builders
 
             return new Dictionary<string, decimal>
             {
-                {"volume_difference", vol_diff },
-                {"volume_change", vol_change }
+                {"volumeDifference", vol_diff },
+                {"volumePercentChange", vol_change }
             };            
         }
 
@@ -154,10 +168,20 @@ namespace CoinBot.Business.Builders
         /// <param name="pair">Trading pair</param>
         /// <param name="interval">Candlestick Interval</param>
         /// <param name="range">Number of candlesticks to get</param>
-        /// <returns>List of Candlestick objects</returns>
-        private List<Candlestick> GetCandlesticks(string pair, Interval interval, int range)
+        /// <returns>Array of Candlestick objects</returns>
+        private Candlestick[] GetCandlesticks(string pair, Interval interval, int range)
         {
-            return _repo.GetCandlestick(pair, interval, range).Result.ToList();
+            return _repo.GetCandlestick(pair, interval, range).Result;
+        }
+
+        private TradeResponse PlaceTrade(TradeParams tradeParams)
+        {
+            return _repo.PostTrade(tradeParams).Result;
+        }
+
+        private TradeResponse CancelTrade(CancelTradeParams tradeParams)
+        {
+            return _repo.DeleteTrade(tradeParams).Result;
         }
     }
 }
