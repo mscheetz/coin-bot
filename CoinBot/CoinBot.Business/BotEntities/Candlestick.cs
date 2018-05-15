@@ -19,7 +19,7 @@ namespace CoinBot.Business.Entities
         [JsonProperty(Order = 5)]
         public decimal close { get; set; }
         [JsonProperty(Order = 6)]
-        public double volume { get; set; }
+        public decimal volume { get; set; }
         [JsonProperty(Order = 7)]
         public long closeTime { get; set; }
         [JsonProperty(Order = 8)]
@@ -30,7 +30,11 @@ namespace CoinBot.Business.Entities
         public double takerBase { get; set; }
         [JsonProperty(Order = 11)]
         public double takerQuote { get; set; }
-        public double volumeChange { get; set; } 
-        public double volumePercentChange { get; set; }
+        [JsonIgnore]
+        public decimal volumeChange { get; set; }
+        [JsonIgnore]
+        public decimal volumePercentChange { get; set; }
+        [JsonIgnore]
+        public BollingerBand bollingerBand { get; set; }
     }
 }
