@@ -8,20 +8,66 @@ namespace CoinBot.Data.Interface
 {
     public interface IBinanceRepository
     {
-        bool SetExchangeApi(ApiInformation exchangeApi);
+        /// <summary>
+        /// Set ApiInformation for repository
+        /// </summary>
+        /// <param name="apiInfo">ApiInformation object</param>
+        /// <returns>Boolean when complete</returns>
+         bool SetExchangeApi(ApiInformation apiInfo);
 
+        /// <summary>
+        /// Get Transactions for account
+        /// </summary>
+        /// <returns>Collection of Transactions</returns>
         Task<IEnumerable<Transaction>> GetTransactions();
 
-        Task<IEnumerable<BinanceTick>> GetCrytpos();
-
-        Task<Candlestick[]> GetCandlestick(string symbol, Interval interval, int limit = 500);
-
+        /// <summary>
+        /// Get account balance
+        /// </summary>
+        /// <returns>Account object</returns>
         Task<Account> GetBalance();
 
+        /// <summary>
+        /// Get order information
+        /// </summary>
+        /// <param name="symbol">string of symbol</param>
+        /// <param name="orderId">long of orderId</param>
+        /// <returns>OrderResponse object</returns>
+        Task<OrderResponse> GetOrder(string symbol, long orderId);
+
+        /// <summary>
+        /// Post/Place a trade
+        /// </summary>
+        /// <param name="tradeParams">Trade to place</param>
+        /// <returns>TradeResponse object</returns>
         Task<TradeResponse> PostTrade(TradeParams tradeParams);
 
+        /// <summary>
+        /// Delete/Cancel a trade
+        /// </summary>
+        /// <param name="tradeParams">Trade to delete</param>
+        /// <returns>TradeResponse object</returns>
         Task<TradeResponse> DeleteTrade(CancelTradeParams tradeParams);
 
+        /// <summary>
+        /// Get Ticker for all pairs
+        /// </summary>
+        /// <returns>Collection of BinanceTick objects</returns>
+        Task<IEnumerable<BinanceTick>> GetCrytpos();
+
+        /// <summary>
+        /// Get Candlesticks for a symbol
+        /// </summary>
+        /// <param name="symbol">Trading symbol</param>
+        /// <param name="interval">Time interval</param>
+        /// <param name="limit">Time limit</param>
+        /// <returns>Array of Candlestick objects</returns>
+        Task<Candlestick[]> GetCandlestick(string symbol, Interval interval, int limit = 500);
+
+        /// <summary>
+        /// Get BinanceTime
+        /// </summary>
+        /// <returns>long of timestamp</returns>
         long GetBinanceTime();
     }
 }
