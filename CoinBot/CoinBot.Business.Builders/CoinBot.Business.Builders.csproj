@@ -8,6 +8,7 @@
     <ProjectReference Include="..\CoinBot.Business.Builders.Interface\CoinBot.Business.Builders.Interface.csproj" />
     <ProjectReference Include="..\CoinBot.Core\CoinBot.Core.csproj" />
     <ProjectReference Include="..\CoinBot.Data.Interface\CoinBot.Data.Interface.csproj" />
+    <ProjectReference Include="..\CoinBot.Data\CoinBot.Data.csproj" />
   </ItemGroup>
 
 </Project>
