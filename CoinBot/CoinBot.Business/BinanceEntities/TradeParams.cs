@@ -14,5 +14,6 @@ namespace CoinBot.Business.Entities
         public decimal price { get; set; }
         public decimal stopPrice { get; set; }
         public decimal icebergQty { get; set; }
+        public long timestamp { get; set; }
     }
 }
