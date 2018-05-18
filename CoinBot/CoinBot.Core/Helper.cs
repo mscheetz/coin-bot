@@ -1,29 +1,22 @@
-﻿using CoinBot.Business.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 
 namespace CoinBot.Core
 {
-    public static class Helper
+    public class Helper
     {
-        public static string GetEnumDescription(Enum value)
+        /// <summary>
+        /// Round a number down N decimal places
+        /// </summary>
+        /// <param name="number">Number to round down</param>
+        /// <param name="decimalPlaces">N decimal places</param>
+        /// <returns>Rounded down number</returns>
+        public decimal RoundDown(decimal number, double decimalPlaces)
         {
-            FieldInfo fi = value.GetType().GetField(value.ToString());
+            var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
 
-            DescriptionAttribute[] attributes =
-                (DescriptionAttribute[])fi.GetCustomAttributes(
-                typeof(DescriptionAttribute),
-                false);
-
-            if (attributes != null &&
-                attributes.Length > 0)
-                return attributes[0].Description;
-            else
-                return value.ToString();
+            return Math.Floor(number * power) / power;
         }
     }
 }
