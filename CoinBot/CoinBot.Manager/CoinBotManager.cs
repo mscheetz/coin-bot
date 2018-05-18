@@ -1,4 +1,5 @@
-﻿using CoinBot.Business.Entities;
+﻿using CoinBot.Business.Builders.Interface;
+using CoinBot.Business.Entities;
 using CoinBot.Data.Interface;
 using CoinBot.Service;
 using System;
@@ -9,26 +10,12 @@ namespace CoinBot.Manager
 {
     public class CoinBotManager : ICoinBotService
     {
-        private ApiInformation _apiInformation;
-        private BotSettings _botSettings;
-        private IBinanceRepository _binanceRepository;
+        private ITradingBuilder _tradingBuilder;
         private Balance _balance;
 
-        public CoinBotManager(IBinanceRepository binanceRepository)
+        public CoinBotManager(ITradingBuilder tradingBuilder)
         {
-            this._binanceRepository = binanceRepository;
-        }
-        
-        /// <summary>
-        /// Update ApiInformation
-        /// </summary>
-        /// <param name="apiInformation">New Api Information</param>
-        /// <returns>Boolean value when complete</returns>
-        public bool UpdateApiInformation(ApiInformation apiInformation)
-        {
-            this._apiInformation = apiInformation;
-
-            return true;
+            this._tradingBuilder = tradingBuilder;
         }
 
         /// <summary>
@@ -38,45 +25,76 @@ namespace CoinBot.Manager
         /// <returns>Boolean value when complete</returns>
         public bool UpdateBotSettings(BotSettings botSettings)
         {
-            this._botSettings = botSettings;
+            ServiceReady();
+            var result = _tradingBuilder.SetBotSettings(botSettings);
 
-            return true;
-        }
-
-        public IEnumerable<Transaction> GetTransactions(int first, int range)
-        {
-            var transactions = _binanceRepository.GetTransactions().Result;
-
-            return transactions.OrderByDescending(t => t.time).Skip(first).Take(range).ToList();
-        }
-
-        public void Trade()
-        {
-
+            return result;
         }
 
         /// <summary>
-        /// Update trading pair balance from exchange
+        /// Start trading
         /// </summary>
-        /// <returns>Boolean value when complete</returns>
-        private bool UpdateBalance()
+        /// <param name="interval">Candlestick interval</param>
+        public bool StartBot(Interval interval)
         {
-            var account = _binanceRepository.GetBalance().Result;
-
-            _balance = account.balances.Where(b => b.asset == _botSettings.tradingPair).FirstOrDefault();
+            ServiceReady();
+            _tradingBuilder.StartTrading(interval);
 
             return true;
         }
 
         /// <summary>
-        /// Get candlesticks
+        /// Stop Trading
         /// </summary>
-        /// <returns>Collection of candlesticks</returns>
-        private List<Candlestick> GetCandleSticks()
+        public bool StopBot()
         {
-            var sticks = _binanceRepository.GetCandlestick(_botSettings.tradingPair, _botSettings.chartInterval).Result;
+            ServiceReady();
+            _tradingBuilder.StopTrading();
 
-            return sticks.ToList();
+            return true;
+        }
+
+        /// <summary>
+        /// Get all transactions
+        /// </summary>
+        /// <returns>Collection of TradeInformation</returns>
+        public IEnumerable<TradeInformation> GetTransactionHistory()
+        {
+            ServiceReady();
+            return _tradingBuilder.GetTradeHistory();
+        }
+
+        /// <summary>
+        /// Get current balance
+        /// </summary>
+        /// <returns>BotBalance object</returns>
+        public BotBalance GetBalance()
+        {
+            ServiceReady();
+            return _tradingBuilder.GetBalance();
+        }
+
+        /// <summary>
+        /// Get Balance history
+        /// </summary>
+        /// <returns>Collection of BotBalance objects</returns>
+        public IEnumerable<BotBalance> GetBalanceHistory()
+        {
+            ServiceReady();
+            return _tradingBuilder.GetBalanceHistory();
+        }
+
+        private void ServiceReady()
+        {
+            if(!_tradingBuilder.ConfigFileExits())
+            {
+                throw new Exception("No Configuration file exists!");
+            }
+
+            if (!_tradingBuilder.SettingsFileExists())
+            {
+                throw new Exception("No BotSettings file exists!");
+            }
         }
     }
 }

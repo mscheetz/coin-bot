@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CoinBot.Business.Builders.Interface\CoinBot.Business.Builders.Interface.csproj" />
     <ProjectReference Include="..\CoinBot.Business\CoinBot.Business.Entities.csproj" />
     <ProjectReference Include="..\CoinBot.Data.Interface\CoinBot.Data.Interface.csproj" />
     <ProjectReference Include="..\CoinBot.Service\CoinBot.Service.csproj" />
