@@ -1,0 +1,12 @@
+﻿{
+  "tradingPair": "ENGBTC",
+  "tradingStrategy": "PaperTrading",
+  "buyPercent": 0.0,
+  "sellPercent": 1.0,
+  "stopLoss": 2.0,
+  "tradePercent": 100.0,
+  "priceCheck": 5000,
+  "chartInterval": "FiveM",
+  "startBotAutomatically": true,
+  "startingBTC": 0.05
+}

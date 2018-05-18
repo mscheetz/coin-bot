@@ -11,10 +11,20 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoinBot.Business.Builders.Interface\CoinBot.Business.Builders.Interface.csproj" />
+    <ProjectReference Include="..\CoinBot.Business.Builders\CoinBot.Business.Builders.csproj" />
+    <ProjectReference Include="..\CoinBot.Data.Interface\CoinBot.Data.Interface.csproj" />
+    <ProjectReference Include="..\CoinBot.Data\CoinBot.Data.csproj" />
+    <ProjectReference Include="..\CoinBot.Manager\CoinBot.Manager.csproj" />
+    <ProjectReference Include="..\CoinBot.Service\CoinBot.Service.csproj" />
   </ItemGroup>
 
 </Project>
