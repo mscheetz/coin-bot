@@ -6,6 +6,7 @@ using CoinBot.Data.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace CoinBot.Business.Builders
@@ -14,11 +15,13 @@ namespace CoinBot.Business.Builders
     {
         private IBinanceRepository _repo;
         private IFileRepository _fileRepo;
+        private DateTimeHelper _dtHelper = new DateTimeHelper();
+        private Helper _helper = new Helper();
         private const int candlestickCount = 21;
         private BotSettings botSettings;
         private List<Bag> bags;
         private List<TradeInformation> tradeInformation;
-        private decimal availableToTrade;
+        private TradeInformation lastTrade;
         private List<OpenOrder> openOrderList;
         private string _symbol;
         private List<OpenStopLoss> openStopLossList;
@@ -26,25 +29,62 @@ namespace CoinBot.Business.Builders
         private bool currentlyTrading;
         private decimal lastBuy = 0.00000000M;
         private decimal lastSell = 0.00000000M;
+        private int tradeNumber = 0;
+        private TradeType tradeType;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public TradingBuilder(IBinanceRepository repo)
+        public TradingBuilder()
+        {
+            _repo = new BinanceRepository();
+            _fileRepo = new FileRepository();
+            SetupBuilder();
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="repo">Repository interface</param>
+        public TradingBuilder(IBinanceRepository repo, IFileRepository fileRepo)
         {
             _repo = repo;
-            _fileRepo = new FileRepository();
-            botSettings = _fileRepo.GetConfig();
+            _fileRepo = fileRepo;
+            SetupBuilder();
+        }
+
+        private void SetupBuilder()
+        {
+            botSettings = _fileRepo.GetSettings();
             _symbol = botSettings.tradingPair;
             bags = new List<Bag>();
             tradeInformation = new List<TradeInformation>();
-            availableToTrade = 0;
             openOrderList = new List<OpenOrder>();
             openStopLossList = new List<OpenStopLoss>();
             botBalances = new List<BotBalance>();
-            currentlyTrading = true;
-            RunBot(Interval.OneM);
+            currentlyTrading = botSettings.startBotAutomatically == null 
+                                ? false 
+                                : (bool)botSettings.startBotAutomatically;
+            RunBot(Interval.FiveM);
+        }
+
+        /// <summary>
+        /// Check if config file exists
+        /// </summary>
+        /// <returns>Boolean of result</returns>
+        public bool ConfigFileExits()
+        {
+            return _fileRepo.ConfigExists();
+        }
+
+        /// <summary>
+        /// Check if settings file exists
+        /// </summary>
+        /// <returns>Boolean of result</returns>
+        public bool SettingsFileExists()
+        {
+            return _fileRepo.BotSettingsExists();
         }
 
         /// <summary>
@@ -54,8 +94,43 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean when complete</returns>
         public bool SetBotSettings(BotSettings settings)
         {
-            _fileRepo.UpdateBotSettings(settings);
-            botSettings = settings;
+            var updatedSettings = new BotSettings
+            {
+                buyPercent = botSettings.buyPercent,
+                chartInterval = botSettings.chartInterval,
+                priceCheck = botSettings.priceCheck,
+                sellPercent = botSettings.sellPercent,
+                startBotAutomatically = botSettings.startBotAutomatically,
+                startingBTC = botSettings.startingBTC,
+                stopLoss = botSettings.stopLoss,
+                tradePercent = botSettings.tradePercent,
+                tradingPair = botSettings.tradingPair,
+                tradingStrategy = botSettings.tradingStrategy
+            };
+            
+            if (settings.buyPercent > 0)
+                updatedSettings.buyPercent = settings.buyPercent;
+            if (settings.chartInterval != Interval.None)
+                updatedSettings.chartInterval = settings.chartInterval;
+            if (settings.priceCheck > 0)
+                updatedSettings.priceCheck = settings.priceCheck;
+            if (settings.sellPercent > 0)
+                updatedSettings.sellPercent = settings.sellPercent;
+            if (settings.startBotAutomatically != null)
+                updatedSettings.startBotAutomatically = settings.startBotAutomatically;
+            if (settings.startingBTC > 0)
+                updatedSettings.startingBTC = settings.startingBTC;
+            if (settings.stopLoss > 0)
+                updatedSettings.stopLoss = settings.stopLoss;
+            if (settings.tradePercent > 0)
+                updatedSettings.tradePercent = settings.tradePercent;
+            if (!string.IsNullOrEmpty(settings.tradingPair))
+                updatedSettings.tradingPair = settings.tradingPair;
+            if (settings.tradingStrategy != Strategy.None)
+                updatedSettings.tradingStrategy = settings.tradingStrategy;
+            
+            _fileRepo.UpdateBotSettings(updatedSettings);
+            botSettings = updatedSettings;
             _symbol = settings.tradingPair;
 
             return true;
@@ -96,61 +171,124 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Get all transactions
+        /// </summary>
+        /// <returns>Collection of TradeInformation</returns>
+        public IEnumerable<TradeInformation> GetTradeHistory()
+        {
+            return _fileRepo.GetTransactions().OrderByDescending(t => t.timestamp);
+        }
+
+        /// <summary>
+        /// Get current balance
+        /// </summary>
+        /// <returns>BotBalance object</returns>
+        public BotBalance GetBalance()
+        {
+            var balanceList = _fileRepo.GetBalances();
+
+            var lastBalance = balanceList.Max(b => b.timestamp);
+
+            return balanceList.Where(b => b.timestamp == lastBalance).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Get Balance history
+        /// </summary>
+        /// <returns>Collection of BotBalance objects</returns>
+        public IEnumerable<BotBalance> GetBalanceHistory()
+        {
+            return _fileRepo.GetBalances().OrderByDescending(t => t.timestamp);
+        }
+
+        /// <summary>
+        /// Set up respository
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        private bool SetupRepository()
+        {
+            var repoReady = _repo.ValidateExchangeConfigured();
+
+            if (repoReady)
+                return true;
+
+            var apiInfo = GetApiInformation();
+
+            _repo.SetExchangeApi(apiInfo);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Get ApiInformation from config
+        /// </summary>
+        /// <returns>ApiInformation for repository</returns>
+        private ApiInformation GetApiInformation()
+        {
+            var config = _fileRepo.GetConfig();
+
+            var apiInfo = new ApiInformation
+            {
+                apiKey = config.apiKey,
+                apiSecret = config.apiSecret
+            };
+
+            return apiInfo;
+        }
+
+        /// <summary>
         /// Run Trading Bot
         /// </summary>
         /// <param name="interval">Candlestick Interval</param>
         private void RunBot(Interval interval)
         {
-            TradeType tradeType = TradeType.BUY;
+            SetupRepository();
+            tradeType = TradeType.BUY;
             var currentStick = new Candlestick();
             var previousStick = new Candlestick();
-            
-            while(currentlyTrading)
+
+            if (botSettings.tradingStrategy == Strategy.PaperTrading)
+                SetPaperBalance();
+
+            while (currentlyTrading)
             {
+                Task.WaitAll(Task.Delay(botSettings.priceCheck));
                 var bbs = GetBollingerBands(interval);
-                int i = bbs.Length;
+                int i = bbs.Length - 1;
                 currentStick = bbs[i];
 
                 if (previousStick.close == 0)
                     previousStick = bbs[i];
+                var tradeMade = false;
 
-                Task.Run(async () =>
+                if(StoppedOutCheck(currentStick.close))
                 {
-                    await Task.Delay(botSettings.priceCheck);
+                    tradeType = TradeType.BUY;
+                }
 
-                    bbs = GetBollingerBands(interval);
-                    currentStick = bbs[i];
-                    var tradeMade = false;
-                    
-                    if(StoppedOutCheck(currentStick.close))
+                if (tradeType == TradeType.BUY)
+                {
+                    if (currentStick.bollingerBand.bottomBand > currentStick.close)
                     {
-                        tradeType = TradeType.BUY;
+                        BuyCrypto(currentStick.close);
+                        tradeMade = true;
                     }
-
-                    if (tradeType == TradeType.BUY)
+                }
+                else if (tradeType == TradeType.SELL)
+                {
+                    if(currentStick.bollingerBand.topBand < currentStick.close 
+                        && lastSell < currentStick.close 
+                        && GetPercent(currentStick.close) >= botSettings.sellPercent)
                     {
-                        if (currentStick.bollingerBand.bottomBand > currentStick.close)
-                        {
-                            BuyCrypto(ref tradeType, currentStick.close);
-                            tradeMade = true;
-                        }
+                        SellCrypto(currentStick.close);
+                        tradeMade = true;
                     }
-                    else if (tradeType == TradeType.SELL)
-                    {
-                        if(currentStick.bollingerBand.topBand < currentStick.close 
-                            && lastSell < currentStick.close 
-                            && GetPercent(currentStick.close) >= botSettings.sellPercent)
-                        {
-                            SellCrypto(ref tradeType, currentStick.close);
-                            tradeMade = true;
-                        }
-                    }
-                    if (tradeMade)
-                    {
-                        UpdateBalances();
-                    }
-                    previousStick = currentStick;
-                });
+                }
+                if (tradeMade)
+                {
+                    UpdateBalances();
+                }
+                previousStick = currentStick;
             }
         }
 
@@ -178,11 +316,38 @@ namespace CoinBot.Business.Builders
                 var botBalance = new BotBalance
                 {
                     symbol = balances[i].asset,
-                    quantity = balances[i].free + balances[i].locked
+                    quantity = balances[i].free + balances[i].locked,
+                    timestamp = DateTime.UtcNow
                 };
 
                 botBalances.Add(botBalance);
             }
+
+            LogBalances();
+        }
+
+        /// <summary>
+        /// Set paper balances on load
+        /// </summary>
+        private void SetPaperBalance()
+        {
+            botBalances = new List<BotBalance>();
+
+            var balances = GetPaperBalances(botSettings.startingBTC);
+
+            for (var i = 0; i < balances.Count; i++)
+            {
+                var botBalance = new BotBalance
+                {
+                    symbol = balances[i].asset,
+                    quantity = balances[i].free + balances[i].locked,
+                    timestamp = DateTime.UtcNow
+                };
+
+                botBalances.Add(botBalance);
+            }
+
+            LogBalances();
         }
 
         /// <summary>
@@ -192,7 +357,7 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean value</returns>
         private bool StoppedOutCheck(decimal currentPrice)
         {
-            if (openStopLossList.Count == 0 || currentPrice <= openStopLossList[0].price)
+            if (openStopLossList.Count == 0 || currentPrice >= openStopLossList[0].price)
                 return false;
 
             var stoppedOut = CheckTradeStatus(openStopLossList[0].orderId);
@@ -209,11 +374,10 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Buy crypto
         /// </summary>
-        /// <param name="tradeType">TradeType enum</param>
         /// <param name="orderPrice">Buy price</param>
-        private void BuyCrypto(ref TradeType tradeType, decimal orderPrice)
+        private void BuyCrypto(decimal orderPrice)
         {
-            var trade = MakeTrade(orderPrice, tradeType);
+            var trade = MakeTrade(orderPrice);
 
             bool tradeComplete = false;
             while(!tradeComplete)
@@ -222,17 +386,19 @@ namespace CoinBot.Business.Builders
             }
             lastBuy = orderPrice;
 
-            tradeInformation.Add(
-                new TradeInformation
-                {
-                    pair = _symbol,
-                    price = orderPrice,
-                    quantity = trade.origQty,
-                    tradeTime = trade.transactTime,
-                    tradeType = tradeType
-                });
+            lastTrade = new TradeInformation
+            {
+                pair = _symbol,
+                price = orderPrice,
+                quantity = trade.origQty,
+                timestamp = _dtHelper.UnixTimeToUTC(trade.transactTime),
+                tradeType = tradeType
+            };
+            tradeInformation.Add(lastTrade);
 
-            var stopLoss = PlaceStopLoss(orderPrice);
+            LogTransaction(lastTrade);
+
+            var stopLoss = PlaceStopLoss(orderPrice, trade.origQty);
 
             openStopLossList.Add(
                 new OpenStopLoss
@@ -259,15 +425,40 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Get quantity to trade based
+        /// </summary>
+        /// <param name="orderPrice">Requested trade price</param>
+        /// <returns>decimal of quantity to purchase</returns>
+        private decimal GetTradeQuantity(decimal orderPrice)
+        {
+            decimal quantity = 0;
+            if (tradeType == TradeType.BUY)
+            {
+                var pairBalance = botBalances.Where(b => b.symbol.Equals("BTC")).FirstOrDefault();
+
+                quantity = pairBalance.quantity / orderPrice;
+            }
+            else if(tradeType == TradeType.SELL)
+            {
+                var symbolBalance = botBalances.Where(b => b.symbol.Equals(_symbol)).FirstOrDefault();
+
+                quantity = symbolBalance.quantity / orderPrice;
+            }
+
+            var roundedDown = _helper.RoundDown(quantity, 2);
+
+            return roundedDown;
+        }
+
+        /// <summary>
         /// Sell crypto
         /// </summary>
-        /// <param name="tradeType">Trade type</param>
         /// <param name="orderPrice">Current price</param>
-        private void SellCrypto(ref TradeType tradeType, decimal orderPrice)
+        private void SellCrypto(decimal orderPrice)
         {
             CancelStopLoss();
 
-            var trade = MakeTrade(orderPrice, tradeType);
+            var trade = MakeTrade(orderPrice);
 
             bool tradeComplete = false;
             while (!tradeComplete)
@@ -276,15 +467,18 @@ namespace CoinBot.Business.Builders
             }
             lastSell = orderPrice;
 
-            tradeInformation.Add(
-                new TradeInformation
-                {
-                    pair = _symbol,
-                    price = orderPrice,
-                    quantity = trade.origQty,
-                    tradeTime = trade.transactTime,
-                    tradeType = tradeType
-                });
+            lastTrade = new TradeInformation
+            {
+                pair = _symbol,
+                price = orderPrice,
+                quantity = trade.origQty,
+                timestamp = _dtHelper.UnixTimeToUTC(trade.transactTime),
+                tradeType = tradeType
+            };
+
+            tradeInformation.Add(lastTrade);
+
+            LogTransaction(lastTrade);
 
             tradeType = TradeType.BUY;
         }
@@ -319,31 +513,35 @@ namespace CoinBot.Business.Builders
         /// Make a trade
         /// </summary>
         /// <param name="orderPrice">Trade price</param>
-        /// <param name="tradeType">Trade type</param>
         /// <returns>TradeResponse object</returns>
-        private TradeResponse MakeTrade(decimal orderPrice, TradeType tradeType)
+        private TradeResponse MakeTrade(decimal orderPrice)
         {
+            var quantity = GetTradeQuantity(orderPrice);
+
             var trade = new TradeParams
             {
                 price = orderPrice,
                 symbol = _symbol,
                 side = tradeType.ToString(),
                 type = OrderType.LIMIT.ToString(),
-                quantity = 0,
+                quantity = quantity,
                 timeInForce = "GTC"
             };
 
             var response = PlaceTrade(trade);
+
+            return response;
         }
 
         /// <summary>
         /// Place a stop loss
         /// </summary>
         /// <param name="orderPrice">Trade price</param>
+        /// <param name="quantity">Quantity to trade</param>
         /// <returns>TradeResponse object</returns>
-        private TradeResponse PlaceStopLoss(decimal orderPrice)
+        private TradeResponse PlaceStopLoss(decimal orderPrice, decimal quantity)
         {
-            decimal stopLossPercent = (decimal)Math.Abs(botSettings.stopLoss);
+            decimal stopLossPercent = (decimal)Math.Abs(botSettings.stopLoss)/100;
             decimal stopLossPrice = orderPrice - (orderPrice * stopLossPercent);
 
             var trade = new TradeParams
@@ -351,11 +549,14 @@ namespace CoinBot.Business.Builders
                 symbol = _symbol,
                 side = TradeType.SELL.ToString(),
                 type = OrderType.STOP_LOSS.ToString(),
-                quantity = 0,
-                stopPrice = stopLossPrice
+                quantity = quantity,
+                stopPrice = stopLossPrice,
+                price = stopLossPrice
             };
 
             var response = PlaceTrade(trade);
+
+            return response;
         }
 
         /// <summary>
@@ -383,7 +584,7 @@ namespace CoinBot.Business.Builders
         public Candlestick[] GetBollingerBands(Interval interval)
         {
             var candlesticks = GetCandlesticks(interval, candlestickCount)
-                                    .OrderByDescending(c => c.closeTime)
+                                    //.OrderBy(c => c.closeTime)
                                     .ToArray();
             
             AddBollingerBands(ref candlesticks);
@@ -447,8 +648,8 @@ namespace CoinBot.Business.Builders
         /// <returns>Dictionary of values</returns>
         private Dictionary<string, decimal> CalculateVolumeChanges(decimal curr_vol, decimal prev_vol)
         {
-            decimal vol_diff = curr_vol - prev_vol;
-            decimal vol_change = (curr_vol / prev_vol) - 1;
+            decimal vol_diff = prev_vol == 0 ? 0 : curr_vol - prev_vol;
+            decimal vol_change = prev_vol == 0 ? 0 : (curr_vol / prev_vol) - 1;
 
             return new Dictionary<string, decimal>
             {
@@ -475,7 +676,44 @@ namespace CoinBot.Business.Builders
         /// <returns>TradeResponse object</returns>
         private TradeResponse PlaceTrade(TradeParams tradeParams)
         {
-            return _repo.PostTrade(tradeParams).Result;
+            tradeNumber++;
+            if (botSettings.tradingStrategy == Strategy.LiveTrading)
+                return _repo.PostTrade(tradeParams).Result;
+            else if (botSettings.tradingStrategy == Strategy.PaperTrading)
+                return PlacePaperTrade(tradeParams);
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Place a paper trade for testing purposes
+        /// </summary>
+        /// <param name="tradeParams">Trade parameters</param>
+        /// <returns>TradeResponse object</returns>
+        private TradeResponse PlacePaperTrade(TradeParams tradeParams)
+        {
+            OrderType orderType;
+            TimeInForce TIF;
+            TradeType tradeType;
+            Enum.TryParse(tradeParams.type, out orderType);
+            Enum.TryParse(tradeParams.timeInForce, out TIF);
+            Enum.TryParse(tradeParams.side, out tradeType);
+            var response = new TradeResponse
+            {
+                clientOrderId = $"PaperTrade_{tradeNumber}",
+                executedQty = tradeParams.quantity,
+                orderId = tradeNumber,
+                origQty = tradeParams.quantity,
+                price = tradeParams.price,
+                side = tradeType,
+                status = OrderStatus.FILLED,
+                symbol = tradeParams.symbol,
+                timeInForce = TIF,
+                transactTime = _dtHelper.UTCtoUnixTime(),
+                type = orderType
+            };
+
+            return response;
         }
 
         /// <summary>
@@ -485,7 +723,31 @@ namespace CoinBot.Business.Builders
         /// <returns>TradeResponse object</returns>
         private TradeResponse CancelTrade(CancelTradeParams tradeParams)
         {
-            return _repo.DeleteTrade(tradeParams).Result;
+            if (botSettings.tradingStrategy == Strategy.LiveTrading)
+                return _repo.DeleteTrade(tradeParams).Result;
+            else if (botSettings.tradingStrategy == Strategy.PaperTrading)
+                return CancelPaperTrade(tradeParams);
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Cancel a paper trade for testing purposes
+        /// </summary>
+        /// <param name="tradeParams">Trade parameters</param>
+        /// <returns>TradeResponse object</returns>
+        private TradeResponse CancelPaperTrade(CancelTradeParams tradeParams)
+        {
+            var response = new TradeResponse
+            {
+                clientOrderId = $"PaperTrade_{tradeNumber}",
+                orderId = tradeNumber,
+                status = OrderStatus.FILLED,
+                symbol = tradeParams.symbol,
+                transactTime = _dtHelper.UTCtoUnixTime()
+            };
+
+            return response;
         }
 
         /// <summary>
@@ -495,18 +757,116 @@ namespace CoinBot.Business.Builders
         /// <returns>OrderResponse</returns>
         private OrderResponse GetOrderStatus(long orderId)
         {
-            return _repo.GetOrder(_symbol, orderId).Result;
+            if (botSettings.tradingStrategy == Strategy.LiveTrading)
+                return _repo.GetOrder(_symbol, orderId).Result;
+            else if (botSettings.tradingStrategy == Strategy.PaperTrading)
+                return GetPaperOrderStatus(orderId);
+            else
+                return null;
         }
-        
+
         /// <summary>
-        /// Get balances on exchange
+        /// Get status of a paper trade
+        /// </summary>
+        /// <param name="orderId">OrderId of trade</param>
+        /// <returns>OrderResponse</returns>
+        private OrderResponse GetPaperOrderStatus(long orderId)
+        {
+            var response = new OrderResponse
+            {
+                orderId = orderId,
+                status = OrderStatus.FILLED
+            };
+
+            return response;
+        }
+
+        /// <summary>
+        /// Get balances available
         /// </summary>
         /// <returns>Collection of balance objects</returns>
         private List<Balance> GetBalances()
         {
-            var result = _repo.GetBalance().Result;
+            var balances = new List<Balance>();
 
-            return result.balances;
+            if (botSettings.tradingStrategy == Strategy.LiveTrading)
+            {
+                var result = _repo.GetBalance().Result;
+
+                balances = result.balances;
+            }
+            else if (botSettings.tradingStrategy == Strategy.PaperTrading)
+            {
+                balances = GetPaperBalances();
+            }
+            return balances;
+        }
+
+        /// <summary>
+        /// Get paper balances available
+        /// </summary>
+        /// <returns>Collection of balance objects</returns>
+        private List<Balance> GetPaperBalances(decimal btcStartingValue = 0)
+        {
+            var balances = new List<Balance>();
+            var asset = _symbol.Replace("BTC", "");
+            decimal btcQuantity = 0;
+            decimal assetQuantity = 0;
+
+            if (btcStartingValue > 0)
+            {
+                btcQuantity = btcStartingValue;
+            }
+            else
+            {
+                if (lastTrade.tradeType == TradeType.BUY)
+                {
+                    btcQuantity = 0;
+                    assetQuantity = lastTrade.quantity;
+                }
+                else if (lastTrade.tradeType == TradeType.SELL)
+                {
+                    btcQuantity = lastTrade.quantity * lastTrade.price;
+                    assetQuantity = 0;
+                }
+            }
+
+            balances.Add(
+                new Balance
+                {
+                    asset = "BTC",
+                    free = btcQuantity,
+                    locked = 0
+                });
+
+            balances.Add(
+                new Balance
+                {
+                    asset = asset,
+                    free = assetQuantity,
+                    locked = 0
+                });
+
+            return balances;
+        }
+
+        /// <summary>
+        /// Log balances to file
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        private bool LogBalances()
+        {
+            return _fileRepo.LogBalances(botBalances);
+        }
+
+        /// <summary>
+        /// Log Trades
+        /// </summary>
+        /// <param name="tradeInformation">New TradeInformation object</param>
+        /// <returns></returns>
+        private bool LogTransaction(TradeInformation tradeInformation)
+        {
+            return _fileRepo.LogTransaction(tradeInformation);
         }
     }
 }
