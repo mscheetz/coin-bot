@@ -7,6 +7,7 @@ namespace CoinBot.Business.Entities
     public class BotBalance
     {
         public string symbol { get; set; }
-        public string quantity { get; set; }
+        public decimal quantity { get; set; }
+        public DateTime timestamp { get; set; }
     }
 }

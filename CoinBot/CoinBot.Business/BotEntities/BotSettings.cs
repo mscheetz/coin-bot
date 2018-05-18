@@ -38,5 +38,13 @@ namespace CoinBot.Business.Entities
         /// Chart interval to check
         /// </summary>
         public Interval chartInterval { get; set; }
+        /// <summary>
+        /// Start bot when service starts
+        /// </summary>
+        public bool? startBotAutomatically { get; set; }
+        /// <summary>
+        /// Paper trading starting BTC quantity
+        /// </summary>
+        public decimal startingBTC { get; set; }
     }
 }

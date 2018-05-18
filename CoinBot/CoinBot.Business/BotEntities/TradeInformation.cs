@@ -10,6 +10,6 @@ namespace CoinBot.Business.Entities
         public TradeType tradeType { get; set; }
         public decimal price { get; set; }
         public decimal quantity { get; set; }
-        public long tradeTime { get; set; }
+        public DateTime timestamp { get; set; }
     }
 }

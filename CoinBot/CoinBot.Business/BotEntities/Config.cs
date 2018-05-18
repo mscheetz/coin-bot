@@ -4,10 +4,10 @@ using System.Text;
 
 namespace CoinBot.Business.Entities
 {
-    public class ApiInformation
+    public class BotConfig
     {
+        public string privateToken { get; set; }
         public string apiKey { get; set; }
         public string apiSecret { get; set; }
-        public string extraValue { get; set; }
     }
 }

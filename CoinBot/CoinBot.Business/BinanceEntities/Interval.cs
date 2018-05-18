@@ -7,6 +7,7 @@ namespace CoinBot.Business.Entities
 {
     public enum Interval
     {
+        None,
         [Description("1m")]
         OneM,
         [Description("3m")]

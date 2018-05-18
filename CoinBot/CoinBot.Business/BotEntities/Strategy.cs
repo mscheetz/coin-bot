@@ -6,7 +6,8 @@ namespace CoinBot.Business.Entities
 {
     public enum Strategy
     {
-        BollingerBands,
-        Percentages
+        None,
+        LiveTrading,
+        PaperTrading
     }
 }
