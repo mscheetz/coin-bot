@@ -28,6 +28,19 @@ namespace CoinBot.Data
         }
 
         /// <summary>
+        /// Check if the Exchange Repository is ready for trading
+        /// </summary>
+        /// <returns>Boolean of validation</returns>
+        public bool ValidateExchangeConfigured()
+        {
+            var ready = string.IsNullOrEmpty(_apiInfo.apiKey) ? false : true;
+            if (!ready)
+                return false;
+
+            return string.IsNullOrEmpty(_apiInfo.apiSecret) ? false : true;
+        }
+
+        /// <summary>
         /// Set ApiInformation for repository
         /// </summary>
         /// <param name="apiInfo">ApiInformation object</param>
@@ -151,7 +164,7 @@ namespace CoinBot.Data
         /// <returns>Array of Candlestick objects</returns>
         public async Task<Candlestick[]> GetCandlestick(string symbol, Interval interval, int limit = 500)
         {
-            var intervalDescription = Core.Helper.GetEnumDescription((Interval)interval);
+            var intervalDescription = EnumHelper.GetEnumDescription((Interval)interval);
 
             var queryString = new List<string>
             {

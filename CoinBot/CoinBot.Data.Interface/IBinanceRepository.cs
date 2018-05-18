@@ -9,11 +9,17 @@ namespace CoinBot.Data.Interface
     public interface IBinanceRepository
     {
         /// <summary>
+        /// Check if the Exchange Repository is ready for trading
+        /// </summary>
+        /// <returns>Boolean of validation</returns>
+        bool ValidateExchangeConfigured();
+
+        /// <summary>
         /// Set ApiInformation for repository
         /// </summary>
         /// <param name="apiInfo">ApiInformation object</param>
         /// <returns>Boolean when complete</returns>
-         bool SetExchangeApi(ApiInformation apiInfo);
+        bool SetExchangeApi(ApiInformation apiInfo);
 
         /// <summary>
         /// Get Transactions for account
