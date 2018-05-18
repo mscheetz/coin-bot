@@ -3,44 +3,56 @@ using CoinBot.Business.Builders.Interface;
 using CoinBot.Business.Entities;
 using CoinBot.Data;
 using CoinBot.Data.Interface;
+using Moq;
 using System;
 using Xunit;
 
 namespace CoinBot.Business.Builders.Tests
 {
-    public class TradingBuilderTests
+    public class TradingBuilderTests : IDisposable
     {
         private ITradingBuilder _bldr;
         private IBinanceRepository _repo;
+        private Mock<IFileRepository> _fileRepo;
+        private BotSettings _settings;
+        private BotConfig _botConfig;
 
-        //public TradingBuilderTests()
-        //{
-        //    _repo = new BinanceRepository();
-        //    _bldr = new TradingBuilder(_repo);
-        //}
-
-        [Fact]
-        public void BollingerBands_OneDay_Test()
+        public TradingBuilderTests()
         {
-            var symbol = "ICXBTC";
-            var interval = Interval.OneD;
-            _repo = new BinanceRepository();
-            _bldr = new TradingBuilder(_repo);
+            _fileRepo = new Mock<IFileRepository>();
+            _settings = new BotSettings
+            {
+                stopLoss = 2,
+                sellPercent = 1,
+                chartInterval = Interval.OneM,
+                tradingPair = "XRPBTC",
+                startBotAutomatically = false
+            };
+            _botConfig = new BotConfig
+            {
+                apiKey = It.IsAny<string>(),
+                apiSecret = It.IsAny<string>(),
+                privateToken = It.IsAny<string>()
+            };
+        }
 
-            var BBs = _bldr.GetBollingerBands(symbol, interval);
+        public void Dispose()
+        {
 
-            Assert.NotNull(BBs);
         }
 
         [Fact]
         public void BollingerBands_OneMin_Test()
         {
-            var symbol = "AIONBTC";
             var interval = Interval.OneM;
+            _settings.chartInterval = interval;
+            _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
+            _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
             _repo = new BinanceRepository();
-            _bldr = new TradingBuilder(_repo);
+            _bldr = new TradingBuilder(_repo, _fileRepo.Object);
+            _bldr.SetBotSettings(_settings);
 
-            var BBs = _bldr.GetBollingerBands(symbol, interval);
+            var BBs = _bldr.GetBollingerBands(interval);
 
             Assert.NotNull(BBs);
         }
@@ -48,12 +60,31 @@ namespace CoinBot.Business.Builders.Tests
         [Fact]
         public void BollingerBands_FiveMin_Test()
         {
-            var symbol = "ICXBTC";
             var interval = Interval.FiveM;
+            _settings.chartInterval = interval;
+            _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
+            _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
             _repo = new BinanceRepository();
-            _bldr = new TradingBuilder(_repo);
+            _bldr = new TradingBuilder(_repo, _fileRepo.Object);
+            _bldr.SetBotSettings(_settings);
 
-            var BBs = _bldr.GetBollingerBands(symbol, interval);
+            var BBs = _bldr.GetBollingerBands(interval);
+
+            Assert.NotNull(BBs);
+        }
+
+        [Fact]
+        public void BollingerBands_OneDay_Test()
+        {
+            var interval = Interval.OneD;
+            _settings.chartInterval = interval;
+            _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
+            _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
+            _repo = new BinanceRepository();
+            _bldr = new TradingBuilder(_repo, _fileRepo.Object);
+            _bldr.SetBotSettings(_settings);
+
+            var BBs = _bldr.GetBollingerBands(interval);
 
             Assert.NotNull(BBs);
         }

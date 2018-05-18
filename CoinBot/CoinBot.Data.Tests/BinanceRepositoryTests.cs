@@ -16,8 +16,6 @@ namespace CoinBot.Data.Tests
             {
                 apiKey = "",
                 apiSecret = "",
-                apiSource = "Binance",
-                lastUpdate = DateTime.UtcNow
             };
         }
 
