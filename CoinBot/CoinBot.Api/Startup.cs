@@ -34,7 +34,9 @@ namespace CoinBot.Api
 
             services.AddScoped<IBinanceRepository, BinanceRepository>();
             services.AddScoped<IFileRepository, FileRepository>();
-            services.AddTransient<ITradingBuilder, TradingBuilder>();
+            services.AddTransient<IBollingerBandTradeBuilder, BollingerBandTradeBuilder>();
+            services.AddTransient<IPercentageTradeBuilder, PercentageTradeBuilder>();
+            services.AddTransient<ITradeBuilder, TradeBuilder>();
             services.AddTransient<ICoinBotService, CoinBotManager>();
 
             services.AddSwaggerGen(c =>

@@ -1,12 +1,14 @@
 ﻿{
-  "tradingPair": "ENGBTC",
-  "tradingStrategy": "PaperTrading",
-  "buyPercent": 0.0,
-  "sellPercent": 1.0,
-  "stopLoss": 2.0,
+  "tradingPair": "BTCUSDT",
+  "tradingStrategy": "Percentage",
+  "tradingStatus": "PaperTrading",
+  "buyPercent": 0.5,
+  "sellPercent": 0.5,
+  "stopLoss": 1.0,
   "tradePercent": 100.0,
   "priceCheck": 5000,
-  "chartInterval": "FiveM",
+  "chartInterval": "OneM",
   "startBotAutomatically": true,
-  "startingBTC": 0.05
+  "startingAmount": 200,
+  "mooningTankingTime": 500
 }

@@ -17,6 +17,16 @@ namespace CoinBot.Api.Controllers
         }
 
         /// <summary>
+        /// Check if service is running
+        /// </summary>
+        /// GET: api/coinbot/status
+        [HttpGet("status")]
+        public bool Status()
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Update bot settings
         /// </summary>
         /// <param name="botSettings">New bot settings</param>
@@ -36,7 +46,7 @@ namespace CoinBot.Api.Controllers
         [HttpGet("start")]
         public bool StartBot()
         {
-            return _service.StartBot(Interval.FiveM);
+            return _service.StartBot(Interval.OneM);
         }
 
         /// <summary>
@@ -91,6 +101,18 @@ namespace CoinBot.Api.Controllers
         public IEnumerable<BotBalance> GetBalanceHistory()
         {
             return _service.GetBalanceHistory();
+        }
+
+        /// <summary>
+        /// Get Stop losses
+        /// </summary>
+        /// <returns>Collection of OpenStopLoss objects</returns>
+        /// GET: api/coinbot/stoploss
+        [HttpGet("stoploss")]
+
+        public IEnumerable<OpenStopLoss> GetStopLoss()
+        {
+            return _service.GetStopLosses();
         }
     }
 }
