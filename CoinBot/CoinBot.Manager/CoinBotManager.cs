@@ -10,12 +10,20 @@ namespace CoinBot.Manager
 {
     public class CoinBotManager : ICoinBotService
     {
-        private ITradingBuilder _tradingBuilder;
+        private IBollingerBandTradeBuilder _bollingerBuilder;
+        private IPercentageTradeBuilder _percentageBuilder;
+        private ITradeBuilder _tradeBuilder;
         private Balance _balance;
+        private BotSettings _botSettings;
 
-        public CoinBotManager(ITradingBuilder tradingBuilder)
+        public CoinBotManager(IBollingerBandTradeBuilder bollingerBuilder,
+                              IPercentageTradeBuilder percentageBuilder,
+                              ITradeBuilder tradeBuilder)
         {
-            this._tradingBuilder = tradingBuilder;
+            this._bollingerBuilder = bollingerBuilder;
+            this._percentageBuilder = percentageBuilder;
+            this._tradeBuilder = tradeBuilder;
+            _botSettings = _tradeBuilder.GetBotSettings();
         }
 
         /// <summary>
@@ -26,7 +34,8 @@ namespace CoinBot.Manager
         public bool UpdateBotSettings(BotSettings botSettings)
         {
             ServiceReady();
-            var result = _tradingBuilder.SetBotSettings(botSettings);
+            var result = _tradeBuilder.SetBotSettings(botSettings);
+            _botSettings = _tradeBuilder.GetBotSettings();
 
             return result;
         }
@@ -38,7 +47,10 @@ namespace CoinBot.Manager
         public bool StartBot(Interval interval)
         {
             ServiceReady();
-            _tradingBuilder.StartTrading(interval);
+            if (_botSettings.tradingStrategy == Strategy.BollingerBands)
+                _bollingerBuilder.StartTrading(interval);
+            else if (_botSettings.tradingStrategy == Strategy.Percentage)
+                _percentageBuilder.StartTrading(interval);
 
             return true;
         }
@@ -49,7 +61,10 @@ namespace CoinBot.Manager
         public bool StopBot()
         {
             ServiceReady();
-            _tradingBuilder.StopTrading();
+            if (_botSettings.tradingStrategy == Strategy.BollingerBands)
+                _bollingerBuilder.StopTrading();
+            else if (_botSettings.tradingStrategy == Strategy.Percentage)
+                _bollingerBuilder.StopTrading();
 
             return true;
         }
@@ -61,7 +76,7 @@ namespace CoinBot.Manager
         public IEnumerable<TradeInformation> GetTransactionHistory()
         {
             ServiceReady();
-            return _tradingBuilder.GetTradeHistory();
+            return _tradeBuilder.GetTradeHistory();
         }
 
         /// <summary>
@@ -71,7 +86,7 @@ namespace CoinBot.Manager
         public BotBalance GetBalance()
         {
             ServiceReady();
-            return _tradingBuilder.GetBalance();
+            return _tradeBuilder.GetBalance();
         }
 
         /// <summary>
@@ -81,17 +96,27 @@ namespace CoinBot.Manager
         public IEnumerable<BotBalance> GetBalanceHistory()
         {
             ServiceReady();
-            return _tradingBuilder.GetBalanceHistory();
+            return _tradeBuilder.GetBalanceHistory();
+        }
+
+        /// <summary>
+        /// Get all open stop losses
+        /// </summary>
+        /// <returns>Collection of OpenStopLoss</returns>
+        public IEnumerable<OpenStopLoss> GetStopLosses()
+        {
+            ServiceReady();
+            return _tradeBuilder.GetStopLosses();
         }
 
         private void ServiceReady()
         {
-            if(!_tradingBuilder.ConfigFileExits())
+            if(!_tradeBuilder.ConfigFileExits())
             {
                 throw new Exception("No Configuration file exists!");
             }
 
-            if (!_tradingBuilder.SettingsFileExists())
+            if (!_tradeBuilder.SettingsFileExists())
             {
                 throw new Exception("No BotSettings file exists!");
             }

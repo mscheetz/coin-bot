@@ -41,5 +41,11 @@ namespace CoinBot.Service
         /// </summary>
         /// <returns>Collection of BotBalance objects</returns>
         IEnumerable<BotBalance> GetBalanceHistory();
+        
+        /// <summary>
+        /// Get all open stop losses
+        /// </summary>
+        /// <returns>Collection of OpenStopLoss</returns>
+        IEnumerable<OpenStopLoss> GetStopLosses();
     }
 }
