@@ -9,15 +9,15 @@ using Xunit;
 
 namespace CoinBot.Business.Builders.Tests
 {
-    public class TradingBuilderTests : IDisposable
+    public class BollingerBandTradeBuilderTests : IDisposable
     {
-        private ITradingBuilder _bldr;
+        private IBollingerBandTradeBuilder _bldr;
         private IBinanceRepository _repo;
         private Mock<IFileRepository> _fileRepo;
         private BotSettings _settings;
         private BotConfig _botConfig;
 
-        public TradingBuilderTests()
+        public BollingerBandTradeBuilderTests()
         {
             _fileRepo = new Mock<IFileRepository>();
             _settings = new BotSettings
@@ -49,7 +49,7 @@ namespace CoinBot.Business.Builders.Tests
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
             _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
             _repo = new BinanceRepository();
-            _bldr = new TradingBuilder(_repo, _fileRepo.Object);
+            _bldr = new BollingerBandTradeBuilder(_repo, _fileRepo.Object);
             _bldr.SetBotSettings(_settings);
 
             var BBs = _bldr.GetBollingerBands(interval);
@@ -65,7 +65,7 @@ namespace CoinBot.Business.Builders.Tests
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
             _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
             _repo = new BinanceRepository();
-            _bldr = new TradingBuilder(_repo, _fileRepo.Object);
+            _bldr = new BollingerBandTradeBuilder(_repo, _fileRepo.Object);
             _bldr.SetBotSettings(_settings);
 
             var BBs = _bldr.GetBollingerBands(interval);
@@ -81,7 +81,7 @@ namespace CoinBot.Business.Builders.Tests
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
             _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
             _repo = new BinanceRepository();
-            _bldr = new TradingBuilder(_repo, _fileRepo.Object);
+            _bldr = new BollingerBandTradeBuilder(_repo, _fileRepo.Object);
             _bldr.SetBotSettings(_settings);
 
             var BBs = _bldr.GetBollingerBands(interval);
