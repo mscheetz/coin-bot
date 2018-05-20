@@ -4,20 +4,8 @@ using System.Collections.Generic;
 
 namespace CoinBot.Business.Builders.Interface
 {
-    public interface ITradingBuilder
+    public interface IBollingerBandTradeBuilder
     {
-        /// <summary>
-        /// Check if config file exists
-        /// </summary>
-        /// <returns>Boolean of result</returns>
-        bool ConfigFileExits();
-
-        /// <summary>
-        /// Check if settings file exists
-        /// </summary>
-        /// <returns>Boolean of result</returns>
-        bool SettingsFileExists();
-
         /// <summary>
         /// Set BotSettings in builder
         /// </summary>
@@ -48,23 +36,5 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="interval">Candlestick interval</param>
         /// <returns>Array of Candlesticks</returns>
         Candlestick[] GetBollingerBands(Interval interval);
-        
-        /// <summary>
-        /// Get all transactions
-        /// </summary>
-        /// <returns>Collection of TradeInformation</returns>
-        IEnumerable<TradeInformation> GetTradeHistory();
-
-        /// <summary>
-        /// Get current balance
-        /// </summary>
-        /// <returns>BotBalance object</returns>
-        BotBalance GetBalance();
-
-        /// <summary>
-        /// Get Balance history
-        /// </summary>
-        /// <returns>Collection of BotBalance objects</returns>
-        IEnumerable<BotBalance> GetBalanceHistory();
     }
 }
