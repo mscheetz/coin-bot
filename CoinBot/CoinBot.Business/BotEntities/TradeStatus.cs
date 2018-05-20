@@ -4,10 +4,10 @@ using System.Text;
 
 namespace CoinBot.Business.Entities
 {
-    public enum Strategy
+    public enum TradeStatus
     {
         None,
-        BollingerBands,
-        Percentage
+        LiveTrading,
+        PaperTrading
     }
 }

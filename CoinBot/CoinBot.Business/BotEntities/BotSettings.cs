@@ -15,6 +15,10 @@ namespace CoinBot.Business.Entities
         /// </summary>
         public Strategy tradingStrategy { get; set; }
         /// <summary>
+        /// Trading strategy
+        /// </summary>
+        public TradeStatus tradingStatus { get; set; }
+        /// <summary>
         /// Buy Percent change from previous sell
         /// </summary>
         public double buyPercent { get; set; }
@@ -45,6 +49,10 @@ namespace CoinBot.Business.Entities
         /// <summary>
         /// Paper trading starting BTC quantity
         /// </summary>
-        public decimal startingBTC { get; set; }
+        public decimal startingAmount { get; set; }
+        /// <summary>
+        /// Mooning and Tanking timer for checking next candlestick
+        /// </summary>
+        public int mooningTankingTime { get; set; }
     }
 }
