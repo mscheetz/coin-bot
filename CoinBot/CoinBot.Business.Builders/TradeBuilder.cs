@@ -462,11 +462,11 @@ namespace CoinBot.Business.Builders
         /// Check if Stop Loss Hit
         /// </summary>
         /// <param name="currentPrice">Current price of coin</param>
-        /// <returns>Boolean value</returns>
-        public bool StoppedOutCheck(decimal currentPrice)
+        /// <returns>Nullable decimal value of stop loss</returns>
+        public decimal? StoppedOutCheck(decimal currentPrice)
         {
             if (_openStopLossList.Count == 0 || currentPrice >= _openStopLossList[0].price)
-                return false;
+                return null;
 
             var stoppedOut = CheckTradeStatus(_openStopLossList[0].orderId);
 
@@ -476,7 +476,7 @@ namespace CoinBot.Business.Builders
                 _openStopLossList.RemoveAt(0);
             }
 
-            return stoppedOut;
+            return _lastSell;
         }
 
         /// <summary>

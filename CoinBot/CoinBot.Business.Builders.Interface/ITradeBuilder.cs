@@ -123,8 +123,8 @@ namespace CoinBot.Business.Builders.Interface
         /// Check if Stop Loss Hit
         /// </summary>
         /// <param name="currentPrice">Current price of coin</param>
-        /// <returns>Boolean value</returns>
-        bool StoppedOutCheck(decimal currentPrice);
+        /// <returns>Nullable decimal value of stop loss</returns>
+        decimal? StoppedOutCheck(decimal currentPrice);
 
         /// <summary>
         /// Buy crypto

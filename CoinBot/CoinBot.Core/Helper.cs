@@ -28,7 +28,7 @@ namespace CoinBot.Core
         /// <returns>Double of percent difference</returns>
         public double GetBuyPercent(decimal currentPrice, decimal lastSell)
         {
-            return GetPercent(currentPrice, lastSell);
+            return GetPercent(lastSell, currentPrice);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace CoinBot.Core
         /// <returns>Double of percent difference</returns>
         public double GetSellPercent(decimal currentPrice, decimal lastBuy)
         {
-            return GetPercent(lastBuy, currentPrice);
+            return GetPercent(currentPrice, lastBuy);
         }
 
         /// <summary>
