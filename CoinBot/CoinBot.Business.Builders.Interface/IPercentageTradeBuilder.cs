@@ -30,8 +30,9 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <param name="interval">Candlestick Interval</param>
         /// <param name="cycles">Int of cycles to run (default -1, run infinitely)</param>
+        /// <param name="tradingStatus">Bool of trading status (default null, use setting)</param>
         /// <returns>Boolean when complete</returns>
-        bool RunBot(Interval interval, int cycles = -1, bool currentlyTrading = false);
+        bool RunBot(Interval interval, int cycles = -1, bool? tradingStatus = null);
 
         /// <summary>
         /// Check if buy percent has been reached

@@ -118,13 +118,15 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="interval">Candlestick Interval</param>
         /// <param name="cycles">Int of cycles to run (default -1, run infinitely)</param>
+        /// <param name="tradingStatus">Bool of trading status (default null, use setting)</param>
         /// <returns>Boolean when complete</returns>
-        public bool RunBot(Interval interval, int cycles = -1, bool currentlyTrading = false)
+        public bool RunBot(Interval interval, int cycles = -1, bool? tradingStatus = null)
         {
             _trader.SetupRepository();
             _tradeType = TradeType.BUY;
             var currentStick = new Candlestick();
             var previousStick = new Candlestick();
+            bool currentlyTrading = tradingStatus != null ? (bool)tradingStatus : _currentlyTrading;
 
             if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
                 _trader.SetPaperBalance();
@@ -227,7 +229,7 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean of result</returns>
         public bool BuyPercentReached(decimal currentPrice)
         {
-            var percent = _helper.GetBuyPercent(currentPrice, _lastSell);
+            var percent = _helper.GetBuyPercent(currentPrice, _lastSell) * 100;
 
             return percent >= _botSettings.buyPercent;
         }
@@ -239,7 +241,7 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean of result</returns>
         public bool SellPercentReached(decimal currentPrice)
         {
-            var percent = _helper.GetSellPercent(currentPrice, _lastBuy);
+            var percent = _helper.GetSellPercent(currentPrice, _lastBuy) * 100;
 
             return percent >= _botSettings.sellPercent;
         }
