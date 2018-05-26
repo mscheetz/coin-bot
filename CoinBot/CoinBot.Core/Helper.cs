@@ -50,7 +50,11 @@ namespace CoinBot.Core
         /// <returns>double of percent difference</returns>
         public double GetPercent(decimal priceA, decimal priceB)
         {
-            return priceB == 0 ? 0 : (double)(priceA / priceB) - 1;
+            var A = priceA;
+            var B = priceB;
+            var C = B == 0 ? 0 : (double)(A / B) - 1;
+
+            return C;
         }
 
         /// <summary>

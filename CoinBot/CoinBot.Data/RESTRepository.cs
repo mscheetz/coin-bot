@@ -37,8 +37,15 @@ namespace CoinBot.Data
                 var response = await client.GetAsync(url);
 
                 string responseMessage = await response.Content.ReadAsStringAsync();
-
-                return JsonConvert.DeserializeObject<T>(responseMessage);
+                
+                try
+                {
+                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                }
+                catch
+                {
+                    return default(T);
+                }
             }
         }
 
@@ -75,7 +82,14 @@ namespace CoinBot.Data
                     responseMessage = sb.ToString();
                 }
 
-                return JsonConvert.DeserializeObject<T>(responseMessage);
+                try
+                {
+                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                }
+                catch
+                {
+                    return default(T);
+                }
             }
         }
 
@@ -106,7 +120,14 @@ namespace CoinBot.Data
 
                 string responseMessage = await response.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<T>(responseMessage);
+                try
+                {
+                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                }
+                catch
+                {
+                    return default(T);
+                }
             }
         }
 
@@ -133,7 +154,14 @@ namespace CoinBot.Data
 
                 string responseMessage = await response.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<T>(responseMessage);
+                try
+                {
+                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                }
+                catch
+                {
+                    return default(T);
+                }
             }
         }
     }

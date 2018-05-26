@@ -69,6 +69,17 @@ namespace CoinBot.Business.Builders
         /// Constructor for unit tests
         /// </summary>
         /// <param name="repo">Repository interface</param>
+        public TradeBuilder(IFileRepository fileRepo, IBinanceRepository binanceRepo)
+        {
+            _fileRepo = fileRepo;
+            _binanceRepo = binanceRepo;
+            SetupBuilder();
+        }
+
+        /// <summary>
+        /// Constructor for unit tests
+        /// </summary>
+        /// <param name="repo">Repository interface</param>
         public TradeBuilder(IFileRepository fileRepo, IBinanceRepository binanceRepo, List<BotBalance> botBalanceList)
         {
             _fileRepo = fileRepo;
@@ -295,7 +306,7 @@ namespace CoinBot.Business.Builders
                 }
                 else if (_lastTradeType == TradeType.SELL)
                 {
-                    pairQuantity = _lastQty * _lastPrice;
+                    pairQuantity = _lastQty;
                     assetQuantity = 0;
                 }
             }
@@ -373,7 +384,14 @@ namespace CoinBot.Business.Builders
         /// <returns>Array of Candlestick objects</returns>
         public Candlestick[] GetCandlesticks(string symbol, Interval interval, int range)
         {
-            return _binanceRepo.GetCandlestick(symbol, interval, range).Result;
+            var candleSticks = _binanceRepo.GetCandlestick(symbol, interval, range).Result;
+
+            while(candleSticks == null)
+            {
+                candleSticks = GetCandlesticks(symbol, interval, range);
+            }
+
+            return candleSticks;
         }
 
         /// <summary>
@@ -589,9 +607,9 @@ namespace CoinBot.Business.Builders
             }
             else if (tradeType == TradeType.SELL)
             {
-                var symbolBalance = _botBalances.Where(b => b.symbol.Equals(_symbol)).FirstOrDefault();
+                var symbolBalance = _botBalances.Where(b => b.symbol.Equals(_asset)).FirstOrDefault();
 
-                quantity = symbolBalance.quantity / orderPrice;
+                quantity = symbolBalance.quantity * orderPrice;
             }
             
             var roundedDown = _helper.RoundDown(quantity, 6);
@@ -647,6 +665,9 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean value when complete</returns>
         public bool CancelStopLoss()
         {
+            if (_openStopLossList == null || _openStopLossList.Count == 0)
+                return true;
+
             var tradeParams = new CancelTradeParams
             {
                 symbol = _symbol,

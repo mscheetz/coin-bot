@@ -4,11 +4,11 @@
   "tradingStatus": "PaperTrading",
   "buyPercent": 0.5,
   "sellPercent": 0.5,
-  "stopLoss": 1.0,
+  "stopLoss": 1.2,
   "tradePercent": 100.0,
-  "priceCheck": 5000,
+  "priceCheck": 2000,
   "chartInterval": "OneM",
-  "startBotAutomatically": true,
+  "startBotAutomatically": false,
   "startingAmount": 200,
-  "mooningTankingTime": 500
+  "mooningTankingTime": 2000
 }
