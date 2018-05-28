@@ -19,10 +19,12 @@ namespace CoinBot.Business.Builders
         private BotSettings _botSettings;
         private string _symbol;
         private bool _currentlyTrading;
+        private TradeType _lastTrade;
         private TradeType _tradeType;
         private decimal _lastBuy = 0.00000000M;
         private decimal _lastSell = 0.00000000M;
         private int _tradeNumber = 0;
+        private decimal _lastVolume = 0.00000000M;
 
         /// <summary>
         /// Constructor
@@ -73,6 +75,7 @@ namespace CoinBot.Business.Builders
         private void SetupBuilder()
         {
             _trader = new TradeBuilder();
+            _lastTrade = TradeType.NONE;
             SetBotSettings(_trader.GetBotSettings());
             //if (botSettings.tradingStrategy == Strategy.Percentage)
             //    RunBot(Interval.FiveM);
@@ -169,12 +172,13 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean if trade made</returns>
         private bool SellCryptoCheck(Candlestick candleStick)
         {
-            if (SellPercentReached(candleStick.close)
-                && MooningAndTankingCheck(candleStick))
+            var tradeType = MooningAndTankingCheck(candleStick, TradeType.SELL);
+            if (tradeType != TradeType.NONE)
             {
-                _trader.SellCrypto(candleStick.close);
+                _trader.SellCrypto(candleStick.close, tradeType);
                 _lastSell = candleStick.close;
                 _tradeType = TradeType.BUY;
+                _lastTrade = tradeType;
                 _tradeNumber++;
                 return true;
             }
@@ -191,13 +195,16 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean if trade made</returns>
         private bool BuyCryptoCheck(Candlestick candleStick)
         {
-            if ((BuyPercentReached(candleStick.close)
-                && MooningAndTankingCheck(candleStick))
-                || _tradeNumber == 0)
+            var tradeType = MooningAndTankingCheck(candleStick, TradeType.BUY);
+            if (tradeType != TradeType.NONE || _tradeNumber == 0)
             {
-                _trader.BuyCrypto(candleStick.close);
+                if (_tradeNumber == 0)
+                    tradeType = TradeType.BUY;
+
+                _trader.BuyCrypto(candleStick.close, tradeType);
                 _lastBuy = candleStick.close;
                 _tradeType = TradeType.SELL;
+                _lastTrade = tradeType;
                 _tradeNumber++;
                 return true;
             }
@@ -218,6 +225,7 @@ namespace CoinBot.Business.Builders
             {
                 _lastSell = (decimal)stoppedOut;
                 _tradeType = TradeType.BUY;
+                _lastTrade = TradeType.STOPLOSS;
                 _tradeNumber++;
             }
         }
@@ -250,58 +258,101 @@ namespace CoinBot.Business.Builders
         /// Check if mooning or tanking
         /// </summary>
         /// <param name="candleStick">Current trading stick</param>
-        /// <returns>Boolean of result</returns>
-        public bool MooningAndTankingCheck(Candlestick candleStick)
+        /// <param name="tradeType">Trade Type</param>
+        /// <returns>TradeType of result</returns>
+        public TradeType MooningAndTankingCheck(Candlestick candleStick, TradeType tradeType)
         {
             if(_botSettings.mooningTankingTime == 0)
             {
-                return true;
+                return tradeType;
             }
 
-            var nextStick = GetNextCandlestick();
+            _lastVolume = candleStick.volume;
+
+            var latestStick = GetNextCandlestick();
+
+            var volumePercentChange = _helper.GetPercent(_lastVolume, latestStick.volume) * 100;
 
             if(_tradeType == TradeType.BUY)
             {
-                var buyPercentReached = BuyPercentReached(nextStick.close);
-                if (candleStick.close > nextStick.close 
+                var buyPercentReached = BuyPercentReached(latestStick.close);
+
+                if (candleStick.close > latestStick.close 
                     && buyPercentReached)
                 {
                     // If current price is less than the previous check 
                     //  (price is dropping)
                     // and buy percent reached
                     // keep checking if dropping more
-                    MooningAndTankingCheck(nextStick);
+                    MooningAndTankingCheck(latestStick, tradeType);
                 }
                 else
                 {
-                    // Else if not dropping in price from previous check
-                    // or buy percent not reached
-                    // return buy percent reached
-                    return buyPercentReached;
+                    if (_lastTrade == TradeType.VOLUMESELL
+                        && candleStick.close < latestStick.close
+                        && _lastSell > latestStick.close)
+                    {
+                        // If last buy was because of volume and current stick is greater than last,
+                        // but less than last sell, probably reached ATL: BUY
+                        return TradeType.VOLUMEBUY;
+                    }
+                    else if (volumePercentChange > _botSettings.mooningTankingPercent 
+                        && candleStick.close < latestStick.close)
+                    {
+                        // If volume increased more than 20% and Latest close is greater than previous close
+                        // Probably a mini-moon: BUY
+                        return TradeType.VOLUMEBUY;
+                    }
+                    else
+                    {
+                        // Else if not dropping in price from previous check
+                        // or buy percent not reached
+                        // return buy percent reached
+                        return buyPercentReached ? TradeType.BUY : TradeType.NONE;
+                    }
                 }
             }
             else
             {
-                var sellPercentReached = SellPercentReached(nextStick.close);
-                if (candleStick.close < nextStick.close
+                var sellPercentReached = SellPercentReached(latestStick.close);
+
+                if (candleStick.close < latestStick.close
                     && sellPercentReached)
                 {
                     // If current price is greater than the previous check 
                     //  (price is increasing)
                     // and sell percent reached
                     // keep checking if increasing more
-                    MooningAndTankingCheck(nextStick);
+                    MooningAndTankingCheck(latestStick, tradeType);
                 }
                 else
                 {
-                    // Else if not increasing in price from previous check
-                    // or sell percent not reached
-                    // return sell percent reached
-                    return sellPercentReached;
+                    if(_lastTrade == TradeType.VOLUMEBUY 
+                        && candleStick.close > latestStick.close 
+                        && _lastBuy < latestStick.close)
+                    {
+                        // If last buy was because of volume and current stick is less than last,
+                        // but greater than last buy, probably reached ATH: SELL
+                        return TradeType.VOLUMESELL;
+                    }
+                    else if (volumePercentChange > _botSettings.mooningTankingPercent 
+                        && candleStick.close > latestStick.close)
+                    {
+                        // If volume increased more than 20% and Latest close is less than previous close
+                        // Probably a sell off: Sell
+                        return TradeType.VOLUMESELL;
+                    }
+                    else
+                    {
+                        // Else if not increasing in price from previous check
+                        // or sell percent not reached
+                        // return sell percent reached
+                        return sellPercentReached ? TradeType.SELL : TradeType.NONE;
+                    }
                 }
             }
 
-            return true;
+            return tradeType;
         }
 
         /// <summary>

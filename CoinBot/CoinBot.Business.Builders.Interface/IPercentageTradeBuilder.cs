@@ -52,7 +52,8 @@ namespace CoinBot.Business.Builders.Interface
         /// Check if mooning or tanking
         /// </summary>
         /// <param name="candleStick">Current trading stick</param>
-        /// <returns>Boolean of result</returns>
-        bool MooningAndTankingCheck(Candlestick candleStick);
+        /// <param name="tradeType">Trade Type</param>
+        /// <returns>TradeType of result</returns>
+        TradeType MooningAndTankingCheck(Candlestick candleStick, TradeType tradeType);
     }
 }
