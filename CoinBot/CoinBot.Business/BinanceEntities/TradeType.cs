@@ -7,9 +7,17 @@ namespace CoinBot.Business.Entities
 {
     public enum TradeType
     {
+        [Description("NONE")]
+        NONE,
         [Description("BUY")]
         BUY,
+        [Description("VOLUMEBUY")]
+        VOLUMEBUY,
         [Description("SELL")]
-        SELL
+        SELL,
+        [Description("VOLUMESELL")]
+        VOLUMESELL,
+        [Description("STOPLOSS")]
+        STOPLOSS
     }
 }
