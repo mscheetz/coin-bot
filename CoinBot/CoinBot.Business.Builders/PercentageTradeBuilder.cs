@@ -292,9 +292,9 @@ namespace CoinBot.Business.Builders
                         && candleStick.close < latestStick.close
                         && _lastSell > latestStick.close)
                     {
-                        // If last buy was because of volume and current stick is greater than last,
-                        // but less than last sell, probably reached ATL: BUY
-                        return TradeType.VOLUMEBUY;
+                        // If last trade was volume sell and current stick is greater than last,
+                        // but less than last sell, probably reached ATL: BUY volume sell
+                        return TradeType.VOLUMESELLBUYOFF;
                     }
                     else if (volumePercentChange > _botSettings.mooningTankingPercent 
                         && candleStick.close < latestStick.close)
@@ -331,9 +331,9 @@ namespace CoinBot.Business.Builders
                         && candleStick.close > latestStick.close 
                         && _lastBuy < latestStick.close)
                     {
-                        // If last buy was because of volume and current stick is less than last,
-                        // but greater than last buy, probably reached ATH: SELL
-                        return TradeType.VOLUMESELL;
+                        // If last trade was volume buy and current stick is less than last,
+                        // but greater than last buy, probably reached ATH: SELL volume buy
+                        return TradeType.VOLUMEBUYSELLOFF;
                     }
                     else if (volumePercentChange > _botSettings.mooningTankingPercent 
                         && candleStick.close > latestStick.close)
