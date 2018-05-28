@@ -2,13 +2,14 @@
   "tradingPair": "BTCUSDT",
   "tradingStrategy": "Percentage",
   "tradingStatus": "PaperTrading",
-  "buyPercent": 0.5,
-  "sellPercent": 0.5,
+  "buyPercent": 1,
+  "sellPercent": 1,
   "stopLoss": 1.2,
   "tradePercent": 100.0,
   "priceCheck": 2000,
   "chartInterval": "OneM",
   "startBotAutomatically": false,
   "startingAmount": 200,
-  "mooningTankingTime": 2000
+  "mooningTankingTime": 2000,
+  "mooningTankingPercent" :  100
 }
