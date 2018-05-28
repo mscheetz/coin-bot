@@ -10,5 +10,6 @@ namespace CoinBot.Business.Entities
         public long orderId { get; set; }
         public string clientOrderId { get; set; }
         public decimal price { get; set; }
+        public decimal quantity { get; set; }
     }
 }
