@@ -490,19 +490,48 @@ namespace CoinBot.Business.Builders
 
             if (stoppedOut)
             {
-                _lastSell = _openStopLossList[0].price;
-                _openStopLossList.RemoveAt(0);
+                ProcessStopLoss();
             }
 
             return _lastSell;
         }
 
         /// <summary>
+        /// Process a stop loss
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        public bool ProcessStopLoss()
+        {
+            _lastSell = _openStopLossList[0].price;
+            var slQty = _openStopLossList[0].quantity;
+            _openStopLossList.RemoveAt(0);
+
+            _lastTrade = new TradeInformation
+            {
+                pair = _symbol,
+                price = _lastSell,
+                quantity = slQty,
+                timestamp = DateTime.UtcNow,
+                tradeType = EnumHelper.GetEnumDescription((TradeType)TradeType.STOPLOSS)
+            };
+            _tradeInformation.Add(_lastTrade);
+
+            LogTransaction(_lastTrade);
+
+            _lastQty = GetTradeQuantity(TradeType.SELL, _lastSell);
+
+            UpdateBalances();
+
+            return true;
+        }
+
+        /// <summary>
         /// Buy crypto
         /// </summary>
         /// <param name="orderPrice">Buy price</param>
+        /// <param name="tradeType">Trade Type</param>
         /// <returns>Boolean when complete</returns>
-        public bool BuyCrypto(decimal orderPrice)
+        public bool BuyCrypto(decimal orderPrice, TradeType tradeType)
         {
             var trade = MakeTrade(TradeType.BUY, orderPrice);
 
@@ -519,7 +548,7 @@ namespace CoinBot.Business.Builders
                 price = orderPrice,
                 quantity = trade.origQty,
                 timestamp = _dtHelper.UnixTimeToUTC(trade.transactTime),
-                tradeType = EnumHelper.GetEnumDescription((TradeType)TradeType.BUY)
+                tradeType = EnumHelper.GetEnumDescription((TradeType)tradeType)
             };
             _tradeInformation.Add(_lastTrade);
 
@@ -533,7 +562,8 @@ namespace CoinBot.Business.Builders
                     symbol = _symbol,
                     clientOrderId = stopLoss.clientOrderId,
                     orderId = stopLoss.orderId,
-                    price = stopLoss.price
+                    price = stopLoss.price,
+                    quantity = trade.origQty
                 });
 
             UpdateBalances();
@@ -630,7 +660,8 @@ namespace CoinBot.Business.Builders
         /// Sell crypto
         /// </summary>
         /// <param name="orderPrice">Current price</param>
-        public void SellCrypto(decimal orderPrice)
+        /// <param name="tradeType">Trade Type</param>
+        public void SellCrypto(decimal orderPrice, TradeType tradeType)
         {
             CancelStopLoss();
 
@@ -649,7 +680,7 @@ namespace CoinBot.Business.Builders
                 price = orderPrice,
                 quantity = trade.origQty,
                 timestamp = _dtHelper.UnixTimeToUTC(trade.transactTime),
-                tradeType = EnumHelper.GetEnumDescription((TradeType)TradeType.SELL)
+                tradeType = EnumHelper.GetEnumDescription((TradeType)tradeType)
             };
 
             _tradeInformation.Add(_lastTrade);

@@ -130,8 +130,16 @@ namespace CoinBot.Business.Builders.Interface
         /// Buy crypto
         /// </summary>
         /// <param name="orderPrice">Buy price</param>
+        /// <param name="tradeType">Trade Type</param>
         /// <returns>Boolean when complete</returns>
-        bool BuyCrypto(decimal orderPrice);
+        bool BuyCrypto(decimal orderPrice, TradeType tradeType);
+
+        /// <summary>
+        /// Sell crypto
+        /// </summary>
+        /// <param name="orderPrice">Current price</param>
+        /// <param name="tradeType">Trade Type</param>
+        void SellCrypto(decimal orderPrice, TradeType tradeType);
 
         /// <summary>
         /// Check status of placed trade
@@ -147,12 +155,6 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="orderPrice">Requested trade price</param>
         /// <returns>decimal of quantity to purchase</returns>
         decimal GetTradeQuantity(TradeType tradeType, decimal orderPrice);
-
-        /// <summary>
-        /// Sell crypto
-        /// </summary>
-        /// <param name="orderPrice">Current price</param>
-        void SellCrypto(decimal orderPrice);
 
         /// <summary>
         /// Cancel a stop loss
