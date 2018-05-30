@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="GDAX.Api.ClientLibrary" Version="1.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CoinBot.Business\CoinBot.Business.Entities.csproj" />
   </ItemGroup>
 
