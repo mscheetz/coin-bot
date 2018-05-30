@@ -14,6 +14,7 @@ namespace CoinBot.Business.Builders.Tests
     {
         private Mock<IBinanceRepository> _binanceRepo;
         private Mock<IFileRepository> _fileRepo;
+        private Mock<IExchangeBuilder> _exchangeBldr;
         private ITradeBuilder _tradeBuilder;
         private BotSettings _settings;
         private BotConfig _botConfig;
@@ -30,6 +31,7 @@ namespace CoinBot.Business.Builders.Tests
             _orderPrice = 0.001234M;
             _binanceRepo = new Mock<IBinanceRepository>();
             _fileRepo = new Mock<IFileRepository>();
+            _exchangeBldr = new Mock<IExchangeBuilder>();
             _settings = new BotSettings
             {
                 stopLoss = 2,
@@ -122,16 +124,16 @@ namespace CoinBot.Business.Builders.Tests
         [Fact]
         public void BuyCrypto_Success_Test()
         {
-            _binanceRepo.Setup(b => b.PostTrade(It.IsAny<TradeParams>())).ReturnsAsync(_tradeResponse);
-            _binanceRepo.Setup(b => b.GetOrder(It.IsAny<string>(), It.IsAny<long>())).ReturnsAsync(_orderResponse);
-            _binanceRepo.Setup(b => b.PostTrade(It.IsAny<TradeParams>())).ReturnsAsync(_tradeResponse);
-            _binanceRepo.Setup(b => b.GetBalance()).ReturnsAsync(_account);
+            _exchangeBldr.Setup(b => b.PlaceTrade(It.IsAny<TradeParams>())).Returns(_tradeResponse);
+            _exchangeBldr.Setup(b => b.GetOrderDetail(It.IsAny<TradeResponse>(), It.IsAny<string>())).Returns(_orderResponse);
+            _exchangeBldr.Setup(b => b.PlaceTrade(It.IsAny<TradeParams>())).Returns(_tradeResponse);
+            _exchangeBldr.Setup(b => b.GetBalance()).Returns(_account.balances);
             _fileRepo.Setup(f => f.LogTransaction(It.IsAny<TradeInformation>())).Returns(true);
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
 
-            _tradeBuilder = new TradeBuilder(_fileRepo.Object, _binanceRepo.Object, _botBalanceList);
+            _tradeBuilder = new TradeBuilder(_fileRepo.Object, _exchangeBldr.Object, _botBalanceList);
             
-            var response = _tradeBuilder.BuyCrypto(_orderPrice);
+            var response = _tradeBuilder.BuyCrypto(_orderPrice, TradeType.BUY);
 
             Assert.True(response);
         }        

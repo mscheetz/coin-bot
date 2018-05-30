@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CoinBot.Business.Builders.Interface\CoinBot.Business.Builders.Interface.csproj" />
     <ProjectReference Include="..\CoinBot.Core\CoinBot.Core.csproj" />
     <ProjectReference Include="..\CoinBot.Data.Interface\CoinBot.Data.Interface.csproj" />

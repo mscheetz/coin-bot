@@ -161,8 +161,8 @@ namespace CoinBot.Business.Builders
         {
             SetupRepository();
             tradeType = TradeType.BUY;
-            var currentStick = new Candlestick();
-            var previousStick = new Candlestick();
+            var currentStick = new BotStick();
+            var previousStick = new BotStick();
 
             if (botSettings.tradingStatus == TradeStatus.PaperTrading)
                 SetPaperBalance();
@@ -498,7 +498,7 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="interval">Candlestick interval</param>
         /// <returns>Array of Candlesticks</returns>
-        public Candlestick[] GetBollingerBands(Interval interval)
+        public BotStick[] GetBollingerBands(Interval interval)
         {
             var candlesticks = GetCandlesticks(interval, candlestickCount)
                                     //.OrderBy(c => c.closeTime)
@@ -513,7 +513,7 @@ namespace CoinBot.Business.Builders
         /// Add Bollinger Bands and Volume data to list
         /// </summary>
         /// <param name="candlesticks">Array of Candlesticks</param>
-        private void AddBollingerBands(ref Candlestick[] candlesticks)
+        private void AddBollingerBands(ref BotStick[] candlesticks)
         {
             int period = candlestickCount;
             int factor = 2;
@@ -581,9 +581,11 @@ namespace CoinBot.Business.Builders
         /// <param name="interval">Candlestick Interval</param>
         /// <param name="range">Number of candlesticks to get</param>
         /// <returns>Array of Candlestick objects</returns>
-        private Candlestick[] GetCandlesticks(Interval interval, int range)
+        private BotStick[] GetCandlesticks(Interval interval, int range)
         {
-            return _repo.GetCandlestick(_symbol, interval, range).Result;
+            var candleSticks = _repo.GetCandlestick(_symbol, interval, range).Result;
+
+            return BinanceStickToBotStick(candleSticks);
         }
 
         /// <summary>
@@ -785,6 +787,16 @@ namespace CoinBot.Business.Builders
         private bool LogTransaction(TradeInformation tradeInformation)
         {
             return _fileRepo.LogTransaction(tradeInformation);
+        }
+
+        /// <summary>
+        /// Convert Binance Candlestick array to BotStick array
+        /// </summary>
+        /// <param name="binanceArray">Binance Candlestick array</param>
+        /// <returns>BotStick array</returns>
+        private BotStick[] BinanceStickToBotStick(Candlestick[] binanceArray)
+        {
+            return this._helper.MapEntity<Candlestick[], BotStick[]>(binanceArray);
         }
     }
 }

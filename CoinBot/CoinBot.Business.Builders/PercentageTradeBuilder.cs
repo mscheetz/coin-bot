@@ -127,8 +127,8 @@ namespace CoinBot.Business.Builders
         {
             _trader.SetupRepository();
             _tradeType = TradeType.BUY;
-            var currentStick = new Candlestick();
-            var previousStick = new Candlestick();
+            var currentStick = new BotStick();
+            var previousStick = new BotStick();
             bool currentlyTrading = tradingStatus != null ? (bool)tradingStatus : _currentlyTrading;
 
             if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
@@ -170,7 +170,7 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="cand0leStick">Candlestick object</param>
         /// <returns>Boolean if trade made</returns>
-        private bool SellCryptoCheck(Candlestick candleStick)
+        private bool SellCryptoCheck(BotStick candleStick)
         {
             var tradeType = MooningAndTankingCheck(candleStick, TradeType.SELL);
             if (tradeType != TradeType.NONE)
@@ -193,7 +193,7 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="candleStick">Candlestick object</param>
         /// <returns>Boolean if trade made</returns>
-        private bool BuyCryptoCheck(Candlestick candleStick)
+        private bool BuyCryptoCheck(BotStick candleStick)
         {
             var tradeType = MooningAndTankingCheck(candleStick, TradeType.BUY);
             if (tradeType != TradeType.NONE || _tradeNumber == 0)
@@ -260,7 +260,7 @@ namespace CoinBot.Business.Builders
         /// <param name="candleStick">Current trading stick</param>
         /// <param name="tradeType">Trade Type</param>
         /// <returns>TradeType of result</returns>
-        public TradeType MooningAndTankingCheck(Candlestick candleStick, TradeType tradeType)
+        public TradeType MooningAndTankingCheck(BotStick candleStick, TradeType tradeType)
         {
             if(_botSettings.mooningTankingTime == 0)
             {
@@ -359,7 +359,7 @@ namespace CoinBot.Business.Builders
         /// Get next candlestick
         /// </summary>
         /// <returns>Candlestick object</returns>
-        private Candlestick GetNextCandlestick()
+        private BotStick GetNextCandlestick()
         {
             Task.WaitAll(Task.Delay(_botSettings.mooningTankingTime));
 

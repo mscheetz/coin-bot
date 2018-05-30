@@ -103,8 +103,8 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="symbol">Trading symbol</param>
         /// <param name="interval">Candlestick Interval</param>
         /// <param name="range">Number of candlesticks to get</param>
-        /// <returns>Array of Candlestick objects</returns>
-        Candlestick[] GetCandlesticks(string symbol, Interval interval, int range);
+        /// <returns>Array of BotStick objects</returns>
+        BotStick[] GetCandlesticks(string symbol, Interval interval, int range);
 
         /// <summary>
         /// Place a trade
@@ -144,9 +144,9 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Check status of placed trade
         /// </summary>
-        /// <param name="orderId">OrderId of trade</param>
+        /// <param name="trade">TradeResponse of trade</param>
         /// <returns>Boolean value of filled status</returns>
-        bool CheckTradeStatus(long orderId);
+        bool CheckTradeStatus(TradeResponse trade);
 
         /// <summary>
         /// Get quantity to trade based
@@ -202,9 +202,9 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Get status of a trade
         /// </summary>
-        /// <param name="orderId">OrderId of trade</param>
+        /// <param name="trade">TradeResponse of trade</param>
         /// <returns>OrderResponse</returns>
-        OrderResponse GetOrderStatus(long orderId);
+        OrderResponse GetOrderStatus(TradeResponse trade);
 
         /// <summary>
         /// Get status of a paper trade

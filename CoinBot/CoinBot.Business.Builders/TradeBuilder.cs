@@ -13,7 +13,7 @@ namespace CoinBot.Business.Builders
     public class TradeBuilder : ITradeBuilder
     {
         private IFileRepository _fileRepo;
-        private IBinanceRepository _binanceRepo;
+        private IExchangeBuilder _exchBldr;
         private DateTimeHelper _dtHelper = new DateTimeHelper();
         private Helper _helper = new Helper();
         private BotSettings _botSettings;
@@ -39,7 +39,7 @@ namespace CoinBot.Business.Builders
         public TradeBuilder()
         {
             _fileRepo = new FileRepository();
-            _binanceRepo = new BinanceRepository();
+            _exchBldr = new ExchangeBuilder();
             SetupBuilder();
         }
 
@@ -50,7 +50,7 @@ namespace CoinBot.Business.Builders
         public TradeBuilder(IFileRepository fileRepo)
         {
             _fileRepo = fileRepo;
-            _binanceRepo = new BinanceRepository();
+            _exchBldr = new ExchangeBuilder();
             SetupBuilder();
         }
 
@@ -58,10 +58,10 @@ namespace CoinBot.Business.Builders
         /// Constructor
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public TradeBuilder(IBinanceRepository binanceRepo)
+        public TradeBuilder(IExchangeBuilder exchBldr)
         {
             _fileRepo = new FileRepository();
-            _binanceRepo = binanceRepo;
+            _exchBldr = exchBldr;
             SetupBuilder();
         }
 
@@ -69,10 +69,10 @@ namespace CoinBot.Business.Builders
         /// Constructor for unit tests
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public TradeBuilder(IFileRepository fileRepo, IBinanceRepository binanceRepo)
+        public TradeBuilder(IFileRepository fileRepo, IExchangeBuilder exchBldr)
         {
             _fileRepo = fileRepo;
-            _binanceRepo = binanceRepo;
+            _exchBldr = exchBldr;
             SetupBuilder();
         }
 
@@ -80,10 +80,10 @@ namespace CoinBot.Business.Builders
         /// Constructor for unit tests
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public TradeBuilder(IFileRepository fileRepo, IBinanceRepository binanceRepo, List<BotBalance> botBalanceList)
+        public TradeBuilder(IFileRepository fileRepo, IExchangeBuilder exchBldr, List<BotBalance> botBalanceList)
         {
             _fileRepo = fileRepo;
-            _binanceRepo = binanceRepo;
+            _exchBldr = exchBldr;
             SetupBuilder(botBalanceList);
         }
 
@@ -340,9 +340,7 @@ namespace CoinBot.Business.Builders
 
             if (_botSettings.tradingStatus == TradeStatus.LiveTrading)
             {
-                var result = _binanceRepo.GetBalance().Result;
-
-                balances = result.balances;
+                balances = _exchBldr.GetBalance();
             }
             else if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
             {
@@ -381,12 +379,12 @@ namespace CoinBot.Business.Builders
         /// <param name="symbol">Trading symbol</param>
         /// <param name="interval">Candlestick Interval</param>
         /// <param name="range">Number of candlesticks to get</param>
-        /// <returns>Array of Candlestick objects</returns>
-        public Candlestick[] GetCandlesticks(string symbol, Interval interval, int range)
+        /// <returns>Array of BotStick objects</returns>
+        public BotStick[] GetCandlesticks(string symbol, Interval interval, int range)
         {
-            var candleSticks = _binanceRepo.GetCandlestick(symbol, interval, range).Result;
+            var candleSticks = _exchBldr.GetCandlesticks(symbol, interval, range);
 
-            while(candleSticks == null)
+            while(candleSticks == null || candleSticks.Count() == 0)
             {
                 candleSticks = GetCandlesticks(symbol, interval, range);
             }
@@ -403,7 +401,7 @@ namespace CoinBot.Business.Builders
         {
             _tradeNumber++;
             if (_botSettings.tradingStatus == TradeStatus.LiveTrading)
-                return _binanceRepo.PostTrade(tradeParams).Result;
+                return _exchBldr.PlaceTrade(tradeParams);
             else if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
                 return PlacePaperTrade(tradeParams);
             else
@@ -447,14 +445,14 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean when complete</returns>
         public bool SetupRepository()
         {
-            var repoReady = _binanceRepo.ValidateExchangeConfigured();
+            var repoReady = _exchBldr.ValidateExchangeConfigured(_botSettings.exchange);
 
             if (repoReady)
                 return true;
 
             var apiInfo = GetApiInformation();
 
-            _binanceRepo.SetExchangeApi(apiInfo);
+            _exchBldr.SetExchangeApi(apiInfo);
 
             return true;
         }
@@ -486,7 +484,13 @@ namespace CoinBot.Business.Builders
             if (_openStopLossList.Count == 0 || currentPrice >= _openStopLossList[0].price)
                 return null;
 
-            var stoppedOut = CheckTradeStatus(_openStopLossList[0].orderId);
+            var trade = new TradeResponse
+            {
+                orderId = _openStopLossList[0].orderId,
+                clientOrderId = _openStopLossList[0].clientOrderId
+            };
+
+            var stoppedOut = CheckTradeStatus(trade);
 
             if (stoppedOut)
             {
@@ -538,7 +542,7 @@ namespace CoinBot.Business.Builders
             bool tradeComplete = false;
             while (!tradeComplete)
             {
-                tradeComplete = CheckTradeStatus(trade.orderId);
+                tradeComplete = CheckTradeStatus(trade);
             }
             _lastBuy = orderPrice;
 
@@ -576,9 +580,9 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="orderId">OrderId of trade</param>
         /// <returns>Boolean value of filled status</returns>
-        public bool CheckTradeStatus(long orderId)
+        public bool CheckTradeStatus(TradeResponse trade)
         {
-            var orderStatus = GetOrderStatus(orderId);
+            var orderStatus = GetOrderStatus(trade);
 
             return orderStatus.status == OrderStatus.FILLED ? true : false;
         }
@@ -670,7 +674,7 @@ namespace CoinBot.Business.Builders
             bool tradeComplete = false;
             while (!tradeComplete)
             {
-                tradeComplete = CheckTradeStatus(trade.orderId);
+                tradeComplete = CheckTradeStatus(trade);
             }
             _lastSell = orderPrice;
 
@@ -708,10 +712,15 @@ namespace CoinBot.Business.Builders
 
             var result = CancelTrade(tradeParams);
 
-            bool stopLossCanceled = false;
-            while (!stopLossCanceled)
+            bool stopLossCanceled = true;
+            var trade = new TradeResponse
             {
-                stopLossCanceled = CheckTradeStatus(_openStopLossList[0].orderId);
+                orderId = _openStopLossList[0].orderId,
+                clientOrderId = _openStopLossList[0].clientOrderId
+            };
+            while (stopLossCanceled)
+            {
+                stopLossCanceled = CheckTradeStatus(trade);
             }
 
             _openStopLossList.RemoveAt(0);
@@ -799,7 +808,7 @@ namespace CoinBot.Business.Builders
         public TradeResponse CancelTrade(CancelTradeParams tradeParams)
         {
             if (_botSettings.tradingStatus == TradeStatus.LiveTrading)
-                return _binanceRepo.DeleteTrade(tradeParams).Result;
+                return _exchBldr.DeleteTrade(tradeParams);
             else if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
                 return CancelPaperTrade(tradeParams);
             else
@@ -830,12 +839,12 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="orderId">OrderId of trade</param>
         /// <returns>OrderResponse</returns>
-        public OrderResponse GetOrderStatus(long orderId)
+        public OrderResponse GetOrderStatus(TradeResponse trade)
         {
             if (_botSettings.tradingStatus == TradeStatus.LiveTrading)
-                return _binanceRepo.GetOrder(_symbol, orderId).Result;
+                return _exchBldr.GetOrderDetail(trade, _symbol);
             else if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
-                return GetPaperOrderStatus(orderId);
+                return GetPaperOrderStatus(trade.orderId);
             else
                 return null;
         }

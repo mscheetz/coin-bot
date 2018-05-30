@@ -54,6 +54,6 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="candleStick">Current trading stick</param>
         /// <param name="tradeType">Trade Type</param>
         /// <returns>TradeType of result</returns>
-        TradeType MooningAndTankingCheck(Candlestick candleStick, TradeType tradeType);
+        TradeType MooningAndTankingCheck(BotStick candleStick, TradeType tradeType);
     }
 }

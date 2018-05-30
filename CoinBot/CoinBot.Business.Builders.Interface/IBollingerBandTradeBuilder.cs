@@ -29,12 +29,12 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <returns>decimal of SMA</returns>
         decimal Get21DaySMA();
-        
+
         /// <summary>
         /// Get Bollinger Bands for a symbol
         /// </summary>
         /// <param name="interval">Candlestick interval</param>
         /// <returns>Array of Candlesticks</returns>
-        Candlestick[] GetBollingerBands(Interval interval);
+        BotStick[] GetBollingerBands(Interval interval);
     }
 }
