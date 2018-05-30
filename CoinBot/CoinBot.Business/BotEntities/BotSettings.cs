@@ -58,5 +58,9 @@ namespace CoinBot.Business.Entities
         /// Mooning and Tanking percent for checking against next candlestick
         /// </summary>
         public double mooningTankingPercent { get; set; }
+        /// <summary>
+        /// Selected exchange to trade on
+        /// </summary>
+        public Exchange exchange { get; set; }
     }
 }

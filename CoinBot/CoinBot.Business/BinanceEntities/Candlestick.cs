@@ -30,11 +30,5 @@ namespace CoinBot.Business.Entities
         public double takerBase { get; set; }
         [JsonProperty(Order = 11)]
         public double takerQuote { get; set; }
-        [JsonIgnore]
-        public decimal volumeChange { get; set; }
-        [JsonIgnore]
-        public decimal volumePercentChange { get; set; }
-        [JsonIgnore]
-        public BollingerBand bollingerBand { get; set; }
     }
 }
