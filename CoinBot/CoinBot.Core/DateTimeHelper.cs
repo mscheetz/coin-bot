@@ -96,5 +96,32 @@ namespace CoinBot.Core
 
             return (timeStart - timeNow).TotalSeconds;
         }
+
+        /// <summary>
+        /// Subtract hours, minutes, seconds from current UTC Time
+        /// </summary>
+        /// <param name="hours">Hours to subtract (optional)</param>
+        /// <param name="minutes">Minutes to subtract (optional)</param>
+        /// <param name="seconds">Seconds to subtract (optional)</param>
+        /// <returns>Resulting DateTime value</returns>
+        public DateTime SubtractFromUTCNow(int hours =0, int minutes = 0, int seconds = 0)
+        {
+            return SubtractTime(DateTime.UtcNow, hours, minutes, seconds);
+        }
+
+        /// <summary>
+        /// Subtract hours, minutes, seconds from a time value
+        /// </summary>
+        /// <param name="now">Time To Subract from</param>
+        /// <param name="hours">Hours to subtract (optional)</param>
+        /// <param name="minutes">Minutes to subtract (optional)</param>
+        /// <param name="seconds">Seconds to subtract (optional)</param>
+        /// <returns>Resulting DateTime value</returns>
+        public DateTime SubtractTime(DateTime now, int hours = 0, int minutes = 0, int seconds = 0)
+        {
+            var timeSpan = new TimeSpan(hours, minutes, seconds);
+
+            return now.Subtract(timeSpan);
+        }
     }
 }

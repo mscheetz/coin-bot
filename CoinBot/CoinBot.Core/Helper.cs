@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -74,6 +75,18 @@ namespace CoinBot.Core
         public IEnumerable<T> GetEnumValues<T>()
         {
             return Enum.GetValues(typeof(T)).Cast<T>();
+        }
+
+        /// <summary>
+        /// Map one entity to another
+        /// </summary>
+        /// <typeparam name="F">From entity type</typeparam>
+        /// <typeparam name="T">To entity type</typeparam>
+        /// <param name="fromEntity">FromEntity object</param>
+        /// <returns>To entity object</returns>
+        public T MapEntity<F, T>(F fromEntity)
+        {
+            return Mapper.Map<F, T>(fromEntity);
         }
     }
 }
