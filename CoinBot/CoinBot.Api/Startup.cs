@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoinBot.Business.Builders;
 using CoinBot.Business.Builders.Interface;
+using CoinBot.Business.Builders.Mapping;
 using CoinBot.Data;
 using CoinBot.Data.Interface;
 using CoinBot.Manager;
@@ -23,6 +24,7 @@ namespace CoinBot.Api
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            Mappings.RegisterMappings();
         }
 
         public IConfiguration Configuration { get; }
@@ -33,10 +35,12 @@ namespace CoinBot.Api
             services.AddMvc();
 
             services.AddScoped<IBinanceRepository, BinanceRepository>();
+            services.AddScoped<IGdaxRepository, GdaxRepository>();
             services.AddScoped<IFileRepository, FileRepository>();
             services.AddTransient<IBollingerBandTradeBuilder, BollingerBandTradeBuilder>();
             services.AddTransient<IPercentageTradeBuilder, PercentageTradeBuilder>();
             services.AddTransient<ITradeBuilder, TradeBuilder>();
+            services.AddTransient<IExchangeBuilder, ExchangeBuilder>();
             services.AddTransient<ICoinBotService, CoinBotManager>();
 
             services.AddSwaggerGen(c =>
