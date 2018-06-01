@@ -88,5 +88,20 @@ namespace CoinBot.Core
         {
             return Mapper.Map<F, T>(fromEntity);
         }
+
+        /// <summary>
+        /// Creates GDAX pair
+        /// </summary>
+        /// <param name="pair">String of pair</param>
+        /// <returns>String of GDAX pair</returns>
+        public string CreateGdaxPair(string pair)
+        {
+            if (pair.IndexOf("-") < 0)
+            {
+                pair = pair.Substring(0, 3) + "-" + pair.Substring(3);
+            }
+
+            return pair;
+        }
     }
 }
