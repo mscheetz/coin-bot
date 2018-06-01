@@ -15,4 +15,10 @@
     <ProjectReference Include="..\CoinBot.Data.Interface\CoinBot.Data.Interface.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="gdax.netcore">
+      <HintPath>..\..\..\gdax.netcore\src\bin\Release\netstandard1.6\gdax.netcore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

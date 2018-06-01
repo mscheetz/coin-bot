@@ -46,8 +46,13 @@ namespace CoinBot.Data.Interface
         /// <param name="pair">Trading pair</param>
         /// <returns>ProductsOrderBookResponse object</returns>
         Task<ProductsOrderBookResponse> GetOrderBook(string pair);
-        
-        Task<IList<IList<ProductTrade>>> GetTrades(string pair);
+
+        /// <summary>
+        /// Get recent trades
+        /// </summary>
+        /// <param name="pair">Trading pair</param>
+        /// <returns>GdaxTrade array</returns>
+        Task<GdaxTrade[]> GetTrades(string pair);
 
         Task<ProductTicker> GetTicker(string pair);
 
@@ -86,11 +91,5 @@ namespace CoinBot.Data.Interface
         /// <param name="id">Id of trade to cancel</param>
         /// <returns>CancelOrderResponse object</returns>
         Task<CancelOrderResponse> CancelTrade(string id);
-
-        WSSTicker[] GetWSSTicker(string pair);
-
-        Task StartWebsocket(string pair);
-
-        void LaunchWSS(string pair);
     }
 }

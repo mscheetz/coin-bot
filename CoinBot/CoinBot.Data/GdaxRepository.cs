@@ -28,8 +28,9 @@ namespace CoinBot.Data
         private IRESTRepository _restRepo;
         private GDAXSharp.GDAXClient gdaxClient;
         private DateTimeHelper _dtHelper;
+        private Helper _helper;
         private ApiInformation _apiInfo;
-        private ICollection<WSSTicker> _wssTicker;
+        private string baseUrl = "https://api.gdax.com/";
 
         /// <summary>
         /// Constructor
@@ -38,8 +39,8 @@ namespace CoinBot.Data
         {
             _restRepo = new RESTRepository();
             _dtHelper = new DateTimeHelper();
+            _helper = new Helper();
             _apiInfo = new ApiInformation();
-            _wssTicker = new List<WSSTicker>();
         }
 
         /// <summary>
@@ -122,21 +123,27 @@ namespace CoinBot.Data
             return response;
         }
 
-        public async Task<IList<IList<ProductTrade>>> GetTrades(string pair)
+        /// <summary>
+        /// Get recent trades
+        /// </summary>
+        /// <param name="pair">Trading pair</param>
+        /// <returns>GdaxTrade array</returns>
+        public async Task<GdaxTrade[]> GetTrades(string pair)
         {
-            ProductType productType;
-            Enum.TryParse(pair, out productType);
+            var gdaxPair = _helper.CreateGdaxPair(pair);
+            var url = baseUrl + $"products/{gdaxPair}/trades";
 
-            var response = await gdaxClient.ProductsService.GetTradesAsync(productType);
+            var response = await _restRepo.GetApiStream<GdaxTrade[]>(url, GetRequestHeaders());
 
             return response;
+        }
 
-            //var baseUrl = "https://api.gdax.com";
-            //var url = baseUrl + $"/products/{productType.GetEnumMemberValue()}/trades";
+        private Dictionary<string, string> GetRequestHeaders()
+        {
+            var headers = new Dictionary<string, string>();
+            headers.Add("User-Agent", ".NET Framework Test Client");
 
-            //var response = await _restRepo.GetApi<IList<IList<ProductTrade>>>(url);
-
-            //return response;
+            return headers;
         }
 
         public async Task<ProductTicker> GetTicker(string pair)
@@ -228,104 +235,6 @@ namespace CoinBot.Data
             var response = await gdaxClient.OrdersService.CancelOrderByIdAsync(id);
 
             return response;
-        }
-
-        public WSSTicker[] GetWSSTicker(string pair)
-        {
-            return _wssTicker.OrderBy(w => w.time).ToArray();
-        }
-
-        public async Task StartWebsocket(string pair)
-        {
-            //gdaxClient.WebSocket.OnTickerReceived();
-            //ProductType productType;
-            //Enum.TryParse(pair, out productType);
-            //ClientWebSocket socket = new ClientWebSocket();
-            //Task task = socket.ConnectAsync(new Uri("wss://ws-feed.gdax.com"), CancellationToken.None);
-            //task.Wait();
-            //Thread readThread = new Thread(
-            //    delegate (object obj)
-            //    {
-            //        byte[] recBytes = new byte[1024];
-            //        while (true)
-            //        {
-            //            ArraySegment<byte> t = new ArraySegment<byte>(recBytes);
-            //            Task<WebSocketReceiveResult> receiveAsync = socket.ReceiveAsync(t, CancellationToken.None);
-            //            receiveAsync.Wait();
-            //            string jsonString = Encoding.UTF8.GetString(recBytes);
-            //            WSSTicker tick = null;
-            //            try
-            //            {
-            //                tick = JsonConvert.DeserializeObject<WSSTicker>(jsonString);
-            //            }
-            //            catch
-            //            {
-            //                tick = null;
-            //            }
-            //            if(tick != null && tick.type.Equals("ticker"))
-            //            {
-            //                _wssTicker.Add(tick);
-            //                var nowMinus5 = _dtHelper.SubtractFromUTCNow(0, 2, 0);
-            //                _wssTicker = _wssTicker.Where(w => w.time >= nowMinus5).ToList();
-            //            }
-            //            //Console.Out.WriteLine("jsonString = {0}", jsonString);
-            //            recBytes = new byte[1024];
-            //        }
-
-            //    });
-            //readThread.Start();
-            //string json = $"{{\"product_ids\":[\"{productType.GetEnumMemberValue()}\"],\"type\":\"subscribe\",\"channels\":[\"ticker\"]}}";
-            //byte[] bytes = Encoding.UTF8.GetBytes(json);
-            //ArraySegment<byte> subscriptionMessageBuffer = new ArraySegment<byte>(bytes);
-            //await socket.SendAsync(subscriptionMessageBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
-            ////Console.ReadLine();
-        }
-
-        public void LaunchWSS(string pair)
-        {
-            ProductType productType;
-            Enum.TryParse(pair, out productType);
-
-            //subscribe to the ticker channel type
-            var productTypes = new List<ProductType> { productType };
-            var channels = new List<ChannelType> { ChannelType.Ticker };
-
-            var webSocket = gdaxClient.WebSocket;
-
-            webSocket.Start(productTypes, channels);
-
-            webSocket.OnTickerReceived += (sender, e) =>
-            {
-                ProcessTicker(e);
-            };
-
-            Console.ReadKey();
-        }
-
-        private void ProcessTicker(WebfeedEventArgs<Ticker> webfeedEventArgs)
-        {
-            var tick = new WSSTicker
-            {
-                best_ask = webfeedEventArgs.LastOrder.BestAsk,
-                best_bid = webfeedEventArgs.LastOrder.BestBid,
-                high_24h = webfeedEventArgs.LastOrder.High24H,
-                last_size = webfeedEventArgs.LastOrder.LastSize,
-                low_24h = webfeedEventArgs.LastOrder.Low24H,
-                open_24h = webfeedEventArgs.LastOrder.Open24H,
-                price = webfeedEventArgs.LastOrder.Price,
-                product_id = webfeedEventArgs.LastOrder.ProductId,
-                sequence = webfeedEventArgs.LastOrder.Sequence,
-                side = webfeedEventArgs.LastOrder.Side.GetEnumMemberValue(),
-                time = webfeedEventArgs.LastOrder.Time.DateTime,
-                trade_id = webfeedEventArgs.LastOrder.TradeId,
-                type = webfeedEventArgs.LastOrder.Type.GetEnumMemberValue(),
-                volume_24h = webfeedEventArgs.LastOrder.Volume24H,
-                volume_30d = webfeedEventArgs.LastOrder.Volume30D
-
-            };
-            _wssTicker.Add(tick);
-            var nowMinus5 = _dtHelper.SubtractFromUTCNow(0, 2, 0);
-            _wssTicker = _wssTicker.Where(w => w.time >= nowMinus5).ToList();
         }
     }
 }

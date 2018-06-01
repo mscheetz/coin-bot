@@ -3,6 +3,7 @@ using CoinBot.Data.Interface;
 using GDAXSharp.Services.Products.Types;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -59,46 +60,27 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
+        public void GetGdaxTicker()
+        {
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(_exchangeApi);
+            var pair = "BTCUSD";
+
+            var trades = repo.GetTicker(pair).Result;
+
+            Assert.True(trades != null);
+        }
+
+        [Fact]
         public void GetGdaxTrades()
         {
             IGdaxRepository repo = new GdaxRepository();
             repo.SetExchangeApi(_exchangeApi);
             var pair = "BTCUSD";
 
-            //var trades = repo.GetTrades(pair).Result;
+            var trades = repo.GetTrades(pair).Result;
 
-            //Assert.True(trades != null);
-        }
-
-        [Fact]
-        public void WSSTicker()
-        {
-            IGdaxRepository repo = new GdaxRepository();
-            repo.SetExchangeApi(_exchangeApi);
-            var pair = "BTCUSD";
-
-            repo.LaunchWSS(pair);
-            //Task.Run(() => repo.StartWebsocket(pair));
-            //Task.Run(() =>
-            //{
-            //    repo.StartWebsocket(pair);
-            //}).ConfigureAwait(false);
-
-            var ticker = repo.GetWSSTicker(pair);
-
-            Assert.True(ticker != null);
-        }
-
-        [Fact]
-        public void TickerTest()
-        {
-            IGdaxRepository repo = new GdaxRepository();
-            repo.SetExchangeApi(_exchangeApi);
-            var pair = "BTCUSD";
-
-            var response = repo.GetTicker(pair).Result;
-
-            Assert.True(response != null);
+            Assert.True(trades != null);
         }
 
         [Fact]
