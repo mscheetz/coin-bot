@@ -63,5 +63,12 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="tradeParams">CancelTradeParams object</param>
         /// <returns>TradeResponse object</returns>
         TradeResponse DeleteTrade(CancelTradeParams tradeParams);
+
+        /// <summary>
+        /// Convert GdaxTrade array to BotStick array
+        /// </summary>
+        /// <param name="trades">GdaxTrade array</param>
+        /// <returns>BotStick array</returns>
+        BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades);
     }
 }

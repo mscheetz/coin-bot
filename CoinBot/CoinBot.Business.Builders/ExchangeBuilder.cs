@@ -18,12 +18,14 @@ namespace CoinBot.Business.Builders
         private IBinanceRepository _bianceRepo;
         private IGdaxRepository _gdaxRepo;
         private Helper _helper;
+        private DateTimeHelper _dtHelper;
 
         public ExchangeBuilder()
         {
             _bianceRepo = new BinanceRepository();
             _gdaxRepo = new GdaxRepository();
             _helper = new Helper();
+            _dtHelper = new DateTimeHelper();
         }
 
         public ExchangeBuilder(IBinanceRepository binanceRepo)
@@ -31,6 +33,7 @@ namespace CoinBot.Business.Builders
             _bianceRepo = binanceRepo;
             _gdaxRepo = new GdaxRepository();
             _helper = new Helper();
+            _dtHelper = new DateTimeHelper();
         }
 
         public ExchangeBuilder(IGdaxRepository gdaxRepo)
@@ -38,6 +41,7 @@ namespace CoinBot.Business.Builders
             _bianceRepo = new BinanceRepository();
             _gdaxRepo = gdaxRepo;
             _helper = new Helper();
+            _dtHelper = new DateTimeHelper();
         }
 
         public ExchangeBuilder(IBinanceRepository binanceRepo, IGdaxRepository gdaxRepo)
@@ -45,6 +49,7 @@ namespace CoinBot.Business.Builders
             _bianceRepo = binanceRepo;
             _gdaxRepo = gdaxRepo;
             _helper = new Helper();
+            _dtHelper = new DateTimeHelper();
         }
 
         /// <summary>
@@ -122,40 +127,9 @@ namespace CoinBot.Business.Builders
             }
             else if(_thisExchange == Exchange.GDAX)
             {
-                CandleGranularity candleGranularity;
-                switch(interval)
-                {
-                    case Interval.OneM:
-                        candleGranularity = CandleGranularity.Minutes1;
-                        break;
-                    case Interval.FiveM:
-                        candleGranularity = CandleGranularity.Minutes5;
-                        break;
-                    case Interval.FifteenM:
-                        candleGranularity = CandleGranularity.Minutes15;
-                        break;
-                    case Interval.OneH:
-                        candleGranularity = CandleGranularity.Hour1;
-                        break;
-                    case Interval.SixH:
-                        candleGranularity = CandleGranularity.Hour6;
-                        break;
-                    case Interval.OneD:
-                        candleGranularity = CandleGranularity.Hour24;
-                        break;
-                    default:
-                        candleGranularity = CandleGranularity.Minutes1;
-                        break;
-                }
-
-                Candle[] sticks = null;
+                var trades = _gdaxRepo.GetTrades(symbol).Result;
                 
-                while (sticks == null)
-                {
-                    sticks = _gdaxRepo.GetCandleSticks(symbol, range, candleGranularity).Result.Take(range).ToArray();
-                }
-                
-                return GdaxStickToBotStick(sticks.ToArray());
+                return GetSticksFromGdaxTrades(trades);
             }
             else
             {
@@ -288,6 +262,33 @@ namespace CoinBot.Business.Builders
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Convert GdaxTrade array to BotStick array
+        /// </summary>
+        /// <param name="trades">ProductTrade array</param>
+        /// <returns>BotStick array</returns>
+        public BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades)
+        {
+            var close = trades[0].Price;
+            var grouped = trades.GroupBy(
+                t => new
+                {
+                    Date = _dtHelper.LocalToUnixTime(t.Time.AddSeconds(-t.Time.Second).AddMilliseconds(-t.Time.Millisecond))
+                })
+                .Select(
+                t => new BotStick
+                {
+                    closeTime = t.Max(m => _dtHelper.LocalToUnixTime(m.Time.AddSeconds(-m.Time.Second).AddMilliseconds(-m.Time.Millisecond))),
+                    high = t.Max(m => m.Price),
+                    low = t.Min(m => m.Price),
+                    volume = t.Sum(m => m.Size)
+                }).ToList();
+
+            grouped[0].close = close;
+
+            return grouped.ToArray();
         }
 
         /// <summary>
