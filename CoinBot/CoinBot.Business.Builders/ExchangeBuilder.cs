@@ -129,7 +129,7 @@ namespace CoinBot.Business.Builders
             {
                 var trades = _gdaxRepo.GetTrades(symbol).Result;
                 
-                return GetSticksFromGdaxTrades(trades);
+                return GetSticksFromGdaxTrades(trades, range);
             }
             else
             {
@@ -268,8 +268,9 @@ namespace CoinBot.Business.Builders
         /// Convert GdaxTrade array to BotStick array
         /// </summary>
         /// <param name="trades">ProductTrade array</param>
+        /// <param name="range">Size of array to return</param>
         /// <returns>BotStick array</returns>
-        public BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades)
+        public BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades, int range)
         {
             var close = trades[0].Price;
             var grouped = trades.GroupBy(
@@ -288,7 +289,9 @@ namespace CoinBot.Business.Builders
 
             grouped[0].close = close;
 
-            var groupedArray = grouped.ToArray();
+            int size = grouped.Count() < range ? grouped.Count() : range;
+
+            var groupedArray = grouped.Take(size).ToArray();
 
             Array.Reverse(groupedArray);
 

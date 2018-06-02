@@ -255,7 +255,7 @@ namespace CoinBot.Business.Builders.Tests
             _xchBuilder.SetExchange(_settings);
 
             // Act
-            var response = _xchBuilder.GetSticksFromGdaxTrades(_gdaxTrades.ToArray());
+            var response = _xchBuilder.GetSticksFromGdaxTrades(_gdaxTrades.ToArray(), 4);
 
             // Assert
             Assert.True(response != null);

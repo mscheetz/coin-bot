@@ -68,7 +68,8 @@ namespace CoinBot.Business.Builders.Interface
         /// Convert GdaxTrade array to BotStick array
         /// </summary>
         /// <param name="trades">GdaxTrade array</param>
+        /// <param name="range">Size of array to return</param>
         /// <returns>BotStick array</returns>
-        BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades);
+        BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades, int range);
     }
 }
