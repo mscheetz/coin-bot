@@ -15,7 +15,7 @@ namespace CoinBot.Business.Builders.Tests
         private IBinanceRepository _repo;
         private Mock<IFileRepository> _fileRepo;
         private BotSettings _settings;
-        private BotConfig _botConfig;
+        private ApiInformation _apiInfo;
 
         public BollingerBandTradeBuilderTests()
         {
@@ -28,11 +28,11 @@ namespace CoinBot.Business.Builders.Tests
                 tradingPair = "XRPBTC",
                 startBotAutomatically = false
             };
-            _botConfig = new BotConfig
+            _apiInfo = new ApiInformation
             {
                 apiKey = It.IsAny<string>(),
                 apiSecret = It.IsAny<string>(),
-                privateToken = It.IsAny<string>()
+                extraValue = It.IsAny<string>()
             };
         }
 
@@ -47,7 +47,7 @@ namespace CoinBot.Business.Builders.Tests
             var interval = Interval.OneM;
             _settings.chartInterval = interval;
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
-            _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
+            _fileRepo.Setup(f => f.GetConfig()).Returns(_apiInfo);
             _repo = new BinanceRepository();
             _bldr = new BollingerBandTradeBuilder(_repo, _fileRepo.Object);
             _bldr.SetBotSettings(_settings);
@@ -63,7 +63,7 @@ namespace CoinBot.Business.Builders.Tests
             var interval = Interval.FiveM;
             _settings.chartInterval = interval;
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
-            _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
+            _fileRepo.Setup(f => f.GetConfig()).Returns(_apiInfo);
             _repo = new BinanceRepository();
             _bldr = new BollingerBandTradeBuilder(_repo, _fileRepo.Object);
             _bldr.SetBotSettings(_settings);
@@ -79,7 +79,7 @@ namespace CoinBot.Business.Builders.Tests
             var interval = Interval.OneD;
             _settings.chartInterval = interval;
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
-            _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
+            _fileRepo.Setup(f => f.GetConfig()).Returns(_apiInfo);
             _repo = new BinanceRepository();
             _bldr = new BollingerBandTradeBuilder(_repo, _fileRepo.Object);
             _bldr.SetBotSettings(_settings);

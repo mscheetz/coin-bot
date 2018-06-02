@@ -18,7 +18,7 @@ namespace CoinBot.Business.Builders.Tests
         private Mock<ITradeBuilder> _tradeBldr;
         private Mock<IFileRepository> _fileRepo;
         private BotSettings _settings;
-        private BotConfig _botConfig;
+        private ApiInformation _apiInfo;
         private List<BotStick> _candlestickList;
         private List<BotStick> _mooningList;
         private List<BotStick> _tankingList;
@@ -38,11 +38,11 @@ namespace CoinBot.Business.Builders.Tests
                 startBotAutomatically = false,
                 mooningTankingTime = 0
             };
-            _botConfig = new BotConfig
+            _apiInfo = new ApiInformation
             {
                 apiKey = It.IsAny<string>(),
                 apiSecret = It.IsAny<string>(),
-                privateToken = It.IsAny<string>()
+                extraValue = It.IsAny<string>()
             };
             _candlestickList = new List<BotStick>
             {
@@ -90,7 +90,7 @@ namespace CoinBot.Business.Builders.Tests
             var candlestickArray = _candlestickList.ToArray();
             _settings.chartInterval = interval;
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
-            _fileRepo.Setup(f => f.GetConfig()).Returns(_botConfig);
+            _fileRepo.Setup(f => f.GetConfig()).Returns(_apiInfo);
             _tradeBldr.Setup(f => f.SetupRepository()).Returns(true);
             var csOne = new BotStick[1] { _candlestickList[0] };
             var csTwo = new BotStick[1] { _candlestickList[1] };
