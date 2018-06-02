@@ -267,12 +267,22 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="candleStick">Current trading stick</param>
         /// <param name="tradeType">Trade Type</param>
+        /// <param name="startingPrice">decimal of starting price</param>
+        /// <param name="iteration">Int of iteration</param>
         /// <returns>TradeType of result</returns>
-        public TradeType MooningAndTankingCheck(BotStick candleStick, TradeType tradeType)
+        public TradeType MooningAndTankingCheck(BotStick candleStick, 
+                                                TradeType tradeType,
+                                                decimal startingPrice = 0.00000000M,
+                                                int iteration = 0)
         {
             if(_botSettings.mooningTankingTime == 0)
             {
                 return tradeType;
+            }
+
+            if(iteration == 0)
+            {
+                startingPrice = candleStick.close;
             }
 
             _lastVolume = candleStick.volume;
@@ -285,14 +295,15 @@ namespace CoinBot.Business.Builders
             {
                 var buyPercentReached = BuyPercentReached(latestStick.close);
 
-                if (candleStick.close > latestStick.close 
+                if (candleStick.close > latestStick.close
                     && buyPercentReached)
                 {
                     // If current price is less than the previous check 
                     //  (price is dropping)
                     // and buy percent reached
                     // keep checking if dropping more
-                    MooningAndTankingCheck(latestStick, tradeType);
+                    iteration++;
+                    MooningAndTankingCheck(latestStick, tradeType, startingPrice, iteration);
                 }
                 else
                 {
@@ -307,7 +318,7 @@ namespace CoinBot.Business.Builders
                     else if (volumePercentChange > _botSettings.mooningTankingPercent 
                         && candleStick.close < latestStick.close)
                     {
-                        // If volume increased more than 20% and Latest close is greater than previous close
+                        // If volume increased more than N% and Latest close is greater than previous close
                         // Probably a mini-moon: BUY
                         return TradeType.VOLUMEBUY;
                     }
@@ -331,7 +342,8 @@ namespace CoinBot.Business.Builders
                     //  (price is increasing)
                     // and sell percent reached
                     // keep checking if increasing more
-                    MooningAndTankingCheck(latestStick, tradeType);
+                    iteration++;
+                    MooningAndTankingCheck(latestStick, tradeType, startingPrice, iteration);
                 }
                 else
                 {
@@ -346,7 +358,7 @@ namespace CoinBot.Business.Builders
                     else if (volumePercentChange > _botSettings.mooningTankingPercent 
                         && candleStick.close > latestStick.close)
                     {
-                        // If volume increased more than 20% and Latest close is less than previous close
+                        // If volume increased more than N% and Latest close is less than previous close
                         // Probably a sell off: Sell
                         return TradeType.VOLUMESELL;
                     }
