@@ -11,7 +11,7 @@ namespace CoinBot.Data
     public class FileRepository : IFileRepository
     {
         private string balancePath = "balance.log";
-        private string configPath = "config.json";
+        private string configPath = "apiConfig.json";
         private string settingsPath = "botSettings.json";
         private string transactionPath = "transaction.log";
 
@@ -43,14 +43,14 @@ namespace CoinBot.Data
         /// <summary>
         /// Get App configuration data from file
         /// </summary>
-        /// <returns>BotConfig object</returns>
-        public BotConfig GetConfig()
+        /// <returns>ApiInformation object</returns>
+        public ApiInformation GetConfig()
         {
             using (StreamReader r = new StreamReader(configPath))
             {
                 string json = r.ReadToEnd();
 
-                var config = JsonConvert.DeserializeObject<BotConfig>(json);
+                var config = JsonConvert.DeserializeObject<ApiInformation>(json);
 
                 json = null;
 

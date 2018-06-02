@@ -23,7 +23,7 @@ namespace CoinBot.Data.Interface
         /// Get App configuration data from file
         /// </summary>
         /// <returns>BotConfig object</returns>
-        BotConfig GetConfig();
+        ApiInformation GetConfig();
 
         /// <summary>
         /// Get BotSettings
