@@ -139,7 +139,8 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <param name="orderPrice">Current price</param>
         /// <param name="tradeType">Trade Type</param>
-        void SellCrypto(decimal orderPrice, TradeType tradeType);
+        /// <returns>Boolean when complete</returns>
+        bool SellCrypto(decimal orderPrice, TradeType tradeType);
 
         /// <summary>
         /// Check status of placed trade

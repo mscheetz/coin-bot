@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CoinBot.Business.Builders
 {
@@ -106,6 +107,8 @@ namespace CoinBot.Business.Builders
             _botBalances = botBalanceList;
         }
 
+        #region Settings Management
+
         /// <summary>
         /// Check if config file exists
         /// </summary>
@@ -202,6 +205,45 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Set up respository
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        public bool SetupRepository()
+        {
+            var repoReady = _exchBldr.ValidateExchangeConfigured(_botSettings.exchange);
+
+            if (repoReady)
+                return true;
+
+            var apiInfo = GetApiInformation();
+
+            _exchBldr.SetExchangeApi(apiInfo);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Get ApiInformation from config
+        /// </summary>
+        /// <returns>ApiInformation for repository</returns>
+        private ApiInformation GetApiInformation()
+        {
+            var config = _fileRepo.GetConfig();
+
+            var apiInfo = new ApiInformation
+            {
+                apiKey = config.apiKey,
+                apiSecret = config.apiSecret
+            };
+
+            return apiInfo;
+        }
+
+        #endregion Settings Management
+
+        #region Trade History
+
+        /// <summary>
         /// Get all transactions
         /// </summary>
         /// <returns>Collection of TradeInformation</returns>
@@ -210,6 +252,9 @@ namespace CoinBot.Business.Builders
             return _fileRepo.GetTransactions().OrderByDescending(t => t.timestamp);
         }
 
+        #endregion Trade History
+
+        #region Balance Checking
         /// <summary>
         /// Get current balance
         /// </summary>
@@ -259,25 +304,6 @@ namespace CoinBot.Business.Builders
             }
 
             LogBalances();
-        }
-
-        /// <summary>
-        /// Log balances to file
-        /// </summary>
-        /// <returns>Boolean when complete</returns>
-        public bool LogBalances()
-        {
-            return _fileRepo.LogBalances(_botBalances);
-        }
-
-        /// <summary>
-        /// Log Trades
-        /// </summary>
-        /// <param name="tradeInformation">New TradeInformation object</param>
-        /// <returns></returns>
-        public bool LogTransaction(TradeInformation tradeInformation)
-        {
-            return _fileRepo.LogTransaction(tradeInformation);
         }
 
         /// <summary>
@@ -372,6 +398,31 @@ namespace CoinBot.Business.Builders
 
             LogBalances();
         }
+        #endregion Balance Checking
+
+        #region Logging
+        /// <summary>
+        /// Log balances to file
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        public bool LogBalances()
+        {
+            return _fileRepo.LogBalances(_botBalances);
+        }
+
+        /// <summary>
+        /// Log Trades
+        /// </summary>
+        /// <param name="tradeInformation">New TradeInformation object</param>
+        /// <returns></returns>
+        public bool LogTransaction(TradeInformation tradeInformation)
+        {
+            return _fileRepo.LogTransaction(tradeInformation);
+        }
+
+        #endregion Logging
+
+        #region Candlesticks
 
         /// <summary>
         /// Get Candlesticks from exchange API
@@ -391,6 +442,10 @@ namespace CoinBot.Business.Builders
 
             return candleSticks;
         }
+
+        #endregion Candlesticks
+
+        #region Place Trade
 
         /// <summary>
         /// Place a trade
@@ -439,40 +494,9 @@ namespace CoinBot.Business.Builders
             return response;
         }
 
-        /// <summary>
-        /// Set up respository
-        /// </summary>
-        /// <returns>Boolean when complete</returns>
-        public bool SetupRepository()
-        {
-            var repoReady = _exchBldr.ValidateExchangeConfigured(_botSettings.exchange);
+        #endregion Place Trade
 
-            if (repoReady)
-                return true;
-
-            var apiInfo = GetApiInformation();
-
-            _exchBldr.SetExchangeApi(apiInfo);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Get ApiInformation from config
-        /// </summary>
-        /// <returns>ApiInformation for repository</returns>
-        private ApiInformation GetApiInformation()
-        {
-            var config = _fileRepo.GetConfig();
-
-            var apiInfo = new ApiInformation
-            {
-                apiKey = config.apiKey,
-                apiSecret = config.apiSecret
-            };
-
-            return apiInfo;
-        }
+        #region Stop Loss Management
 
         /// <summary>
         /// Check if Stop Loss Hit
@@ -529,6 +553,10 @@ namespace CoinBot.Business.Builders
             return true;
         }
 
+        #endregion Stop Loss Management
+
+        #region Buy/Sell Crypto
+
         /// <summary>
         /// Buy crypto
         /// </summary>
@@ -539,11 +567,13 @@ namespace CoinBot.Business.Builders
         {
             var trade = MakeTrade(TradeType.BUY, orderPrice);
 
-            bool tradeComplete = false;
-            while (!tradeComplete)
+            var tradeComplete = ValidateTradeComplete(trade);
+
+            if(!tradeComplete)
             {
-                tradeComplete = CheckTradeStatus(trade);
+                return false;
             }
+
             _lastBuy = orderPrice;
 
             _lastTrade = new TradeInformation
@@ -560,19 +590,88 @@ namespace CoinBot.Business.Builders
 
             var stopLoss = PlaceStopLoss(orderPrice, trade.origQty);
 
-            _openStopLossList.Add(
-                new OpenStopLoss
-                {
-                    symbol = _symbol,
-                    clientOrderId = stopLoss.clientOrderId,
-                    orderId = stopLoss.orderId,
-                    price = stopLoss.price,
-                    quantity = trade.origQty
-                });
+            UpdateBalances();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Sell crypto
+        /// </summary>
+        /// <param name="orderPrice">Current price</param>
+        /// <param name="tradeType">Trade Type</param>
+        /// <returns>Boolean when complete</returns>
+        public bool SellCrypto(decimal orderPrice, TradeType tradeType)
+        {
+            CancelStopLoss();
+
+            var trade = MakeTrade(TradeType.SELL, orderPrice);
+
+            var tradeComplete = ValidateTradeComplete(trade);
+
+            if (!tradeComplete)
+            {
+                return false;
+            }
+
+            _lastSell = orderPrice;
+
+            _lastTrade = new TradeInformation
+            {
+                pair = _symbol,
+                price = orderPrice,
+                quantity = trade.origQty,
+                timestamp = _dtHelper.UnixTimeToUTC(trade.transactTime),
+                tradeType = EnumHelper.GetEnumDescription((TradeType)tradeType)
+            };
+
+            _tradeInformation.Add(_lastTrade);
+
+            LogTransaction(_lastTrade);
 
             UpdateBalances();
 
             return true;
+        }
+
+        #endregion Buy/Sell Crypto
+
+        #region Validate Trade
+
+        /// <summary>
+        /// Validate that a placed trade was complete
+        /// </summary>
+        /// <param name="trade">TradeReponse object</param>
+        /// <returns>Boolean value on trade validation</returns>
+        public bool ValidateTradeComplete(TradeResponse trade)
+        {
+            bool tradeComplete = false;
+            int i = 0;
+            while (!tradeComplete || i > 5)
+            {
+                i++;
+                tradeComplete = CheckTradeStatus(trade);
+
+                if (!tradeComplete && i < 5)
+                {
+                    Task.WaitAll(Task.Delay(100));
+                }
+                else if (!tradeComplete && i == 5)
+                {
+                    var cancelTradeParams = new CancelTradeParams
+                    {
+                        orderId = trade.orderId,
+                        origClientOrderId = trade.clientOrderId,
+                        symbol = trade.symbol,
+                        timestamp = trade.transactTime
+                    };
+                    CancelTrade(cancelTradeParams);
+
+                    return false;
+                }
+            }
+
+            return tradeComplete;
         }
 
         /// <summary>
@@ -586,6 +685,10 @@ namespace CoinBot.Business.Builders
 
             return orderStatus.status == OrderStatus.FILLED ? true : false;
         }
+
+        #endregion Validate Trade
+
+        #region Pair and Quantity
 
         /// <summary>
         /// Get Asset and Pair from symbol
@@ -651,6 +754,10 @@ namespace CoinBot.Business.Builders
             return roundedDown;
         }
 
+        #endregion Pair and Quantity
+
+        #region Stop Loss Management
+
         /// <summary>
         /// Get all open stop losses
         /// </summary>
@@ -658,40 +765,6 @@ namespace CoinBot.Business.Builders
         public IEnumerable<OpenStopLoss> GetStopLosses()
         {
             return _openStopLossList;
-        }
-
-        /// <summary>
-        /// Sell crypto
-        /// </summary>
-        /// <param name="orderPrice">Current price</param>
-        /// <param name="tradeType">Trade Type</param>
-        public void SellCrypto(decimal orderPrice, TradeType tradeType)
-        {
-            CancelStopLoss();
-
-            var trade = MakeTrade(TradeType.SELL, orderPrice);
-
-            bool tradeComplete = false;
-            while (!tradeComplete)
-            {
-                tradeComplete = CheckTradeStatus(trade);
-            }
-            _lastSell = orderPrice;
-
-            _lastTrade = new TradeInformation
-            {
-                pair = _symbol,
-                price = orderPrice,
-                quantity = trade.origQty,
-                timestamp = _dtHelper.UnixTimeToUTC(trade.transactTime),
-                tradeType = EnumHelper.GetEnumDescription((TradeType)tradeType)
-            };
-
-            _tradeInformation.Add(_lastTrade);
-
-            LogTransaction(_lastTrade);
-
-            UpdateBalances();
         }
 
         /// <summary>
@@ -729,6 +802,46 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Place a stop loss
+        /// </summary>
+        /// <param name="orderPrice">Trade price</param>
+        /// <param name="quantity">Quantity to trade</param>
+        /// <returns>TradeResponse object</returns>
+        public TradeResponse PlaceStopLoss(decimal orderPrice, decimal quantity)
+        {
+            decimal stopLossPercent = (decimal)Math.Abs(_botSettings.stopLoss) / 100;
+            decimal stopLossPrice = orderPrice - (orderPrice * stopLossPercent);
+
+            var trade = new TradeParams
+            {
+                symbol = _symbol,
+                side = TradeType.SELL.ToString(),
+                type = OrderType.STOP_LOSS.ToString(),
+                quantity = quantity,
+                stopPrice = stopLossPrice,
+                price = stopLossPrice
+            };
+
+            var response = PlaceTrade(trade);
+            
+            _openStopLossList.Add(
+                new OpenStopLoss
+                {
+                    symbol = _symbol,
+                    clientOrderId = response.clientOrderId,
+                    orderId = response.orderId,
+                    price = response.price,
+                    quantity = quantity
+                });
+
+            return response;
+        }
+
+        #endregion Stop Loss Management
+
+        #region Trade Management
+
+        /// <summary>
         /// Make a trade
         /// </summary>
         /// <param name="tradeType">TradeType object</param>
@@ -750,32 +863,6 @@ namespace CoinBot.Business.Builders
                 type = OrderType.LIMIT.ToString(),
                 quantity = quantity,
                 timeInForce = "GTC"
-            };
-
-            var response = PlaceTrade(trade);
-
-            return response;
-        }
-
-        /// <summary>
-        /// Place a stop loss
-        /// </summary>
-        /// <param name="orderPrice">Trade price</param>
-        /// <param name="quantity">Quantity to trade</param>
-        /// <returns>TradeResponse object</returns>
-        public TradeResponse PlaceStopLoss(decimal orderPrice, decimal quantity)
-        {
-            decimal stopLossPercent = (decimal)Math.Abs(_botSettings.stopLoss) / 100;
-            decimal stopLossPrice = orderPrice - (orderPrice * stopLossPercent);
-
-            var trade = new TradeParams
-            {
-                symbol = _symbol,
-                side = TradeType.SELL.ToString(),
-                type = OrderType.STOP_LOSS.ToString(),
-                quantity = quantity,
-                stopPrice = stopLossPrice,
-                price = stopLossPrice
             };
 
             var response = PlaceTrade(trade);
@@ -834,6 +921,10 @@ namespace CoinBot.Business.Builders
             return response;
         }
 
+        #endregion Trade Management
+
+        #region Order Management
+
         /// <summary>
         /// Get status of a trade
         /// </summary>
@@ -864,5 +955,7 @@ namespace CoinBot.Business.Builders
 
             return response;
         }
+
+        #endregion Order Management
     }
 }
