@@ -191,6 +191,7 @@ namespace CoinBot.Business.Builders
             {
                 GDAXSharp.Services.Orders.Models.Responses.OrderResponse response;
 
+                // TODO use new trade api
                 if (tradeParams.type == "STOPLOSS")
                 {
                     response = _gdaxRepo.PlaceStopLimit(tradeParams).Result;
