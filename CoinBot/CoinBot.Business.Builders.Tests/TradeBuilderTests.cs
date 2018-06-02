@@ -38,7 +38,9 @@ namespace CoinBot.Business.Builders.Tests
                 sellPercent = 1,
                 chartInterval = Interval.OneM,
                 tradingPair = "BTCUSDT",
-                startBotAutomatically = false
+                startBotAutomatically = false,
+                tradingStatus = TradeStatus.LiveTrading,
+                exchange = Exchange.GDAX
             };
             _botConfig = new BotConfig
             {

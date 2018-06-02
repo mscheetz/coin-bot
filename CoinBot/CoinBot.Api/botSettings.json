@@ -1,5 +1,5 @@
 ﻿{
-  "tradingPair": "BTCUSDT",
+  "tradingPair": "BTCUSD",
   "tradingStrategy": "Percentage",
   "tradingStatus": "PaperTrading",
   "buyPercent": 1,
@@ -11,5 +11,6 @@
   "startBotAutomatically": false,
   "startingAmount": 200,
   "mooningTankingTime": 2000,
-  "mooningTankingPercent" :  100
+  "mooningTankingPercent": 100,
+  "exchange": "GDAX"
 }

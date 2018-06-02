@@ -175,7 +175,11 @@ namespace CoinBot.Business.Builders
             var tradeType = MooningAndTankingCheck(candleStick, TradeType.SELL);
             if (tradeType != TradeType.NONE)
             {
-                _trader.SellCrypto(candleStick.close, tradeType);
+                var sellStatus = _trader.SellCrypto(candleStick.close, tradeType);
+
+                if (!sellStatus)
+                    return sellStatus;
+
                 _lastSell = candleStick.close;
                 _tradeType = TradeType.BUY;
                 _lastTrade = tradeType;
@@ -201,12 +205,16 @@ namespace CoinBot.Business.Builders
                 if (_tradeNumber == 0)
                     tradeType = TradeType.BUY;
 
-                _trader.BuyCrypto(candleStick.close, tradeType);
+                var buyStatus = _trader.BuyCrypto(candleStick.close, tradeType);
+
+                if (!buyStatus)
+                    return buyStatus;
+
                 _lastBuy = candleStick.close;
                 _tradeType = TradeType.SELL;
                 _lastTrade = tradeType;
                 _tradeNumber++;
-                return true;
+                return buyStatus;
             }
             else
             {
@@ -365,7 +373,7 @@ namespace CoinBot.Business.Builders
 
             var candlesticks = _trader.GetCandlesticks(_symbol, Interval.OneM, 1);
 
-            return candlesticks[0];
+            return candlesticks[candlesticks.Length - 1];
         }
     }
 }
