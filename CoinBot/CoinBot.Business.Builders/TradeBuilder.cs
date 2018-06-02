@@ -785,13 +785,13 @@ namespace CoinBot.Business.Builders
 
             var result = CancelTrade(tradeParams);
 
-            bool stopLossCanceled = true;
             var trade = new TradeResponse
             {
                 orderId = _openStopLossList[0].orderId,
                 clientOrderId = _openStopLossList[0].clientOrderId
             };
-            while (stopLossCanceled)
+            bool stopLossCanceled = false;
+            while (!stopLossCanceled)
             {
                 stopLossCanceled = CheckTradeStatus(trade);
             }
