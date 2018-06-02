@@ -288,7 +288,11 @@ namespace CoinBot.Business.Builders
 
             grouped[0].close = close;
 
-            return grouped.ToArray();
+            var groupedArray = grouped.ToArray();
+
+            Array.Reverse(groupedArray);
+
+            return groupedArray;
         }
 
         /// <summary>
