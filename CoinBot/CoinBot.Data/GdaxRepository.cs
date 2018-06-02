@@ -29,8 +29,9 @@ namespace CoinBot.Data
         private GDAXSharp.GDAXClient gdaxClient;
         private DateTimeHelper _dtHelper;
         private Helper _helper;
+        private Security _security;
         private ApiInformation _apiInfo;
-        private string baseUrl = "https://api.gdax.com/";
+        private string baseUrl = "https://api.gdax.com";
 
         /// <summary>
         /// Constructor
@@ -40,6 +41,7 @@ namespace CoinBot.Data
             _restRepo = new RESTRepository();
             _dtHelper = new DateTimeHelper();
             _helper = new Helper();
+            _security = new Security();
             _apiInfo = new ApiInformation();
         }
 
@@ -131,7 +133,7 @@ namespace CoinBot.Data
         public async Task<GdaxTrade[]> GetTrades(string pair)
         {
             var gdaxPair = _helper.CreateGdaxPair(pair);
-            var url = baseUrl + $"products/{gdaxPair}/trades";
+            var url = baseUrl + $"/products/{gdaxPair}/trades";
 
             var response = await _restRepo.GetApiStream<GdaxTrade[]>(url, GetRequestHeaders());
 
@@ -189,18 +191,45 @@ namespace CoinBot.Data
         }
 
         /// <summary>
+        /// Place a limit order trade
+        /// </summary>
+        /// <param name="tradeParams">GDAXTradeParams for setting the trade</param>
+        /// <returns>GDAXOrderResponse object</returns>
+        public async Task<GDAXOrderResponse> PlaceTrade(GDAXTradeParams tradeParams)
+        {
+            var gdaxPair = _helper.CreateGdaxPair(tradeParams.product_id);
+            tradeParams.product_id = gdaxPair;
+            var req = new Request
+            {
+                method = "POST",
+                path = "/orders",
+                body = ""
+            };
+            var url = baseUrl + req.path;
+
+            var response = await _restRepo.PostApi<GDAXOrderResponse, GDAXTradeParams>(url, tradeParams, GetRequestHeaders(true, req));
+
+            return response;
+        }
+
+        /// <summary>
         /// Place a stop limit trade
         /// </summary>
-        /// <param name="tradeParams">TradeParams for setting the SL</param>
-        /// <returns>OrderResponse object</returns>
-        public async Task<GDAXSharp.Services.Orders.Models.Responses.OrderResponse> PlaceStopLimit(TradeParams tradeParams)
+        /// <param name="tradeParams">GDAXStopLostParams for setting the SL</param>
+        /// <returns>GDAXOrderResponse object</returns>
+        public async Task<GDAXOrderResponse> PlaceStopLimit(GDAXStopLostParams tradeParams)
         {
-            OrderSide orderSide;
-            ProductType productType;
-            Enum.TryParse(tradeParams.side, out orderSide);
-            Enum.TryParse(tradeParams.symbol, out productType);
+            var gdaxPair = _helper.CreateGdaxPair(tradeParams.product_id);
+            tradeParams.product_id = gdaxPair;
+            var req = new Request
+            {
+                method = "POST",
+                path = "/orders",
+                body = ""
+            };
+            var url = baseUrl + req.path;
 
-            var response = await gdaxClient.OrdersService.PlaceStopLimitOrderAsync(orderSide, productType, tradeParams.quantity, tradeParams.price, tradeParams.price);
+            var response = await _restRepo.PostApi<GDAXOrderResponse, GDAXStopLostParams>(url, tradeParams, GetRequestHeaders(true, req));
 
             return response;
         }
@@ -233,12 +262,33 @@ namespace CoinBot.Data
         /// Add request headers to api call
         /// </summary>
         /// <returns>Dictionary of request headers</returns>
-        private Dictionary<string, string> GetRequestHeaders()
+        private Dictionary<string, string> GetRequestHeaders(bool secure = false, Request request = null)
         {
+            string utcDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
             var headers = new Dictionary<string, string>();
+
             headers.Add("User-Agent", ".NET Framework Test Client");
 
+            if (secure)
+            {
+                if (request != null)
+                {
+                    string nonce = DateTime.UtcNow.ToTimeStamp().ToString();// GetCBTime().ToString();
+                    string message = $"{nonce}{request.method}{request.path}{request.body}";
+                    headers.Add("CB-ACCESS-KEY", _apiInfo.apiKey);
+                    headers.Add("CB-ACCESS-SIGN", CreateSignature(message));
+                    headers.Add("CB-ACCESS-TIMESTAMP", nonce);
+                    headers.Add("CB-ACCESS-PASSPHRASE", _apiInfo.extraValue);
+                }
+                headers.Add("CB-VERSION", utcDate);
+            }
             return headers;
+        }
+
+        private string CreateSignature(string message)
+        {
+            var hmac = _security.GetHMACSignature(_apiInfo.apiSecret, message);
+            return hmac;
         }
     }
 }
