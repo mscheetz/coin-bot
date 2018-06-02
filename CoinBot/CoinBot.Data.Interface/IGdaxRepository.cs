@@ -63,6 +63,13 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <returns>Accout object</returns>
         Task<IEnumerable<GDAXSharp.Services.Accounts.Models.Account>> GetBalance();
+        
+        /// <summary>
+        /// Place a limit order trade
+        /// </summary>
+        /// <param name="tradeParams">TradeParams for setting the trade</param>
+        /// <returns>OrderResponse object</returns>
+        Task<GDAXSharp.Services.Orders.Models.Responses.OrderResponse> PlaceTrade(TradeParams tradeParams);
 
         /// <summary>
         /// Place a limit order trade
@@ -70,6 +77,13 @@ namespace CoinBot.Data.Interface
         /// <param name="tradeParams">GDAXTradeParams for setting the trade</param>
         /// <returns>GDAXOrderResponse object</returns>
         Task<GDAXOrderResponse> PlaceTrade(GDAXTradeParams tradeParams);
+        
+        /// <summary>
+        /// Place a limit order trade
+        /// </summary>
+        /// <param name="tradeParams">TradeParams for setting the trade</param>
+        /// <returns>OrderResponse object</returns>
+        Task<GDAXSharp.Services.Orders.Models.Responses.OrderResponse> PlaceStopLimit(TradeParams tradeParams);
 
         /// <summary>
         /// Place a stop limit trade

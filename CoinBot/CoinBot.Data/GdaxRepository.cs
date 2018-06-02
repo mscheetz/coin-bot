@@ -193,6 +193,23 @@ namespace CoinBot.Data
         /// <summary>
         /// Place a limit order trade
         /// </summary>
+        /// <param name="tradeParams">TradeParams for setting the trade</param>
+        /// <returns>OrderResponse object</returns>
+        public async Task<GDAXSharp.Services.Orders.Models.Responses.OrderResponse> PlaceStopLimit(TradeParams tradeParams)
+        {
+            OrderSide orderSide;
+            ProductType productType;
+            Enum.TryParse(tradeParams.side, out orderSide);
+            Enum.TryParse(tradeParams.symbol, out productType);
+
+            var response = await gdaxClient.OrdersService.PlaceStopLimitOrderAsync(orderSide, productType, tradeParams.quantity, tradeParams.price, tradeParams.price);
+
+            return response;
+        }
+
+        /// <summary>
+        /// Place a limit order trade
+        /// </summary>
         /// <param name="tradeParams">GDAXTradeParams for setting the trade</param>
         /// <returns>GDAXOrderResponse object</returns>
         public async Task<GDAXOrderResponse> PlaceTrade(GDAXTradeParams tradeParams)
