@@ -23,13 +23,15 @@ namespace CoinBot.Data.Interface
         /// Set ApiInformation for repository
         /// </summary>
         /// <param name="apiInfo">ApiInformation object</param>
+        /// <param name="sandbox">Boolean if to use sandbox (false by default)</param>
         /// <returns>Boolean when complete</returns>
-        bool SetExchangeApi(ApiInformation apiInfo);
+        bool SetExchangeApi(ApiInformation apiInfo, bool sandbox = false);
 
         /// <summary>
         /// Build GDAX Client
         /// </summary>
-        void BuildClient();
+        /// <param name="sandbox">Booelan if to use sandbox</param>
+        void BuildClient(bool sandbox);
 
         /// <summary>
         /// Get Candlesticks for a trading pair
@@ -57,6 +59,12 @@ namespace CoinBot.Data.Interface
         Task<ProductTicker> GetTicker(string pair);
 
         Task<ProductStats> GetStats(string pair);
+
+        /// <summary>
+        /// Get Balances for GDAX account
+        /// </summary>
+        /// <returns>Accout object array</returns>
+        Task<GDAXAccount[]> GetBalanceRest();
 
         /// <summary>
         /// Get Balances for GDAX account

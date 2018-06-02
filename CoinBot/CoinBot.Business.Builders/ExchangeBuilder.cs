@@ -358,5 +358,15 @@ namespace CoinBot.Business.Builders
         {
             return _helper.MapEntity<IEnumerable<GDAXSharp.Services.Accounts.Models.Account>, IEnumerable<Balance>>(accountList);
         }
+
+        /// <summary>
+        /// Convert GDAX Account collection to Balance collection
+        /// </summary>
+        /// <param name="response">GDAX Account collection</param>
+        /// <returns>Balance collection</returns>
+        private IEnumerable<Balance> GdaxAccountArrayToBalanceCollection(GDAXAccount[] accountList)
+        {
+            return _helper.MapEntity<IEnumerable<GDAXAccount>, IEnumerable<Balance>>(accountList.ToList());
+        }
     }
 }

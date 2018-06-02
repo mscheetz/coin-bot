@@ -48,6 +48,20 @@ namespace CoinBot.Data
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="url">Base url value</param>
+        public GdaxRepository(string url)
+        {
+            _restRepo = new RESTRepository();
+            _dtHelper = new DateTimeHelper();
+            _helper = new Helper();
+            _security = new Security();
+            _apiInfo = new ApiInformation();
+            baseUrl = url;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         /// <param name="apiInformation">Api Information</param>
         public GdaxRepository(ApiInformation apiInformation)
         {
@@ -73,21 +87,32 @@ namespace CoinBot.Data
         /// Set ApiInformation for repository
         /// </summary>
         /// <param name="apiInfo">ApiInformation object</param>
+        /// <param name="sandbox">Boolean if to use sandbox (false by default)</param>
         /// <returns>Boolean when complete</returns>
-        public bool SetExchangeApi(ApiInformation apiInfo)
+        public bool SetExchangeApi(ApiInformation apiInfo, bool sandbox = false)
         {
             _apiInfo = apiInfo;
-            BuildClient();
+            BuildClient(sandbox);
             return true;
         }
 
         /// <summary>
         /// Build GDAX Client
         /// </summary>
-        public void BuildClient()
+        /// <param name="sandbox">Booelan if to use sandbox</param>
+        public void BuildClient(bool sandbox)
         {
             var authenticator = new Authenticator(_apiInfo.apiKey, _apiInfo.apiSecret, _apiInfo.extraValue);
-            gdaxClient = new GDAXSharp.GDAXClient(authenticator);
+            if(sandbox)
+            {
+                baseUrl = "https://public.sandbox.gdax.com";
+                gdaxClient = new GDAXSharp.GDAXClient(authenticator, sandbox);
+            }
+            else
+            {
+                baseUrl = "https://api.gdax.com";
+                gdaxClient = new GDAXSharp.GDAXClient(authenticator);
+            }
         }
 
         /// <summary>
@@ -160,6 +185,26 @@ namespace CoinBot.Data
             var response = await gdaxClient.ProductsService.GetProductStatsAsync(productType);
 
             return response;
+        }
+
+
+        /// <summary>
+        /// Get Balances for GDAX account
+        /// </summary>
+        /// <returns>Accout object</returns>
+        public async Task<GDAXAccount[]> GetBalanceRest()
+        {
+            var url = baseUrl + "/accounts";
+            var req = new Request
+            {
+                method = "GET",
+                path = "/accounts",
+                body = ""
+            };
+
+            var accountList = await _restRepo.GetApi<GDAXAccount[]>(url, GetRequestHeaders(true, req));
+
+            return accountList;
         }
 
         /// <summary>
@@ -290,7 +335,7 @@ namespace CoinBot.Data
             {
                 if (request != null)
                 {
-                    string nonce = DateTime.UtcNow.ToTimeStamp().ToString();// GetCBTime().ToString();
+                    string nonce = _dtHelper.UTCtoUnixTime().ToString();// GetCBTime().ToString();
                     string message = $"{nonce}{request.method}{request.path}{request.body}";
                     headers.Add("CB-ACCESS-KEY", _apiInfo.apiKey);
                     headers.Add("CB-ACCESS-SIGN", CreateSignature(message));
