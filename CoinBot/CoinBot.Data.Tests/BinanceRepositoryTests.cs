@@ -6,7 +6,7 @@ using Xunit;
 
 namespace CoinBot.Data.Tests
 {
-    public class BinanceRepositoryTests
+    public class BinanceRepositoryTests : IDisposable
     {
         private ApiInformation _exchangeApi;
 
@@ -17,6 +17,11 @@ namespace CoinBot.Data.Tests
                 apiKey = "",
                 apiSecret = "",
             };
+        }
+
+        public void Dispose()
+        {
+
         }
 
         [Fact]

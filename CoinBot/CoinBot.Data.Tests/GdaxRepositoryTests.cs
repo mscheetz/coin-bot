@@ -9,9 +9,10 @@ using Xunit;
 
 namespace CoinBot.Data.Tests
 {
-    public class GdaxRepositoryTests
+    public class GdaxRepositoryTests : IDisposable
     {
         private ApiInformation _exchangeApi;
+        private TradeParams _tradeParams;
 
         public GdaxRepositoryTests()
         {
@@ -19,7 +20,20 @@ namespace CoinBot.Data.Tests
             {
                 apiKey = "",
                 apiSecret = "",
+                extraValue = ""
             };
+            _tradeParams = new TradeParams
+            {
+                side = "buy",
+                price = 0.100M,
+                quantity = 0.01M,
+                symbol = "BTCUSD"
+            };
+        }
+
+        public void Dispose()
+        {
+
         }
 
         [Fact]
@@ -31,6 +45,45 @@ namespace CoinBot.Data.Tests
             //var account = repo.GetBalance();
 
             //Assert.NotNull(account.Result);
+        }
+
+        [Fact]
+        public void GetGdaxBalances()
+        {
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, true);
+
+            var accounts = repo.GetBalanceRest().Result;
+
+            Assert.True(accounts != null);
+        }
+
+        [Fact]
+        public void GetGdaxBalancesII()
+        {
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, true);
+
+            var accounts = repo.GetBalance().Result;
+
+            Assert.True(accounts != null);
+        }
+
+        [Fact]
+        public void GDAXPlaceTradeTest()
+        {
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, true);
+
+            var response = repo.PlaceTrade(_tradeParams).Result;
+
+            Assert.True(response != null);
         }
 
         [Fact]
