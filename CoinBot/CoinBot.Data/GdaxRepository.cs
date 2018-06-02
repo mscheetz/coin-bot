@@ -138,14 +138,6 @@ namespace CoinBot.Data
             return response;
         }
 
-        private Dictionary<string, string> GetRequestHeaders()
-        {
-            var headers = new Dictionary<string, string>();
-            headers.Add("User-Agent", ".NET Framework Test Client");
-
-            return headers;
-        }
-
         public async Task<ProductTicker> GetTicker(string pair)
         {
             var end = DateTime.UtcNow;
@@ -235,6 +227,18 @@ namespace CoinBot.Data
             var response = await gdaxClient.OrdersService.CancelOrderByIdAsync(id);
 
             return response;
+        }
+
+        /// <summary>
+        /// Add request headers to api call
+        /// </summary>
+        /// <returns>Dictionary of request headers</returns>
+        private Dictionary<string, string> GetRequestHeaders()
+        {
+            var headers = new Dictionary<string, string>();
+            headers.Add("User-Agent", ".NET Framework Test Client");
+
+            return headers;
         }
     }
 }

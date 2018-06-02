@@ -36,8 +36,46 @@ namespace CoinBot.Console
                 .CreateLogger<Program>();
             logger.LogDebug("Starting bot");
 
+            var input = System.Console.ReadLine();
+
+            ProcessSwitches(serviceProvider, args);
+        }
+
+        private static void ProcessSwitches(ServiceProvider serviceProvider, string[] args)
+        {
             var svc = serviceProvider.GetService<ICoinBotService>();
+            if (args.Length == 0)
+            {
+                BotHelp();
+            }
+            foreach (string arg in args)
+            {
+                switch(arg.ToLower())
+                {
+                    case "h":
+                        BotHelp();
+                        break;
+                    case "r":
+                        System.Console.WriteLine("Starting bot...");
+                        svc.StartBot(Business.Entities.Interval.OneM);
+                        break;
+                    default:
+                        BotHelp();
+                        break;
+                }
+            }
             svc.StartBot(Business.Entities.Interval.OneM);
+        }
+
+        private static void BotHelp()
+        {
+            System.Console.WriteLine("/////////////////");
+            System.Console.WriteLine("  Bot Help menu");
+            System.Console.WriteLine("/////////////////");
+
+            System.Console.WriteLine("Switches:");
+            System.Console.WriteLine("-h    help menu");
+            System.Console.WriteLine("-r    run bot");
         }
     }
 }
