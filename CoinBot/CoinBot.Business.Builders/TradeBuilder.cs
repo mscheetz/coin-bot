@@ -105,6 +105,8 @@ namespace CoinBot.Business.Builders
             _tradeInformation = new List<TradeInformation>();
             _openOrderList = new List<OpenOrder>();
             _openStopLossList = new List<OpenStopLoss>();
+            _exchBldr.SetExchange(_botSettings);
+            SetupRepository();
         }
 
         /// <summary>
@@ -245,7 +247,8 @@ namespace CoinBot.Business.Builders
             var apiInfo = new ApiInformation
             {
                 apiKey = config.apiKey,
-                apiSecret = config.apiSecret
+                apiSecret = config.apiSecret,
+                extraValue = config.extraValue
             };
 
             return apiInfo;
