@@ -166,7 +166,7 @@ namespace CoinBot.Business.Builders
                     balances.Add(balance);
                 }
 
-                return GdaxAccountCollectionToBalanceCollection(accountList).ToList();
+                return balances;// GdaxAccountCollectionToBalanceCollection(accountList).ToList();
             }
             else
             {
@@ -326,7 +326,33 @@ namespace CoinBot.Business.Builders
         /// <returns>TradeReponse object</returns>
         private TradeResponse GdaxOrderResponseToTradeResponse(GDAXSharp.Services.Orders.Models.Responses.OrderResponse response)
         {
-            return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.OrderResponse, TradeResponse>(response);
+            TradeType tradeType;
+            Enum.TryParse(response.Side.ToString(), out tradeType);
+            OrderStatus orderStatus;
+            Enum.TryParse(response.Status.ToString(), out orderStatus);
+            TimeInForce tif;
+            Enum.TryParse(response.TimeInForce.ToString(), out tif);
+            OrderType orderType;
+            Enum.TryParse(response.OrderType.ToString(), out orderType);
+
+            var tradeResponse = new TradeResponse
+            {
+                clientOrderId = response.Id.ToString(),
+                executedQty = response.ExecutedValue,
+                orderId = 0,
+                origQty = response.Size,
+                price = response.Price,
+                side = tradeType,
+                status = orderStatus,
+                symbol = response.ProductId.ToString(),
+                timeInForce = tif,
+                transactTime = _dtHelper.LocalToUnixTime(response.CreatedAt),
+                type = orderType
+            };
+
+            return tradeResponse;
+
+//            return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.OrderResponse, TradeResponse>(response);
         }
 
         /// <summary>
@@ -336,7 +362,31 @@ namespace CoinBot.Business.Builders
         /// <returns>OrderReponse object</returns>
         private OrderResponse GdaxOrderResponseToOrderResponse(GDAXSharp.Services.Orders.Models.Responses.OrderResponse response)
         {
-            return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.OrderResponse, OrderResponse>(response);
+            TradeType tradeType;
+            Enum.TryParse(response.Side.ToString(), out tradeType);
+            OrderStatus orderStatus;
+            Enum.TryParse(response.Status.ToString(), out orderStatus);
+            TimeInForce tif;
+            Enum.TryParse(response.TimeInForce.ToString(), out tif);
+            OrderType orderType;
+            Enum.TryParse(response.OrderType.ToString(), out orderType);
+
+            var orderReponse = new OrderResponse
+            {
+                clientOrderId = response.Id.ToString(),
+                executedQty = response.ExecutedValue,
+                origQty = response.Size,
+                price = response.Price,
+                side = tradeType,
+                status = orderStatus,
+                symbol = response.ProductId.ToString(),
+                timeInForce = tif,
+                time = _dtHelper.LocalToUnixTime(response.CreatedAt),
+                type = orderType
+            };
+
+            return orderReponse;
+//            return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.OrderResponse, OrderResponse>(response);
         }
 
         /// <summary>
@@ -346,7 +396,14 @@ namespace CoinBot.Business.Builders
         /// <returns>TradeReponse object</returns>
         private TradeResponse GdaxCancelOrderResponseToTradeResponse(GDAXSharp.Services.Orders.Models.Responses.CancelOrderResponse response)
         {
-            return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.CancelOrderResponse, TradeResponse>(response);
+            var tradeResponse = new TradeResponse
+            {
+                clientOrderId = response.OrderIds.First().ToString(),
+                transactTime = _dtHelper.UTCtoUnixTime()
+            };
+
+            return tradeResponse;
+           // return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.CancelOrderResponse, TradeResponse>(response);
         }
 
         /// <summary>
