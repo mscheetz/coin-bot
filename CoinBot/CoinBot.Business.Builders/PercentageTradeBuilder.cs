@@ -5,6 +5,7 @@ using CoinBot.Data;
 using CoinBot.Data.Interface;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,6 +26,8 @@ namespace CoinBot.Business.Builders
         private decimal _lastSell = 0.00000000M;
         private int _tradeNumber = 0;
         private decimal _lastVolume = 0.00000000M;
+        private string _asset = string.Empty;
+        private string _pair = string.Empty;
 
         /// <summary>
         /// Constructor
@@ -130,6 +133,7 @@ namespace CoinBot.Business.Builders
             bool currentlyTrading = tradingStatus != null ? (bool)tradingStatus : _currentlyTrading;
 
             _trader.SetBalances();
+            _tradeType = CheckInitialTradingType();
 
             while (currentlyTrading)
             {
@@ -160,6 +164,30 @@ namespace CoinBot.Business.Builders
                 previousStick = currentStick;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Check staring balances to determine the first trade type of the bot
+        /// </summary>
+        /// <returns>TradeType value</returns>
+        public TradeType CheckInitialTradingType()
+        {
+            _asset = _trader.GetAsset();
+            _pair = _trader.GetPair();
+
+            var balances = _trader.GetBotBalance();
+            var assetQty = balances.Where(b => b.symbol.Equals(_asset)).Select(b => b.quantity).FirstOrDefault();
+            var pairQty = balances.Where(b => b.symbol.Equals(_pair)).Select(b => b.quantity).FirstOrDefault();
+
+            if ((_pair == "USD" || _pair == "USDT")
+                && pairQty < 10)
+            {
+                return TradeType.SELL;
+            }
+            else
+            {
+                return TradeType.BUY;
+            }
         }
 
         /// <summary>
