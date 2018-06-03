@@ -321,6 +321,17 @@ namespace CoinBot.Data
         }
 
         /// <summary>
+        /// Cancel all open trades
+        /// </summary>
+        /// <returns>CancelOrderResponse object</returns>
+        public async Task<CancelOrderResponse> CancelAllTrades()
+        {
+            var response = await gdaxClient.OrdersService.CancelAllOrdersAsync();
+
+            return response;
+        }
+
+        /// <summary>
         /// Add request headers to api call
         /// </summary>
         /// <returns>Dictionary of request headers</returns>

@@ -114,5 +114,11 @@ namespace CoinBot.Data.Interface
         /// <param name="id">Id of trade to cancel</param>
         /// <returns>CancelOrderResponse object</returns>
         Task<CancelOrderResponse> CancelTrade(string id);
+
+        /// <summary>
+        /// Cancel all open trades
+        /// </summary>
+        /// <returns>CancelOrderResponse object</returns>
+        Task<CancelOrderResponse> CancelAllTrades();
     }
 }

@@ -48,7 +48,7 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
-        public void GetGdaxBalances()
+        public void GetGdaxBalancesRest_Test()
         {
             IFileRepository fileRepo = new FileRepository();
             var apiInfo = fileRepo.GetConfig();
@@ -61,7 +61,7 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
-        public void GetGdaxBalancesII()
+        public void GetGdaxBalances_Test()
         {
             IFileRepository fileRepo = new FileRepository();
             var apiInfo = fileRepo.GetConfig();
@@ -74,7 +74,7 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
-        public void GDAXPlaceTradeTest()
+        public void GDAXPlaceTrade_Test()
         {
             IFileRepository fileRepo = new FileRepository();
             var apiInfo = fileRepo.GetConfig();
@@ -87,7 +87,33 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
-        public void GetGdaxCandlestick()
+        public void GDAXPlaceTradeStopLoss_Test()
+        {
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, true);
+
+            var response = repo.PlaceStopLimit(_tradeParams).Result;
+
+            Assert.True(response != null);
+        }
+
+        [Fact]
+        public void GDAXCancelAllTrades_Test()
+        {
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, true);
+
+            var response = repo.CancelAllTrades().Result;
+
+            Assert.True(response != null);
+        }
+
+        [Fact]
+        public void GetGdaxCandlestick_Test()
         {
             IGdaxRepository repo = new GdaxRepository();
             repo.SetExchangeApi(_exchangeApi);
@@ -101,7 +127,7 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
-        public void GetGdaxOrderBook()
+        public void GetGdaxOrderBook_Test()
         {
             IGdaxRepository repo = new GdaxRepository();
             repo.SetExchangeApi(_exchangeApi);
@@ -113,7 +139,7 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
-        public void GetGdaxTicker()
+        public void GetGdaxTicker_Test()
         {
             IGdaxRepository repo = new GdaxRepository();
             repo.SetExchangeApi(_exchangeApi);
@@ -125,7 +151,7 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
-        public void GetGdaxTrades()
+        public void GetGdaxTrades_Test()
         {
             IGdaxRepository repo = new GdaxRepository();
             repo.SetExchangeApi(_exchangeApi);
@@ -137,7 +163,7 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
-        public void StatsTest()
+        public void GetStats_Test()
         {
             IGdaxRepository repo = new GdaxRepository();
             repo.SetExchangeApi(_exchangeApi);

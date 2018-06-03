@@ -250,7 +250,7 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.GDAX)
             {
-                var response = _gdaxRepo.CancelTrade(tradeParams.origClientOrderId).Result;
+                var response = _gdaxRepo.CancelAllTrades().Result;
 
                 var tradeResponse = new TradeResponse
                 {
