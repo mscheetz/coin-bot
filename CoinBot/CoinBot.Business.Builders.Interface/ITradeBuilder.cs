@@ -69,7 +69,7 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Set paper balances on load
         /// </summary>
-        void SetPaperBalance();
+        void SetBalances();
 
         /// <summary>
         /// Get paper balances available
@@ -94,8 +94,9 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Get balances available
         /// </summary>
+        /// <param name="startingQuantity">Starting quantity (for paper trading, default 0)</param>
         /// <returns>Collection of balance objects</returns>
-        List<Balance> GetBalances();
+        List<Balance> GetBalances(decimal startingQuantity = 0M);
 
         /// <summary>
         /// Get Candlesticks from exchange API

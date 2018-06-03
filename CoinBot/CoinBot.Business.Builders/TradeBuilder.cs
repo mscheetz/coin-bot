@@ -13,6 +13,8 @@ namespace CoinBot.Business.Builders
 {
     public class TradeBuilder : ITradeBuilder
     {
+        #region Private Members
+
         private IFileRepository _fileRepo;
         private IExchangeBuilder _exchBldr;
         private DateTimeHelper _dtHelper = new DateTimeHelper();
@@ -32,6 +34,10 @@ namespace CoinBot.Business.Builders
         private decimal _lastPrice = 0.00000000M;
         private decimal _lastQty = 0.00000000M;
         private TradeType _lastTradeType;
+
+        #endregion Private Members
+
+        #region Constructors
 
         /// <summary>
         /// Constructor
@@ -88,6 +94,10 @@ namespace CoinBot.Business.Builders
             SetupBuilder(botBalanceList);
         }
 
+        #endregion Constructors
+
+        #region Builder Setup
+
         private void SetupBuilder()
         {
             _botSettings = GetBotSettings();
@@ -106,6 +116,8 @@ namespace CoinBot.Business.Builders
             SetupBuilder();
             _botBalances = botBalanceList;
         }
+
+        #endregion Builder Setup
 
         #region Settings Management
 
@@ -254,7 +266,7 @@ namespace CoinBot.Business.Builders
 
         #endregion Trade History
 
-        #region Balance Checking
+        #region Balance Managers
         /// <summary>
         /// Get current balance
         /// </summary>
@@ -285,11 +297,11 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Set paper balances on load
         /// </summary>
-        public void SetPaperBalance()
+        public void SetBalances()
         {
             _botBalances = new List<BotBalance>();
 
-            var balances = GetPaperBalances(_botSettings.startingAmount);
+            var balances = GetBalances(_botSettings.startingAmount);
 
             for (var i = 0; i < balances.Count; i++)
             {
@@ -305,7 +317,7 @@ namespace CoinBot.Business.Builders
 
             LogBalances();
         }
-
+        
         /// <summary>
         /// Get paper balances available
         /// </summary>
@@ -359,8 +371,9 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Get balances available
         /// </summary>
+        /// <param name="startingQuantity">Starting quantity (for paper trading, default 0)</param>
         /// <returns>Collection of balance objects</returns>
-        public List<Balance> GetBalances()
+        public List<Balance> GetBalances(decimal startingQuantity = 0M)
         {
             var balances = new List<Balance>();
 
@@ -370,7 +383,7 @@ namespace CoinBot.Business.Builders
             }
             else if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
             {
-                balances = GetPaperBalances();
+                balances = GetPaperBalances(startingQuantity);
             }
             return balances;
         }
@@ -398,7 +411,7 @@ namespace CoinBot.Business.Builders
 
             LogBalances();
         }
-        #endregion Balance Checking
+        #endregion Balance Managers
 
         #region Logging
         /// <summary>
