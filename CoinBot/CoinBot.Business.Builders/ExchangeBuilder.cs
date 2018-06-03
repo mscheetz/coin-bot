@@ -130,7 +130,12 @@ namespace CoinBot.Business.Builders
             else if(_thisExchange == Exchange.GDAX)
             {
                 var trades = _gdaxRepo.GetTrades(symbol).Result;
-                
+
+                while (trades == null)
+                {
+                    trades = _gdaxRepo.GetTrades(symbol).Result;
+                }
+
                 return GetSticksFromGdaxTrades(trades, range);
             }
             else
