@@ -19,6 +19,8 @@ namespace CoinBot.Business.Builders
         private IGdaxRepository _gdaxRepo;
         private Helper _helper;
         private DateTimeHelper _dtHelper;
+        private string _pair = string.Empty;
+        private string _asset = string.Empty;
 
         public ExchangeBuilder()
         {
@@ -140,14 +142,16 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Get Balances for account
         /// </summary>
+        /// <param name="asset">String of asset</param>
+        /// <param name="pair">String of trading pair</param>
         /// <returns>Collection of Balance objects</returns>
-        public List<Balance> GetBalance()
+        public List<Balance> GetBalance(string asset, string pair)
         {
             if (_thisExchange == Exchange.BINANCE)
             {
                 var account = _bianceRepo.GetBalance().Result;
 
-                return account.balances;
+                return account.balances.Where(b => b.asset.Equals(asset) || b.asset.Equals(pair)).ToList();
             }
             else if (_thisExchange == Exchange.GDAX)
             {
@@ -157,13 +161,17 @@ namespace CoinBot.Business.Builders
 
                 for (int i = 0; i < accountList.Count(); i++)
                 {
-                    var balance = new Balance
+                    if (accountList[i].Currency.ToString().Equals(asset)
+                        || accountList[i].Currency.ToString().Equals(pair))
                     {
-                        asset = accountList[i].Currency.ToString(),
-                        free = accountList[i].Available,
-                        locked = accountList[i].Hold
-                    };
-                    balances.Add(balance);
+                        var balance = new Balance
+                        {
+                            asset = accountList[i].Currency.ToString(),
+                            free = accountList[i].Available,
+                            locked = accountList[i].Hold
+                        };
+                        balances.Add(balance);
+                    }
                 }
 
                 return balances;// GdaxAccountCollectionToBalanceCollection(accountList).ToList();

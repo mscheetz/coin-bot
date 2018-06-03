@@ -386,7 +386,7 @@ namespace CoinBot.Business.Builders
 
             if (_botSettings.tradingStatus == TradeStatus.LiveTrading)
             {
-                balances = _exchBldr.GetBalance();
+                balances = _exchBldr.GetBalance(_asset, _pair);
             }
             else if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
             {

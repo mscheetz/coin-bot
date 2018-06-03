@@ -39,8 +39,10 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Get Balances for account
         /// </summary>
+        /// <param name="asset">String of asset</param>
+        /// <param name="pair">String of trading pair</param>
         /// <returns>Collection of Balance objects</returns>
-        List<Balance> GetBalance();
+        List<Balance> GetBalance(string asset, string pair);
 
         /// <summary>
         /// Place a Trade
