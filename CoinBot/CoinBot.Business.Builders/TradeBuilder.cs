@@ -292,6 +292,10 @@ namespace CoinBot.Business.Builders
             return _fileRepo.GetBalances().OrderByDescending(t => t.timestamp);
         }
 
+        /// <summary>
+        /// Get current balances
+        /// </summary>
+        /// <returns>Collection of BotBallance objects</returns>
         public List<BotBalance> GetBotBalance()
         {
             return _botBalances;
@@ -670,7 +674,7 @@ namespace CoinBot.Business.Builders
 
                 if (!tradeComplete && i < 5)
                 {
-                    Task.WaitAll(Task.Delay(100));
+                    Task.WaitAll(Task.Delay(1500));
                 }
                 else if (!tradeComplete && i == 5)
                 {
@@ -705,6 +709,24 @@ namespace CoinBot.Business.Builders
         #endregion Validate Trade
 
         #region Pair and Quantity
+
+        /// <summary>
+        /// Get current asset
+        /// </summary>
+        /// <returns>String of asset</returns>
+        public string GetAsset()
+        {
+            return _asset;
+        }
+
+        /// <summary>
+        /// Get current trading pair
+        /// </summary>
+        /// <returns>String of pair</returns>
+        public string GetPair()
+        {
+            return _pair;
+        }
 
         /// <summary>
         /// Get Asset and Pair from symbol

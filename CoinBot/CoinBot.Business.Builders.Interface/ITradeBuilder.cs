@@ -26,6 +26,12 @@ namespace CoinBot.Business.Builders.Interface
         BotSettings GetBotSettings();
 
         /// <summary>
+        /// Get current balances
+        /// </summary>
+        /// <returns>Collection of BotBallance objects</returns>
+        List<BotBalance> GetBotBalance();
+
+        /// <summary>
         /// Load bot settings from disk
         /// </summary>
         void LoadBotSettingsFile();
@@ -54,6 +60,18 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <returns>BotBalance object</returns>
         BotBalance GetBalance();
+
+        /// <summary>
+        /// Get current asset
+        /// </summary>
+        /// <returns>String of asset</returns>
+        string GetAsset();
+
+        /// <summary>
+        /// Get current trading pair
+        /// </summary>
+        /// <returns>String of pair</returns>
+        string GetPair();
 
         /// <summary>
         /// Update balances from exchange
