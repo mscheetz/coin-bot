@@ -47,5 +47,11 @@ namespace CoinBot.Service
         /// </summary>
         /// <returns>Collection of OpenStopLoss</returns>
         IEnumerable<OpenStopLoss> GetStopLosses();
+
+        /// <summary>
+        /// Cancel all GDAX trades
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        bool CancelAllGdaxTrades();
     }
 }

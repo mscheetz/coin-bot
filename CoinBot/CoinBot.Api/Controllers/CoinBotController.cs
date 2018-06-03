@@ -114,5 +114,17 @@ namespace CoinBot.Api.Controllers
         {
             return _service.GetStopLosses();
         }
+
+        /// <summary>
+        /// Cancel all GDAX trades
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        /// GET: api/coinbot/trades/cancel
+        [HttpGet("trades/cancel")]
+
+        public bool CancelAllTrades()
+        {
+            return _service.CancelAllGdaxTrades();
+        }
     }
 }

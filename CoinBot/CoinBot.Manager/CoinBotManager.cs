@@ -109,6 +109,23 @@ namespace CoinBot.Manager
             return _tradeBuilder.GetStopLosses();
         }
 
+        /// <summary>
+        /// Cancel all GDAX trades
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        public bool CancelAllGdaxTrades()
+        {
+            try
+            {
+                _tradeBuilder.CancelTrade(0, "");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private void ServiceReady()
         {
             if(!_tradeBuilder.ConfigFileExits())
