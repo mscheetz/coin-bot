@@ -77,8 +77,6 @@ namespace CoinBot.Business.Builders
             _trader = new TradeBuilder();
             _lastTrade = TradeType.NONE;
             SetBotSettings(_trader.GetBotSettings());
-            //if (botSettings.tradingStrategy == Strategy.Percentage)
-            //    RunBot(Interval.FiveM);
         }
 
         /// <summary>
@@ -131,8 +129,7 @@ namespace CoinBot.Business.Builders
             var previousStick = new BotStick();
             bool currentlyTrading = tradingStatus != null ? (bool)tradingStatus : _currentlyTrading;
 
-            if (_botSettings.tradingStatus == TradeStatus.PaperTrading)
-                _trader.SetPaperBalance();
+            _trader.SetBalances();
 
             while (currentlyTrading)
             {
