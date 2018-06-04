@@ -785,6 +785,10 @@ namespace CoinBot.Business.Builders
                 var symbolBalance = _botBalances.Where(b => b.symbol.Equals(_asset)).FirstOrDefault();
 
                 quantity = symbolBalance.quantity;
+                if (_asset.Equals("BTC"))
+                {
+                    quantity = _helper.RoundDown(quantity, 4);
+                }
             }
             
             var roundedDown = _helper.RoundDown(quantity, 6);
