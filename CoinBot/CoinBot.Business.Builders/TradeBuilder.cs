@@ -784,7 +784,7 @@ namespace CoinBot.Business.Builders
             {
                 var symbolBalance = _botBalances.Where(b => b.symbol.Equals(_asset)).FirstOrDefault();
 
-                quantity = symbolBalance.quantity * orderPrice;
+                quantity = symbolBalance.quantity;
             }
             
             var roundedDown = _helper.RoundDown(quantity, 6);

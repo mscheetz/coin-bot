@@ -62,5 +62,9 @@ namespace CoinBot.Business.Entities
         /// Selected exchange to trade on
         /// </summary>
         public Exchange exchange { get; set; }
+        /// <summary>
+        /// Last buy value
+        /// </summary>
+        public decimal lastBuy { get; set; }
     }
 }

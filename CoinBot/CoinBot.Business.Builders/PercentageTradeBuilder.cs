@@ -94,7 +94,10 @@ namespace CoinBot.Business.Builders
             _currentlyTrading = _botSettings.startBotAutomatically == null
                                 ? false
                                 : (bool)_botSettings.startBotAutomatically;
-
+            if(_botSettings.lastBuy !=0)
+            {
+                _lastBuy = _botSettings.lastBuy;
+            }
             return true;
         }
 
