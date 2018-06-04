@@ -902,6 +902,8 @@ namespace CoinBot.Business.Builders
         /// <returns>TradeResponse object</returns>
         public TradeResponse MakeTrade(TradeType tradeType, decimal orderPrice)
         {
+            orderPrice = GetPricePadding(tradeType, orderPrice);
+
             var quantity = GetTradeQuantity(tradeType, orderPrice);
 
             _lastPrice = orderPrice;
@@ -921,6 +923,33 @@ namespace CoinBot.Business.Builders
             var response = PlaceTrade(trade);
 
             return response;
+        }
+
+        /// <summary>
+        /// Get price padding to avoid GDAX transaction fees
+        /// </summary>
+        /// <param name="tradeType">Current trade type</param>
+        /// <param name="orderPrice">Order price</param>
+        /// <returns>Update order price</returns>
+        public decimal GetPricePadding(TradeType tradeType, decimal orderPrice)
+        {
+            if(_botSettings.exchange == Exchange.GDAX)
+            {
+                var pricePadding = 0.00M;
+
+                if (tradeType == TradeType.BUY || tradeType == TradeType.VOLUMEBUY || tradeType == TradeType.VOLUMESELLBUYOFF)
+                {
+                    pricePadding = 0.01M;
+                }
+                else if(tradeType == TradeType.SELL || tradeType == TradeType.VOLUMESELL || tradeType == TradeType.VOLUMEBUYSELLOFF)
+                {
+                    pricePadding = -0.01M;
+                }
+
+                orderPrice += pricePadding;
+            }
+
+            return orderPrice;
         }
 
         /// <summary>
