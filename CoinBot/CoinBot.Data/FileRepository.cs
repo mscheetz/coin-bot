@@ -96,7 +96,7 @@ namespace CoinBot.Data
         /// Get Transactions
         /// </summary>
         /// <returns>Collection of TradeInformation</returns>
-        public IEnumerable<TradeInformation> GetTransactions()
+        public List<TradeInformation> GetTransactions()
         {
             using (StreamReader r = new StreamReader(settingsPath))
             {
@@ -135,7 +135,7 @@ namespace CoinBot.Data
         /// Get Transactions
         /// </summary>
         /// <returns>Collection of BotBalance</returns>
-        public IEnumerable<BotBalance> GetBalances()
+        public List<List<BotBalance>> GetBalances()
         {
             using (StreamReader r = new StreamReader(balancePath))
             {
@@ -143,7 +143,7 @@ namespace CoinBot.Data
 
                 json = $"[{json}]";
 
-                var balanceList = JsonConvert.DeserializeObject<List<BotBalance>>(json);
+                var balanceList = JsonConvert.DeserializeObject<List<List<BotBalance>>>(json);
 
                 json = null;
 

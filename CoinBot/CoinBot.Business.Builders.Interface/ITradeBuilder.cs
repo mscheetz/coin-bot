@@ -52,14 +52,16 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Get all transactions
         /// </summary>
+        /// <param name="transactionCount">Count of transations to return (default 10)</param>
         /// <returns>Collection of TradeInformation</returns>
-        IEnumerable<TradeInformation> GetTradeHistory();
+        IEnumerable<TradeInformation> GetTradeHistory(int transactionCount);
 
         /// <summary>
         /// Get current balance
         /// </summary>
+        /// <param name="recordsToReturn">Number of records to return (default 1)</param>
         /// <returns>BotBalance object</returns>
-        BotBalance GetBalance();
+        IEnumerable<List<BotBalance>> GetBalance(int recordsToReturn = 1);
 
         /// <summary>
         /// Get current asset
@@ -82,7 +84,7 @@ namespace CoinBot.Business.Builders.Interface
         /// Get Balance history
         /// </summary>
         /// <returns>Collection of BotBalance objects</returns>
-        IEnumerable<BotBalance> GetBalanceHistory();
+        IEnumerable<IEnumerable<BotBalance>> GetBalanceHistory();
 
         /// <summary>
         /// Set paper balances on load

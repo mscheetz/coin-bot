@@ -72,31 +72,43 @@ namespace CoinBot.Manager
         /// <summary>
         /// Get all transactions
         /// </summary>
+        /// <param name="transactionCount">Count of transations to return (default 10)</param>
         /// <returns>Collection of TradeInformation</returns>
-        public IEnumerable<TradeInformation> GetTransactionHistory()
+        public IEnumerable<TradeInformation> GetTransactionHistory(int transactionCount = 10)
         {
             ServiceReady();
-            return _tradeBuilder.GetTradeHistory();
+            return _tradeBuilder.GetTradeHistory(transactionCount);
         }
 
         /// <summary>
         /// Get current balance
         /// </summary>
-        /// <returns>BotBalance object</returns>
-        public BotBalance GetBalance()
+        /// <returns>Collection of BotBalance objects</returns>
+        public IEnumerable<BotBalance> GetBalance()
         {
             ServiceReady();
-            return _tradeBuilder.GetBalance();
+            return _tradeBuilder.GetBalance().FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Get last N balances
+        /// </summary>
+        /// <param name="count">Count of balances to return</param>
+        /// <returns>BotBalance collection</returns>
+        public IEnumerable<IEnumerable<BotBalance>> GetBalances(int count)
+        {
+            ServiceReady();
+            return _tradeBuilder.GetBalance(count);
         }
 
         /// <summary>
         /// Get Balance history
         /// </summary>
         /// <returns>Collection of BotBalance objects</returns>
-        public IEnumerable<BotBalance> GetBalanceHistory()
+        public IEnumerable<IEnumerable<BotBalance>> GetBalanceHistory()
         {
             ServiceReady();
-            return _tradeBuilder.GetBalanceHistory();
+            return _tradeBuilder.GetBalance(0);
         }
 
         /// <summary>

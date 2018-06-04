@@ -127,7 +127,7 @@ namespace CoinBot.Business.Builders.Tests
             _exchangeBldr.Setup(b => b.PlaceTrade(It.IsAny<TradeParams>())).Returns(_tradeResponse);
             _exchangeBldr.Setup(b => b.GetOrderDetail(It.IsAny<TradeResponse>(), It.IsAny<string>())).Returns(_orderResponse);
             _exchangeBldr.Setup(b => b.PlaceTrade(It.IsAny<TradeParams>())).Returns(_tradeResponse);
-            _exchangeBldr.Setup(b => b.GetBalance()).Returns(_account.balances);
+            _exchangeBldr.Setup(b => b.GetBalance(It.IsAny<string>(), It.IsAny<string>())).Returns(_account.balances);
             _fileRepo.Setup(f => f.LogTransaction(It.IsAny<TradeInformation>())).Returns(true);
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
 

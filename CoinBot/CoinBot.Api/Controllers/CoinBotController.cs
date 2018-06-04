@@ -71,7 +71,7 @@ namespace CoinBot.Api.Controllers
         }
 
         /// <summary>
-        /// Get all transactions
+        /// Get last 10 transactions
         /// </summary>
         /// <returns>Collection of TradeInformation</returns>
         /// GET: api/coinbot/transactions
@@ -82,14 +82,38 @@ namespace CoinBot.Api.Controllers
         }
 
         /// <summary>
+        /// Get last 10 transactions
+        /// </summary>
+        /// <param name="transactionCount">Count of transations to return</param>
+        /// <returns>Collection of TradeInformation</returns>
+        /// GET: api/coinbot/transactions
+        [HttpGet("transactions/{transactionCount}")]
+        public IEnumerable<TradeInformation> GetTransactionHistory(int transactionCount)
+        {
+            return _service.GetTransactionHistory(transactionCount);
+        }
+
+        /// <summary>
         /// Get current balance
         /// </summary>
-        /// <returns>BotBalance object</returns>
+        /// <returns>Collection of BotBalance objects</returns>
         /// GET: api/coinbot/balance
         [HttpGet("balance")]
-        public BotBalance GetBalance()
+        public IEnumerable<BotBalance> GetBalance()
         {
             return _service.GetBalance();
+        }
+
+        /// <summary>
+        /// Get current balance
+        /// </summary>
+        /// <param name="count">Count of balances to return</param>
+        /// <returns>BotBalance object</returns>
+        /// GET: api/coinbot/balance
+        [HttpGet("balance/{count}")]
+        public IEnumerable<IEnumerable<BotBalance>> GetLastBalances(int count)
+        {
+            return _service.GetBalances(count);
         }
 
         /// <summary>
@@ -98,7 +122,7 @@ namespace CoinBot.Api.Controllers
         /// <returns>Collection of BotBalance objects</returns>
         /// GET: api/coinbot/balance/history
         [HttpGet("balance/history")]
-        public IEnumerable<BotBalance> GetBalanceHistory()
+        public IEnumerable<IEnumerable<BotBalance>> GetBalanceHistory()
         {
             return _service.GetBalanceHistory();
         }

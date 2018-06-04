@@ -261,10 +261,14 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Get all transactions
         /// </summary>
+        /// <param name="transactionCount">Count of transactions to return</param>
         /// <returns>Collection of TradeInformation</returns>
-        public IEnumerable<TradeInformation> GetTradeHistory()
+        public IEnumerable<TradeInformation> GetTradeHistory(int transactionCount)
         {
-            return _fileRepo.GetTransactions().OrderByDescending(t => t.timestamp);
+            var tradeList = _fileRepo.GetTransactions();
+
+            return tradeList.Skip(Math.Max(0, tradeList.Count - transactionCount));
+            //return _fileRepo.GetTransactions().OrderByDescending(t => t.timestamp);
         }
 
         #endregion Trade History
@@ -273,23 +277,30 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Get current balance
         /// </summary>
+        /// <param name="recordsToReturn">Number of records to return (default 1)</param>
         /// <returns>BotBalance object</returns>
-        public BotBalance GetBalance()
+        public IEnumerable<List<BotBalance>> GetBalance(int recordsToReturn = 1)
         {
             var balanceList = _fileRepo.GetBalances();
+            
+            if(recordsToReturn == 0)
+            {
+                return balanceList;
+            }
 
-            var lastBalance = balanceList.Max(b => b.timestamp);
+            return balanceList.Skip(Math.Max(0, balanceList.Count - recordsToReturn));
+            //var lastBalance = balanceList.Last();
 
-            return balanceList.Where(b => b.timestamp == lastBalance).FirstOrDefault();
+            //return balanceList.Where(b => b.timestamp == lastBalance).FirstOrDefault();
         }
 
         /// <summary>
         /// Get Balance history
         /// </summary>
         /// <returns>Collection of BotBalance objects</returns>
-        public IEnumerable<BotBalance> GetBalanceHistory()
+        public IEnumerable<IEnumerable<BotBalance>> GetBalanceHistory()
         {
-            return _fileRepo.GetBalances().OrderByDescending(t => t.timestamp);
+            return _fileRepo.GetBalances();
         }
 
         /// <summary>

@@ -27,20 +27,28 @@ namespace CoinBot.Service
         /// <summary>
         /// Get all transactions
         /// </summary>
+        /// <param name="transactionCount">Count of transations to return (default 10)</param>
         /// <returns>Collection of TradeInformation</returns>
-        IEnumerable<TradeInformation> GetTransactionHistory();
+        IEnumerable<TradeInformation> GetTransactionHistory(int transactionCount = 10);
 
         /// <summary>
         /// Get current balance
         /// </summary>
+        /// <returns>Collection of BotBalance objects</returns>
+        IEnumerable<BotBalance> GetBalance();
+
+        /// <summary>
+        /// Get current balance
+        /// </summary>
+        /// <param name="count">Count of balances to return</param>
         /// <returns>BotBalance object</returns>
-        BotBalance GetBalance();
+        IEnumerable<IEnumerable<BotBalance>> GetBalances(int count);
 
         /// <summary>
         /// Get Balance history
         /// </summary>
         /// <returns>Collection of BotBalance objects</returns>
-        IEnumerable<BotBalance> GetBalanceHistory();
+        IEnumerable<IEnumerable<BotBalance>> GetBalanceHistory();
         
         /// <summary>
         /// Get all open stop losses

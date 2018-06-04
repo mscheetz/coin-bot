@@ -42,7 +42,7 @@ namespace CoinBot.Data.Interface
         /// Get Transactions
         /// </summary>
         /// <returns>Collection of TradeInformation</returns>
-        IEnumerable<TradeInformation> GetTransactions();
+        List<TradeInformation> GetTransactions();
 
         /// <summary>
         /// Write transaction to log
@@ -55,7 +55,7 @@ namespace CoinBot.Data.Interface
         /// Get Transactions
         /// </summary>
         /// <returns>Collection of BotBalance</returns>
-        IEnumerable<BotBalance> GetBalances();
+        List<List<BotBalance>> GetBalances();
 
         /// <summary>
         /// Write balances to file
