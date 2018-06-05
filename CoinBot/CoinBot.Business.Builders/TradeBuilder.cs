@@ -939,11 +939,11 @@ namespace CoinBot.Business.Builders
 
                 if (tradeType == TradeType.BUY || tradeType == TradeType.VOLUMEBUY || tradeType == TradeType.VOLUMESELLBUYOFF)
                 {
-                    pricePadding = -0.03M;
+                    pricePadding = -0.01M;
                 }
                 else if(tradeType == TradeType.SELL || tradeType == TradeType.VOLUMESELL || tradeType == TradeType.VOLUMEBUYSELLOFF)
                 {
-                    pricePadding = 0.03M;
+                    pricePadding = 0.01M;
                 }
 
                 orderPrice += pricePadding;
