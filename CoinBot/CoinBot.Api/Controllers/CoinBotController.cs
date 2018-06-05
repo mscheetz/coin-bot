@@ -19,6 +19,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Check if service is running
         /// </summary>
+        /// <remarks>
+        /// Check if service is running
+        /// </remarks>
         /// GET: api/coinbot/status
         [HttpGet("status")]
         public bool Status()
@@ -29,6 +32,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Update bot settings
         /// </summary>
+        /// <remarks>
+        /// Update bot settings
+        /// </remarks>
         /// <param name="botSettings">New bot settings</param>
         /// <returns>Boolean value when complete</returns>
         /// POST: api/coinbot/settings
@@ -41,6 +47,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Start trading with 1 Minute interval on candlesticks
         /// </summary>
+        /// <remarks>
+        /// Start trading with 1 Minute interval on candlesticks
+        /// </remarks>
         /// <param name="interval">Candlestick interval</param>
         /// GET: api/coinbot/start
         [HttpGet("start")]
@@ -52,6 +61,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Start trading
         /// </summary>
+        /// <remarks>
+        /// Start trading
+        /// </remarks>
         /// <param name="interval">Candlestick interval</param>
         /// GET: api/coinbot/start/{interval}
         [HttpGet("start/{interval}")]
@@ -63,6 +75,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Stop Trading
         /// </summary>
+        /// <remarks>
+        /// Stop Trading
+        /// </remarks>
         /// GET: api/coinbot/stop
         [HttpGet("stop")]
         public bool StopBot()
@@ -73,6 +88,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Get last 10 transactions
         /// </summary>
+        /// <remarks>
+        /// Get last 10 transactions
+        /// </remarks>
         /// <returns>Collection of TradeInformation</returns>
         /// GET: api/coinbot/transactions
         [HttpGet("transactions")]
@@ -82,8 +100,11 @@ namespace CoinBot.Api.Controllers
         }
 
         /// <summary>
-        /// Get last 10 transactions
+        /// Get last N transactions
         /// </summary>
+        /// <remarks>
+        /// Get last N transactions
+        /// </remarks>
         /// <param name="transactionCount">Count of transations to return</param>
         /// <returns>Collection of TradeInformation</returns>
         /// GET: api/coinbot/transactions
@@ -96,6 +117,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Get current balance
         /// </summary>
+        /// <remarks>
+        /// Get current balance
+        /// </remarks>
         /// <returns>Collection of BotBalance objects</returns>
         /// GET: api/coinbot/balance
         [HttpGet("balance")]
@@ -105,8 +129,11 @@ namespace CoinBot.Api.Controllers
         }
 
         /// <summary>
-        /// Get current balance
+        /// Get last N balances
         /// </summary>
+        /// <remarks>
+        /// Get last N balances
+        /// </remarks>
         /// <param name="count">Count of balances to return</param>
         /// <returns>BotBalance object</returns>
         /// GET: api/coinbot/balance
@@ -119,6 +146,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Get Balance history
         /// </summary>
+        /// <remarks>
+        /// Get Balance history
+        /// </remarks>
         /// <returns>Collection of BotBalance objects</returns>
         /// GET: api/coinbot/balance/history
         [HttpGet("balance/history")]
@@ -130,6 +160,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Get Stop losses
         /// </summary>
+        /// <remarks>
+        /// Get Stop losses
+        /// </remarks>
         /// <returns>Collection of OpenStopLoss objects</returns>
         /// GET: api/coinbot/stoploss
         [HttpGet("stoploss")]
@@ -142,6 +175,9 @@ namespace CoinBot.Api.Controllers
         /// <summary>
         /// Cancel all GDAX trades
         /// </summary>
+        /// <remarks>
+        /// Cancel all GDAX trades
+        /// </remarks>
         /// <returns>Boolean when complete</returns>
         /// GET: api/coinbot/trades/cancel
         [HttpGet("trades/cancel")]

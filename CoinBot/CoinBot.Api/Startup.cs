@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CoinBot.Business.Builders;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.PlatformAbstractions;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace CoinBot.Api
@@ -53,6 +55,8 @@ namespace CoinBot.Api
                     Version = "1.0"
 
                 });
+                var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "project.xml");
+                c.IncludeXmlComments(filePath);
             });
         }
 
