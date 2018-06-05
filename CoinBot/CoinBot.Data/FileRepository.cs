@@ -98,7 +98,7 @@ namespace CoinBot.Data
         /// <returns>Collection of TradeInformation</returns>
         public List<TradeInformation> GetTransactions()
         {
-            using (StreamReader r = new StreamReader(settingsPath))
+            using (StreamReader r = new StreamReader(transactionPath))
             {
                 string json = r.ReadToEnd();
 
