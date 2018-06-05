@@ -933,17 +933,18 @@ namespace CoinBot.Business.Builders
         /// <returns>Update order price</returns>
         public decimal GetPricePadding(TradeType tradeType, decimal orderPrice)
         {
-            if(_botSettings.exchange == Exchange.GDAX)
+
+            if (_botSettings.exchange == Exchange.GDAX)
             {
                 var pricePadding = 0.00M;
 
                 if (tradeType == TradeType.BUY || tradeType == TradeType.VOLUMEBUY || tradeType == TradeType.VOLUMESELLBUYOFF)
                 {
-                    pricePadding = 0.01M;
+                    pricePadding = -0.03M;
                 }
                 else if(tradeType == TradeType.SELL || tradeType == TradeType.VOLUMESELL || tradeType == TradeType.VOLUMEBUYSELLOFF)
                 {
-                    pricePadding = -0.01M;
+                    pricePadding = 0.03M;
                 }
 
                 orderPrice += pricePadding;
