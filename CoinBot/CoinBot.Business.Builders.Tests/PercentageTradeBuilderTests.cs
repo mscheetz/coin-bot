@@ -3,6 +3,7 @@ using CoinBot.Business.Builders.Interface;
 using CoinBot.Business.Entities;
 using CoinBot.Data;
 using CoinBot.Data.Interface;
+using CoinBot.Tests.Entities;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -17,65 +18,16 @@ namespace CoinBot.Business.Builders.Tests
         private Mock<IBinanceRepository> _repo;
         private Mock<ITradeBuilder> _tradeBldr;
         private Mock<IFileRepository> _fileRepo;
+        private TestObjects _testObjs;
         private BotSettings _settings;
-        private ApiInformation _apiInfo;
-        private List<BotStick> _candlestickList;
-        private List<BotStick> _mooningList;
-        private List<BotStick> _tankingList;
 
         public PercentageTradeBuilderTests()
         {
             _fileRepo = new Mock<IFileRepository>();
             _repo = new Mock<IBinanceRepository>();
             _tradeBldr = new Mock<ITradeBuilder>();
-            _settings = new BotSettings
-            {
-                stopLoss = 2,
-                buyPercent = 1,
-                sellPercent = 1,
-                chartInterval = Interval.OneM,
-                tradingPair = "XRPBTC",
-                startBotAutomatically = false,
-                mooningTankingTime = 0
-            };
-            _apiInfo = new ApiInformation
-            {
-                apiKey = It.IsAny<string>(),
-                apiSecret = It.IsAny<string>(),
-                extraValue = It.IsAny<string>()
-            };
-            _candlestickList = new List<BotStick>
-            {
-                new BotStick
-                {
-                    close = 0.000010M
-                },
-                new BotStick
-                {
-                    close = 0.00002M
-                },
-                new BotStick
-                {
-                    close = 0.000010M
-                },
-                new BotStick
-                {
-                    close = 0.000010201M
-                },
-            };
-            _mooningList = new List<BotStick>
-            {
-                new BotStick { close = 0.00002M },
-                new BotStick { close = 0.000021M },
-                new BotStick { close = 0.000022M },
-                new BotStick { close = 0.000023M },
-                new BotStick { close = 0.000024M },
-                new BotStick { close = 0.000025M },
-                new BotStick { close = 0.000024M },
-            };
-            _tankingList = _mooningList
-                                .OrderByDescending(m => m.close)
-                                .ToList();
+            _testObjs = new TestObjects();
+            _settings = _testObjs.GetBotSettings();
         }
 
         public void Dispose()
@@ -87,14 +39,15 @@ namespace CoinBot.Business.Builders.Tests
         public void RunBot_3Cycles_Test()
         {
             var interval = Interval.OneM;
-            var candlestickArray = _candlestickList.ToArray();
+            var candlestickArray = _testObjs.GetBotSticks().ToArray();
+            
             _settings.chartInterval = interval;
             _fileRepo.Setup(f => f.GetSettings()).Returns(_settings);
-            _fileRepo.Setup(f => f.GetConfig()).Returns(_apiInfo);
+            _fileRepo.Setup(f => f.GetConfig()).Returns(_testObjs.GetApiInfo());
             _tradeBldr.Setup(f => f.SetupRepository()).Returns(true);
-            var csOne = new BotStick[1] { _candlestickList[0] };
-            var csTwo = new BotStick[1] { _candlestickList[1] };
-            var csThree = new BotStick[1] { _candlestickList[2] };
+            var csOne = new BotStick[1] { candlestickArray[0] };
+            var csTwo = new BotStick[1] { candlestickArray[1] };
+            var csThree = new BotStick[1] { candlestickArray[2] };
             _tradeBldr.SetupSequence(f => f.GetCandlesticks(It.IsAny<string>(), It.IsAny<Interval>(), It.IsAny<int>()))
                 .Returns(csOne)
                 .Returns(csTwo)
@@ -211,14 +164,16 @@ namespace CoinBot.Business.Builders.Tests
             var interval = Interval.OneM;
             _settings.chartInterval = interval;
             _settings.mooningTankingTime = 1;
+            var mooningList = _testObjs.GetMooningList();
+            var candlestickList = _testObjs.GetBotSticks();
             decimal lastPrice = 0.00001M;
-            var csI = new BotStick[1] { _mooningList[0] };
-            var csII = new BotStick[1] { _mooningList[1] };
-            var csIII = new BotStick[1] { _mooningList[2] };
-            var csIV = new BotStick[1] { _mooningList[3] };
-            var csV = new BotStick[1] { _mooningList[4] };
-            var csVI = new BotStick[1] { _mooningList[5] };
-            var csVII = new BotStick[1] { _mooningList[6] };
+            var csI = new BotStick[1] { mooningList[0] };
+            var csII = new BotStick[1] { mooningList[1] };
+            var csIII = new BotStick[1] { mooningList[2] };
+            var csIV = new BotStick[1] { mooningList[3] };
+            var csV = new BotStick[1] { mooningList[4] };
+            var csVI = new BotStick[1] { mooningList[5] };
+            var csVII = new BotStick[1] { mooningList[6] };
             _tradeBldr.SetupSequence(f => f.GetCandlesticks(It.IsAny<string>(), It.IsAny<Interval>(), It.IsAny<int>()))
                 .Returns(csI)
                 .Returns(csII)
@@ -230,7 +185,7 @@ namespace CoinBot.Business.Builders.Tests
 
             _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, lastPrice, lastPrice, TradeType.SELL);
 
-            var result = _bldr.MooningAndTankingCheck(_candlestickList[0], TradeType.SELL);
+            var result = _bldr.MooningAndTankingCheck(candlestickList[0], TradeType.SELL);
 
             Assert.True(result == TradeType.SELL);
         }
@@ -242,13 +197,15 @@ namespace CoinBot.Business.Builders.Tests
             _settings.chartInterval = interval;
             _settings.mooningTankingTime = 1;
             decimal lastPrice = 0.00001M;
-            var csI = new BotStick[1] { _tankingList[0] };
-            var csII = new BotStick[1] { _tankingList[1] };
-            var csIII = new BotStick[1] { _tankingList[2] };
-            var csIV = new BotStick[1] { _tankingList[3] };
-            var csV = new BotStick[1] { _tankingList[4] };
-            var csVI = new BotStick[1] { _tankingList[5] };
-            var csVII = new BotStick[1] { _tankingList[6] };
+            var tankingList = _testObjs.GetTankingList();
+            var candlestickList = _testObjs.GetBotSticks();
+            var csI = new BotStick[1] { tankingList[0] };
+            var csII = new BotStick[1] { tankingList[1] };
+            var csIII = new BotStick[1] { tankingList[2] };
+            var csIV = new BotStick[1] { tankingList[3] };
+            var csV = new BotStick[1] { tankingList[4] };
+            var csVI = new BotStick[1] { tankingList[5] };
+            var csVII = new BotStick[1] { tankingList[6] };
             _tradeBldr.SetupSequence(f => f.GetCandlesticks(It.IsAny<string>(), It.IsAny<Interval>(), It.IsAny<int>()))
                 .Returns(csI)
                 .Returns(csII)
@@ -260,7 +217,7 @@ namespace CoinBot.Business.Builders.Tests
 
             _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, lastPrice, lastPrice, TradeType.SELL);
 
-            var result = _bldr.MooningAndTankingCheck(_candlestickList[0], TradeType.SELL);
+            var result = _bldr.MooningAndTankingCheck(candlestickList[0], TradeType.SELL);
 
             Assert.True(result == TradeType.SELL);
         }
