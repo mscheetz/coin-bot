@@ -32,6 +32,7 @@ namespace CoinBot.Data
         private Security _security;
         private ApiInformation _apiInfo;
         private string baseUrl = "https://api.gdax.com";
+        private IFileRepository _fileRepo;
 
         /// <summary>
         /// Constructor
@@ -43,6 +44,7 @@ namespace CoinBot.Data
             _helper = new Helper();
             _security = new Security();
             _apiInfo = new ApiInformation();
+            _fileRepo = new FileRepository();
         }
 
         /// <summary>
@@ -56,6 +58,7 @@ namespace CoinBot.Data
             _helper = new Helper();
             _security = new Security();
             _apiInfo = new ApiInformation();
+            _fileRepo = new FileRepository();
             baseUrl = url;
         }
 
@@ -67,6 +70,7 @@ namespace CoinBot.Data
         {
             _restRepo = new RESTRepository();
             _dtHelper = new DateTimeHelper();
+            _fileRepo = new FileRepository();
             SetExchangeApi(apiInformation);
         }
 
@@ -230,9 +234,18 @@ namespace CoinBot.Data
             Enum.TryParse(tradeParams.side, out orderSide);
             Enum.TryParse(tradeParams.symbol, out productType);
 
-            var response = await gdaxClient.OrdersService.PlaceLimitOrderAsync(orderSide, productType, tradeParams.quantity, tradeParams.price);
+            try
+            {
+                var response = await gdaxClient.OrdersService.PlaceLimitOrderAsync(orderSide, productType, tradeParams.quantity, tradeParams.price);
 
-            return response;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _fileRepo.LogError(ex.Message, tradeParams);
+                return null;
+            }
+            
         }
 
         /// <summary>
