@@ -63,6 +63,19 @@ namespace CoinBot.Data.Interface
         /// <param name="botBalance">BotBalances to write</param>
         /// <returns>Boolean when complete</returns>
         bool LogBalances(List<BotBalance> botBalance);
+        
+        /// <summary>
+        /// Get TradeSignals
+        /// </summary>
+        /// <returns>Collection of TradeSignals</returns>
+        List<TradeSignal> GetSignals();
+
+        /// <summary>
+        /// Write trade signal to file
+        /// </summary>
+        /// <param name="signal">TradeSignal to write</param>
+        /// <returns>Boolean when complete</returns>
+        bool LogSignal(List<TradeSignal> signal);
         bool LogError<T>(string message, T obj);
         bool LogError(string message);
     }

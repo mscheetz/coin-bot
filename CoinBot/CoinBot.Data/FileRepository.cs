@@ -16,6 +16,7 @@ namespace CoinBot.Data
         private string settingsPath = "botSettings.json";
         private string transactionPath = "transaction.log";
         private string errorPath = "error.log";
+        private string signalPath = "signal.log";
 
         /// <summary>
         /// Constructor
@@ -163,6 +164,45 @@ namespace CoinBot.Data
             var json = JsonConvert.SerializeObject(botBalance);
 
             using (StreamWriter s = File.AppendText(balancePath))
+            {
+                s.WriteLine(json + ",");
+
+                json = null;
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Get TradeSignals
+        /// </summary>
+        /// <returns>Collection of TradeSignals</returns>
+        public List<TradeSignal> GetSignals()
+        {
+            using (StreamReader r = new StreamReader(signalPath))
+            {
+                string json = r.ReadToEnd();
+
+                json = $"[{json}]";
+
+                var signalList = JsonConvert.DeserializeObject<List<TradeSignal>>(json);
+
+                json = null;
+
+                return signalList;
+            }
+        }
+
+        /// <summary>
+        /// Write trade signal to file
+        /// </summary>
+        /// <param name="signal">TradeSignal to write</param>
+        /// <returns>Boolean when complete</returns>
+        public bool LogSignal(List<TradeSignal> signal)
+        {
+            var json = JsonConvert.SerializeObject(signal);
+
+            using (StreamWriter s = File.AppendText(signalPath))
             {
                 s.WriteLine(json + ",");
 
