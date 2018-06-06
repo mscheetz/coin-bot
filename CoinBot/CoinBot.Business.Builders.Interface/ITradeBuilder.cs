@@ -112,6 +112,16 @@ namespace CoinBot.Business.Builders.Interface
         bool LogTransaction(TradeInformation tradeInformation);
 
         /// <summary>
+        /// Capture the current transaction and log it
+        /// </summary>
+        /// <param name="price">Transaction price</param>
+        /// <param name="quantity">Transaction quantity</param>
+        /// <param name="timeStamp">Transaction time</param>
+        /// <param name="tradeType">Transaction TradeType</param>
+        /// <returns>Boolean when complete</returns>
+        bool CaptureTransaction(decimal price, decimal quantity, long timeStamp, TradeType tradeType);
+
+        /// <summary>
         /// Get balances available
         /// </summary>
         /// <param name="startingQuantity">Starting quantity (for paper trading, default 0)</param>
@@ -162,6 +172,14 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="tradeType">Trade Type</param>
         /// <returns>Boolean when complete</returns>
         bool SellCrypto(decimal orderPrice, TradeType tradeType);
+
+        /// <summary>
+        /// Get price padding to avoid GDAX transaction fees
+        /// </summary>
+        /// <param name="tradeType">Current trade type</param>
+        /// <param name="orderPrice">Order price</param>
+        /// <returns>Update order price</returns>
+        decimal GetPricePadding(TradeType tradeType, decimal orderPrice);
 
         /// <summary>
         /// Check status of placed trade

@@ -268,7 +268,6 @@ namespace CoinBot.Business.Builders
             var tradeList = _fileRepo.GetTransactions();
 
             return tradeList.Skip(Math.Max(0, tradeList.Count - transactionCount));
-            //return _fileRepo.GetTransactions().OrderByDescending(t => t.timestamp);
         }
 
         #endregion Trade History
@@ -586,7 +585,7 @@ namespace CoinBot.Business.Builders
 
         #endregion Stop Loss Management
 
-        #region Buy/Sell Crypto
+        #region Buy/Sell
 
         /// <summary>
         /// Buy crypto
@@ -598,6 +597,11 @@ namespace CoinBot.Business.Builders
         {
             var trade = MakeTrade(TradeType.BUY, orderPrice);
 
+            if (trade == null)
+            {
+                return false;
+            }
+
             var tradeComplete = ValidateTradeComplete(trade);
 
             if(!tradeComplete)
@@ -606,18 +610,8 @@ namespace CoinBot.Business.Builders
             }
 
             _lastBuy = orderPrice;
-
-            _lastTrade = new TradeInformation
-            {
-                pair = _symbol,
-                price = orderPrice,
-                quantity = trade.origQty,
-                timestamp = _dtHelper.UnixTimeToUTC(trade.transactTime),
-                tradeType = EnumHelper.GetEnumDescription((TradeType)tradeType)
-            };
-            _tradeInformation.Add(_lastTrade);
-
-            LogTransaction(_lastTrade);
+            
+            CaptureTransaction(orderPrice, trade.origQty, trade.transactTime, tradeType);
 
             var stopLoss = PlaceStopLoss(orderPrice, trade.origQty);
 
@@ -638,6 +632,11 @@ namespace CoinBot.Business.Builders
 
             var trade = MakeTrade(TradeType.SELL, orderPrice);
 
+            if (trade == null)
+            {
+                return false;
+            }
+
             var tradeComplete = ValidateTradeComplete(trade);
 
             if (!tradeComplete)
@@ -647,12 +646,29 @@ namespace CoinBot.Business.Builders
 
             _lastSell = orderPrice;
 
+            CaptureTransaction(orderPrice, trade.origQty, trade.transactTime, tradeType);
+
+            UpdateBalances();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Capture the current transaction and log it
+        /// </summary>
+        /// <param name="price">Transaction price</param>
+        /// <param name="quantity">Transaction quantity</param>
+        /// <param name="timeStamp">Transaction time</param>
+        /// <param name="tradeType">Transaction TradeType</param>
+        /// <returns>Boolean when complete</returns>
+        public bool CaptureTransaction(decimal price, decimal quantity, long timeStamp, TradeType tradeType)
+        {
             _lastTrade = new TradeInformation
             {
                 pair = _symbol,
-                price = orderPrice,
-                quantity = trade.origQty,
-                timestamp = _dtHelper.UnixTimeToUTC(trade.transactTime),
+                price = price,
+                quantity = quantity,
+                timestamp = _dtHelper.UnixTimeToUTC(timeStamp),
                 tradeType = EnumHelper.GetEnumDescription((TradeType)tradeType)
             };
 
@@ -660,12 +676,10 @@ namespace CoinBot.Business.Builders
 
             LogTransaction(_lastTrade);
 
-            UpdateBalances();
-
             return true;
         }
 
-        #endregion Buy/Sell Crypto
+        #endregion Buy/Sell
 
         #region Validate Trade
 
@@ -896,31 +910,38 @@ namespace CoinBot.Business.Builders
 
         /// <summary>
         /// Make a trade
+        /// make 5 trade attempts if response comes back null
         /// </summary>
         /// <param name="tradeType">TradeType object</param>
         /// <param name="orderPrice">Trade price</param>
         /// <returns>TradeResponse object</returns>
         public TradeResponse MakeTrade(TradeType tradeType, decimal orderPrice)
         {
-            orderPrice = GetPricePadding(tradeType, orderPrice);
-
-            var quantity = GetTradeQuantity(tradeType, orderPrice);
-
-            _lastPrice = orderPrice;
-            _lastQty = quantity;
-            _lastTradeType = tradeType;
-
-            var trade = new TradeParams
+            TradeResponse response = null;
+            int i = 0;
+            while (response == null && i < 5)
             {
-                price = orderPrice,
-                symbol = _symbol,
-                side = tradeType.ToString(),
-                type = OrderType.LIMIT.ToString(),
-                quantity = quantity,
-                timeInForce = "GTC"
-            };
+                orderPrice = GetPricePadding(tradeType, orderPrice);
 
-            var response = PlaceTrade(trade);
+                var quantity = GetTradeQuantity(tradeType, orderPrice);
+
+                _lastPrice = orderPrice;
+                _lastQty = quantity;
+                _lastTradeType = tradeType;
+
+                var trade = new TradeParams
+                {
+                    price = orderPrice,
+                    symbol = _symbol,
+                    side = tradeType.ToString(),
+                    type = OrderType.LIMIT.ToString(),
+                    quantity = quantity,
+                    timeInForce = "GTC"
+                };
+
+                response = PlaceTrade(trade);
+                i++;
+            }
 
             return response;
         }
