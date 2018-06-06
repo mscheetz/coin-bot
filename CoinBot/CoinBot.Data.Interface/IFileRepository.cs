@@ -63,5 +63,7 @@ namespace CoinBot.Data.Interface
         /// <param name="botBalance">BotBalances to write</param>
         /// <returns>Boolean when complete</returns>
         bool LogBalances(List<BotBalance> botBalance);
+        bool LogError<T>(string message, T obj);
+        bool LogError(string message);
     }
 }

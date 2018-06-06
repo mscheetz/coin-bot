@@ -1,4 +1,5 @@
 ﻿using CoinBot.Business.Entities;
+using CoinBot.Core;
 using CoinBot.Data.Interface;
 using Newtonsoft.Json;
 using System;
@@ -14,6 +15,7 @@ namespace CoinBot.Data
         private string configPath = "apiConfig.json";
         private string settingsPath = "botSettings.json";
         private string transactionPath = "transaction.log";
+        private string errorPath = "error.log";
 
         /// <summary>
         /// Constructor
@@ -165,6 +167,30 @@ namespace CoinBot.Data
                 s.WriteLine(json + ",");
 
                 json = null;
+
+                return true;
+            }
+        }
+
+        public bool LogError<T>(string message, T obj)
+        {
+            var json = JsonConvert.SerializeObject(obj);
+
+            using (StreamWriter s = File.AppendText(errorPath))
+            {
+                s.WriteLine($"ERROR {DateTime.UtcNow} {message}");
+                s.WriteLine("    Invalid object: " + json);
+
+                json = null;
+
+                return true;
+            }
+        }
+        public bool LogError(string message)
+        {
+            using (StreamWriter s = File.AppendText(errorPath))
+            {
+                s.WriteLine($"ERROR {DateTime.UtcNow} {message}");
 
                 return true;
             }
