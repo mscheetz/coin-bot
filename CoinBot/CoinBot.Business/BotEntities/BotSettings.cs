@@ -66,5 +66,9 @@ namespace CoinBot.Business.Entities
         /// Last buy value
         /// </summary>
         public decimal lastBuy { get; set; }
+        /// <summary>
+        /// Trading fee for exchange (GDAX)
+        /// </summary>
+        public decimal tradingFee { get; set; }
     }
 }

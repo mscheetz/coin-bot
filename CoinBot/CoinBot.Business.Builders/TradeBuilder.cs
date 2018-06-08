@@ -839,6 +839,12 @@ namespace CoinBot.Business.Builders
                 }
             }
             
+            if(_botSettings.exchange == Exchange.GDAX)
+            {
+                // Remove potential trade fee for GDAX trades
+                quantity = quantity - (quantity * _botSettings.tradingFee);
+            }
+
             var roundedDown = _helper.RoundDown(quantity, 6);
 
             return roundedDown;

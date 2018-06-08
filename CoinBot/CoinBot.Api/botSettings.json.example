@@ -12,5 +12,7 @@
   "startBotAutomatically": false,
   "startingAmount": 200,
   "mooningTankingTime": 2000,
-  "mooningTankingPercent": 100
+  "mooningTankingPercent": 100,
+  "lastBuy": 7000.0,
+  "tradingFee": 0.003
 }
