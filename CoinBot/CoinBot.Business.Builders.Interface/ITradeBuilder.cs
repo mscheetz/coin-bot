@@ -112,6 +112,13 @@ namespace CoinBot.Business.Builders.Interface
         bool LogTransaction(TradeInformation tradeInformation);
 
         /// <summary>
+        /// Write a signal to file
+        /// </summary>
+        /// <param name="signal">Signal to log</param>
+        /// <returns>Boolean when complete</returns>
+        bool LogTradeSignal(SignalType signalType, TradeType tradeType, decimal price, decimal volume = 0M);
+
+        /// <summary>
         /// Capture the current transaction and log it
         /// </summary>
         /// <param name="price">Transaction price</param>

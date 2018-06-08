@@ -75,8 +75,22 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <param name="signal">TradeSignal to write</param>
         /// <returns>Boolean when complete</returns>
-        bool LogSignal(List<TradeSignal> signal);
+        bool LogSignal(TradeSignal signal);
+
+        /// <summary>
+        /// Log an error with an object
+        /// </summary>
+        /// <typeparam name="T">Object type to log</typeparam>
+        /// <param name="message">Message to log</param>
+        /// <param name="obj">Object to log</param>
+        /// <returns>Boolean when complete</returns>
         bool LogError<T>(string message, T obj);
+
+        /// <summary>
+        /// Log an error
+        /// </summary>
+        /// <param name="message">Message to log</param>
+        /// <returns>Boolean when complete</returns>
         bool LogError(string message);
     }
 }

@@ -341,6 +341,8 @@ namespace CoinBot.Business.Builders
                     {
                         // If last trade was volume sell and current stick is greater than last,
                         // but less than last sell, probably reached ATL: BUY volume sell
+                        _trader.LogTradeSignal(SignalType.Volume, TradeType.VOLUMESELLBUYOFF, latestStick.close, latestStick.volume);
+
                         return TradeType.VOLUMESELLBUYOFF;
                     }
                     else if (volumePercentChange > _botSettings.mooningTankingPercent 
@@ -348,6 +350,8 @@ namespace CoinBot.Business.Builders
                     {
                         // If volume increased more than N% and Latest close is greater than previous close
                         // Probably a mini-moon: BUY
+                        _trader.LogTradeSignal(SignalType.Volume, TradeType.VOLUMEBUY, latestStick.close, latestStick.volume);
+
                         return TradeType.VOLUMEBUY;
                     }
                     else
@@ -355,7 +359,16 @@ namespace CoinBot.Business.Builders
                         // Else if not dropping in price from previous check
                         // or buy percent not reached
                         // return buy percent reached
-                        return buyPercentReached ? TradeType.BUY : TradeType.NONE;
+                        if(buyPercentReached)
+                        {
+                            _trader.LogTradeSignal(SignalType.Percent, TradeType.BUY, latestStick.close, latestStick.volume);
+
+                            return TradeType.BUY;
+                        }
+                        else
+                        {
+                            return TradeType.NONE;
+                        }
                     }
                 }
             }
@@ -381,6 +394,8 @@ namespace CoinBot.Business.Builders
                     {
                         // If last trade was volume buy and current stick is less than last,
                         // but greater than last buy, probably reached ATH: SELL volume buy
+                        _trader.LogTradeSignal(SignalType.Volume, TradeType.VOLUMEBUYSELLOFF, latestStick.close, latestStick.volume);
+
                         return TradeType.VOLUMEBUYSELLOFF;
                     }
                     else if (volumePercentChange > _botSettings.mooningTankingPercent 
@@ -388,6 +403,8 @@ namespace CoinBot.Business.Builders
                     {
                         // If volume increased more than N% and Latest close is less than previous close
                         // Probably a sell off: Sell
+                        _trader.LogTradeSignal(SignalType.Volume, TradeType.VOLUMESELL, latestStick.close, latestStick.volume);
+
                         return TradeType.VOLUMESELL;
                     }
                     else
@@ -395,7 +412,16 @@ namespace CoinBot.Business.Builders
                         // Else if not increasing in price from previous check
                         // or sell percent not reached
                         // return sell percent reached
-                        return sellPercentReached ? TradeType.SELL : TradeType.NONE;
+                        if(sellPercentReached)
+                        {
+                            _trader.LogTradeSignal(SignalType.Percent, TradeType.SELL, latestStick.close, latestStick.volume);
+
+                            return TradeType.SELL;
+                        }
+                        else
+                        {
+                            return TradeType.NONE;
+                        }
                     }
                 }
             }

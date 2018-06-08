@@ -450,6 +450,29 @@ namespace CoinBot.Business.Builders
             return _fileRepo.LogTransaction(tradeInformation);
         }
 
+        /// <summary>
+        /// Write a signal to file
+        /// </summary>
+        /// <param name="signal">Signal to log</param>
+        /// <returns>Boolean when complete</returns>
+        public bool LogTradeSignal(SignalType signalType, TradeType tradeType, decimal price, decimal volume = 0M)
+        {
+            var signal = new TradeSignal
+            {
+                bandLower = 0M,
+                bandUpper = 0M,
+                currentVolume = volume,
+                lastBuy = _lastBuy,
+                lastSell = _lastSell,
+                pair = _symbol,
+                price = price,
+                signal = signalType,
+                tradeType = tradeType,
+                transactionDate = DateTime.UtcNow
+            };
+            return _fileRepo.LogSignal(signal);
+        }
+
         #endregion Logging
 
         #region Candlesticks
