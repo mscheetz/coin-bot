@@ -339,6 +339,13 @@ namespace CoinBot.Business.Builders
         /// <returns>TradeReponse object</returns>
         private TradeResponse GdaxOrderResponseToTradeResponse(GDAXSharp.Services.Orders.Models.Responses.OrderResponse response)
         {
+            if(response == null)
+            {
+                TradeResponse nullResponse = null;
+
+                return nullResponse;
+            }
+
             TradeType tradeType;
             Enum.TryParse(response.Side.ToString(), out tradeType);
             OrderStatus orderStatus;
