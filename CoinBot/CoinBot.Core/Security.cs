@@ -22,11 +22,11 @@ namespace CoinBot.Core
             return Sb.ToString();
         }
 
-        public string GetHMACSignature(string secretKey, string totalParams)
+        public string GetBinanceHMACSignature(string secretKey, string message)
         {
             ASCIIEncoding encoding = new ASCIIEncoding();
             byte[] keyBytes = encoding.GetBytes(secretKey);
-            byte[] messageBytes = encoding.GetBytes(totalParams);
+            byte[] messageBytes = encoding.GetBytes(message);
             HMACSHA256 crypotgrapher = new HMACSHA256(keyBytes);
 
             byte[] bytes = crypotgrapher.ComputeHash(messageBytes);
@@ -34,24 +34,17 @@ namespace CoinBot.Core
             return BitConverter.ToString(bytes).Replace("-", "").ToLower();
         }
 
-        public string GetKuCoinHMCACSignature(string secretKey, string totalParams)
+        public string GetHMACSignature(string secretKey, string totalParams)
         {
             secretKey = secretKey ?? "";
             var encoding = new ASCIIEncoding();
-            byte[] keyByte = encoding.GetBytes(secretKey);
+            byte[] keyByte = Convert.FromBase64String(secretKey);
             byte[] messageByte = encoding.GetBytes(totalParams);
             using (var mac = new HMACSHA256(keyByte))
             {
                 byte[] hashMessage = mac.ComputeHash(messageByte);
                 return Convert.ToBase64String(hashMessage);
             }
-
-            //    var paramBytes = Encoding.UTF8.GetBytes(totalParams);
-            //var encodedParam = Convert.ToBase64String(paramBytes);
-
-            //var secretBytes = Encoding.UTF8.GetBytes(secretKey);
-            //var mac = new HMACSHA256(secretBytes);
-
         }
     }
 }

@@ -81,6 +81,14 @@ namespace CoinBot.Data.Tests
             IGdaxRepository repo = new GdaxRepository();
             repo.SetExchangeApi(apiInfo, true);
 
+            _tradeParams = new TradeParams
+            {
+                side = "sell",
+                price = 10000.00M,
+                quantity = 0.01984100M,
+                symbol = "BTC-USD"
+            };
+
             var response = repo.PlaceTrade(_tradeParams).Result;
 
             Assert.True(response != null);

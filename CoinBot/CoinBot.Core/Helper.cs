@@ -103,5 +103,21 @@ namespace CoinBot.Core
 
             return pair;
         }
+
+        /// <summary>
+        /// Set first character uppercase for a string
+        /// </summary>
+        /// <param name="toUpperCase">String to uppercase</param>
+        /// <returns>String with first character uppercased</returns>
+        public string UpperCaseFirst(string toUpperCase)
+        {
+            if (string.IsNullOrEmpty(toUpperCase))
+            {
+                return string.Empty;
+            }
+            char[] a = toUpperCase.ToCharArray();
+            a[0] = char.ToUpper(a[0]);
+            return new string(a);
+        }
     }
 }

@@ -203,7 +203,7 @@ namespace CoinBot.Data
             {
                 method = "GET",
                 path = "/accounts",
-                body = ""
+                body = string.Empty
             };
 
             var accountList = await _restRepo.GetApi<GDAXAccount[]>(url, GetRequestHeaders(true, req));
@@ -231,12 +231,12 @@ namespace CoinBot.Data
         {
             OrderSide orderSide;
             ProductType productType;
-            Enum.TryParse(tradeParams.side, out orderSide);
+            Enum.TryParse(_helper.UpperCaseFirst(tradeParams.side), out orderSide);
             Enum.TryParse(tradeParams.symbol, out productType);
 
             try
             {
-                var response = await gdaxClient.OrdersService.PlaceLimitOrderAsync(orderSide, productType, tradeParams.quantity, tradeParams.price);
+                var response = await gdaxClient.OrdersService.PlaceLimitOrderAsync(orderSide, productType, tradeParams.quantity, tradeParams.price, GDAXSharp.Services.Orders.Types.TimeInForce.Gtc, true);
 
                 return response;
             }
@@ -244,8 +244,7 @@ namespace CoinBot.Data
             {
                 _fileRepo.LogError(ex.Message, tradeParams);
                 return null;
-            }
-            
+            }            
         }
 
         /// <summary>
@@ -353,17 +352,18 @@ namespace CoinBot.Data
             string utcDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
             var headers = new Dictionary<string, string>();
 
-            headers.Add("User-Agent", ".NET Framework Test Client");
+            headers.Add("User-Agent", "GDAX Request");
 
             if (secure)
             {
                 if (request != null)
                 {
                     string nonce = _dtHelper.UTCtoUnixTime().ToString();// GetCBTime().ToString();
-                    string message = $"{nonce}{request.method}{request.path}{request.body}";
+                    var body = request.body == "" ? string.Empty : request.body;
+                    string message = $"{nonce}{request.method}{request.path}{body}";
                     headers.Add("CB-ACCESS-KEY", _apiInfo.apiKey);
-                    headers.Add("CB-ACCESS-SIGN", CreateSignature(message));
                     headers.Add("CB-ACCESS-TIMESTAMP", nonce);
+                    headers.Add("CB-ACCESS-SIGN", CreateSignature(message));
                     headers.Add("CB-ACCESS-PASSPHRASE", _apiInfo.extraValue);
                 }
                 headers.Add("CB-VERSION", utcDate);

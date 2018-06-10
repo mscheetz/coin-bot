@@ -225,7 +225,7 @@ namespace CoinBot.Data
             }
             var timestamp = GetBinanceTime().ToString();
             var timeStampQS = $"timestamp={timestamp}";
-            var hmac = security.GetHMACSignature(_apiInfo.apiSecret, timeStampQS);
+            var hmac = security.GetBinanceHMACSignature(_apiInfo.apiSecret, timeStampQS);
 
             url = baseUrl + $"{apiPath}?{timeStampQS}&signature={hmac}";
             if (qsValues != string.Empty)

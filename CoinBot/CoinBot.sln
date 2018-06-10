@@ -39,7 +39,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Console", "Console", "{7428
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Console", "CoinBot.Console\CoinBot.Console.csproj", "{72819C49-C4BD-4410-83BD-DE688F5D2641}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinBot.Tests.Entities", "CoinBot.Tests.Entities\CoinBot.Tests.Entities.csproj", "{CE8224AE-3E18-46F3-BE26-56741B9F2036}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoinBot.Tests.Entities", "CoinBot.Tests.Entities\CoinBot.Tests.Entities.csproj", "{CE8224AE-3E18-46F3-BE26-56741B9F2036}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coinbot.Core.Tests", "Coinbot.Core.Tests\Coinbot.Core.Tests.csproj", "{D8870033-C8E7-4FBB-9BC0-1C7C1753395D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +101,10 @@ Global
 		{CE8224AE-3E18-46F3-BE26-56741B9F2036}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE8224AE-3E18-46F3-BE26-56741B9F2036}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE8224AE-3E18-46F3-BE26-56741B9F2036}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8870033-C8E7-4FBB-9BC0-1C7C1753395D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8870033-C8E7-4FBB-9BC0-1C7C1753395D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8870033-C8E7-4FBB-9BC0-1C7C1753395D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8870033-C8E7-4FBB-9BC0-1C7C1753395D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,6 +123,7 @@ Global
 		{CCC947DD-6B61-4BDA-B1DC-6B5CCB2A3565} = {675A3D00-0F07-46BF-8913-1884D9600ABD}
 		{72819C49-C4BD-4410-83BD-DE688F5D2641} = {742806F0-9349-44B3-B430-9502306775E1}
 		{CE8224AE-3E18-46F3-BE26-56741B9F2036} = {675A3D00-0F07-46BF-8913-1884D9600ABD}
+		{D8870033-C8E7-4FBB-9BC0-1C7C1753395D} = {675A3D00-0F07-46BF-8913-1884D9600ABD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {21F9BD6F-E920-45CB-AFA6-7525CB02C5CF}
