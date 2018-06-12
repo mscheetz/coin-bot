@@ -36,13 +36,12 @@ namespace CoinBot.Core
 
         public string GetHMACSignature(string secretKey, string totalParams)
         {
-            secretKey = secretKey ?? "";
-            var encoding = new ASCIIEncoding();
+            //secretKey = secretKey ?? "";
             byte[] keyByte = Convert.FromBase64String(secretKey);
-            byte[] messageByte = encoding.GetBytes(totalParams);
-            using (var mac = new HMACSHA256(keyByte))
+            byte[] messageByte = Encoding.UTF8.GetBytes(totalParams);
+            using (var hmac = new HMACSHA256(keyByte))
             {
-                byte[] hashMessage = mac.ComputeHash(messageByte);
+                byte[] hashMessage = hmac.ComputeHash(messageByte);
                 return Convert.ToBase64String(hashMessage);
             }
         }

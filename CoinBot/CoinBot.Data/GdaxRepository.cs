@@ -358,7 +358,7 @@ namespace CoinBot.Data
             {
                 if (request != null)
                 {
-                    string nonce = _dtHelper.UTCtoUnixTime().ToString();// GetCBTime().ToString();
+                    string nonce = _dtHelper.UTCtoUnixTime().ToString(System.Globalization.CultureInfo.InvariantCulture);// GetCBTime().ToString();
                     var body = request.body == "" ? string.Empty : request.body;
                     string message = $"{nonce}{request.method}{request.path}{body}";
                     headers.Add("CB-ACCESS-KEY", _apiInfo.apiKey);
