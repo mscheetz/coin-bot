@@ -32,6 +32,13 @@ namespace CoinBot.Service
         IEnumerable<TradeInformation> GetTransactionHistory(int transactionCount = 10);
 
         /// <summary>
+        /// Get last N trade signals
+        /// </summary>
+        /// <param name="signalCount">Count of trade signals to return (default 10)</param>
+        /// <returns>Collection of TradeSignal objects</returns>
+        IEnumerable<TradeSignal> GetTradeSignalHistory(int signalCount = 10);
+
+        /// <summary>
         /// Get current balance
         /// </summary>
         /// <returns>Collection of BotBalance objects</returns>

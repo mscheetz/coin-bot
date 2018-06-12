@@ -70,7 +70,7 @@ namespace CoinBot.Manager
         }
 
         /// <summary>
-        /// Get all transactions
+        /// Get last N transactions
         /// </summary>
         /// <param name="transactionCount">Count of transations to return (default 10)</param>
         /// <returns>Collection of TradeInformation</returns>
@@ -78,6 +78,17 @@ namespace CoinBot.Manager
         {
             ServiceReady();
             return _tradeBuilder.GetTradeHistory(transactionCount);
+        }
+
+        /// <summary>
+        /// Get last N trade signals
+        /// </summary>
+        /// <param name="signalCount">Count of trade signals to return (default 10)</param>
+        /// <returns>Collection of TradeSignal objects</returns>
+        public IEnumerable<TradeSignal> GetTradeSignalHistory(int signalCount = 10)
+        {
+            ServiceReady();
+            return _tradeBuilder.GetSignalHistory(signalCount);
         }
 
         /// <summary>

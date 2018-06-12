@@ -272,6 +272,22 @@ namespace CoinBot.Business.Builders
 
         #endregion Trade History
 
+        #region Signal History
+
+        /// <summary>
+        /// Get all trade signals
+        /// </summary>
+        /// <param name="signalCount">Count of trade signals to return</param>
+        /// <returns>Collection of TradeSignal objects</returns>
+        public IEnumerable<TradeSignal> GetSignalHistory(int signalCount)
+        {
+            var signalList = _fileRepo.GetSignals();
+
+            return signalList.Skip(Math.Max(0, signalList.Count - signalCount));
+        }
+
+        #endregion Signal History
+
         #region Balance Managers
         /// <summary>
         /// Get current balance
@@ -288,9 +304,6 @@ namespace CoinBot.Business.Builders
             }
 
             return balanceList.Skip(Math.Max(0, balanceList.Count - recordsToReturn));
-            //var lastBalance = balanceList.Last();
-
-            //return balanceList.Where(b => b.timestamp == lastBalance).FirstOrDefault();
         }
 
         /// <summary>

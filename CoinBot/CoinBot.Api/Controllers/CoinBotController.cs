@@ -115,6 +115,35 @@ namespace CoinBot.Api.Controllers
         }
 
         /// <summary>
+        /// Get last 10 trade signals
+        /// </summary>
+        /// <remarks>
+        /// Get last 10 trade signals
+        /// </remarks>
+        /// <returns>Collection of TradeSignal objects</returns>
+        /// GET: api/coinbot/signals
+        [HttpGet("signals")]
+        public IEnumerable<TradeSignal> GetTradeSignalHistory()
+        {
+            return _service.GetTradeSignalHistory();
+        }
+
+        /// <summary>
+        /// Get last N trade signals
+        /// </summary>
+        /// <remarks>
+        /// Get last N trade signals
+        /// </remarks>
+        /// <param name="signalCount">Count of trade signals to return</param>
+        /// <returns>Collection of TradeSignal objects</returns>
+        /// GET: api/coinbot/signals
+        [HttpGet("signals/{signalCount}")]
+        public IEnumerable<TradeSignal> GetTradeSignalHistory(int signalCount)
+        {
+            return _service.GetTradeSignalHistory(signalCount);
+        }
+
+        /// <summary>
         /// Get current balance
         /// </summary>
         /// <remarks>
@@ -132,13 +161,13 @@ namespace CoinBot.Api.Controllers
         /// Get last N balances
         /// </summary>
         /// <remarks>
-        /// Get last N balances
+        /// Get last N balances (Default 10)
         /// </remarks>
-        /// <param name="count">Count of balances to return</param>
+        /// <param name="count">Count of balances to return (default 10)</param>
         /// <returns>BotBalance object</returns>
         /// GET: api/coinbot/balance
         [HttpGet("balance/{count}")]
-        public IEnumerable<IEnumerable<BotBalance>> GetLastBalances(int count)
+        public IEnumerable<IEnumerable<BotBalance>> GetLastBalances(int count = 10)
         {
             return _service.GetBalances(count);
         }

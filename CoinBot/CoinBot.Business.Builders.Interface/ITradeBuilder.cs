@@ -48,13 +48,20 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <returns>Collection of OpenStopLoss</returns>
         IEnumerable<OpenStopLoss> GetStopLosses();
-
+        
         /// <summary>
         /// Get all transactions
         /// </summary>
         /// <param name="transactionCount">Count of transations to return (default 10)</param>
         /// <returns>Collection of TradeInformation</returns>
         IEnumerable<TradeInformation> GetTradeHistory(int transactionCount);
+
+        /// <summary>
+        /// Get all trade signals
+        /// </summary>
+        /// <param name="signalCount">Count of trade signals to return</param>
+        /// <returns>Collection of TradeSignal objects</returns>
+        IEnumerable<TradeSignal> GetSignalHistory(int signalCount);
 
         /// <summary>
         /// Get current balance
