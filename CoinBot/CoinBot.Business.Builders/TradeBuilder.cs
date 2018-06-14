@@ -633,27 +633,34 @@ namespace CoinBot.Business.Builders
         {
             var trade = MakeTrade(TradeType.BUY, orderPrice);
 
-            if (trade == null)
+            if (trade == null || trade.clientOrderId == null)
             {
                 return false;
             }
 
             var tradeComplete = ValidateTradeComplete(trade);
 
-            if(!tradeComplete)
-            {
-                return false;
-            }
-
-            _lastBuy = orderPrice;
-            
-            CaptureTransaction(orderPrice, trade.origQty, trade.transactTime, tradeType);
-
-            var stopLoss = PlaceStopLoss(orderPrice, trade.origQty);
-
             UpdateBalances();
 
-            return true;
+            CaptureTransaction(orderPrice, trade.origQty, trade.transactTime, tradeType);
+
+            _lastBuy = orderPrice;
+
+            return CheckTradeSuccess(TradeType.BUY);
+
+            //if (!tradeComplete)
+            //{
+            //    return false;
+            //}
+
+            //_lastBuy = orderPrice;
+            
+
+            //var stopLoss = PlaceStopLoss(orderPrice, trade.origQty);
+
+            ////UpdateBalances();
+
+            //return true;
         }
 
         /// <summary>
@@ -668,25 +675,50 @@ namespace CoinBot.Business.Builders
 
             var trade = MakeTrade(TradeType.SELL, orderPrice);
 
-            if (trade == null)
+            if (trade == null || trade.clientOrderId == null)
             {
                 return false;
             }
 
             var tradeComplete = ValidateTradeComplete(trade);
 
-            if (!tradeComplete)
-            {
-                return false;
-            }
-
-            _lastSell = orderPrice;
+            UpdateBalances();
 
             CaptureTransaction(orderPrice, trade.origQty, trade.transactTime, tradeType);
 
-            UpdateBalances();
+            _lastSell = orderPrice;
 
-            return true;
+            return CheckTradeSuccess(TradeType.SELL);
+
+            //if (!tradeComplete)
+            //{
+            //    return false;
+            //}
+
+
+
+            ////UpdateBalances();
+
+            //return true;
+        }
+
+        /// <summary>
+        /// Check success of trade based on updated balances
+        /// </summary>
+        /// <param name="type">TradeType executed</param>
+        /// <returns>Boolean if trade was successful</returns>
+        public bool CheckTradeSuccess(TradeType type)
+        {
+            var pairBalance = _botBalances.Where(b => b.symbol.Equals(_pair)).FirstOrDefault();
+            var assetBalance = _botBalances.Where(b => b.symbol.Equals(_asset)).FirstOrDefault();
+            if (type == TradeType.BUY)
+            {
+                return pairBalance.quantity < 10.0M ? true : false;
+            }
+            else
+            {
+                return pairBalance.quantity > 10.0M ? true : false;
+            }
         }
 
         /// <summary>
@@ -763,6 +795,9 @@ namespace CoinBot.Business.Builders
         public bool CheckTradeStatus(TradeResponse trade)
         {
             var orderStatus = GetOrderStatus(trade);
+
+            if (orderStatus == null)
+                return false;
 
             return orderStatus.status == OrderStatus.FILLED ? true : false;
         }
@@ -963,7 +998,10 @@ namespace CoinBot.Business.Builders
             int i = 0;
             while (response == null && i < 5)
             {
-                orderPrice = GetPricePadding(tradeType, orderPrice);
+                if (i > 0)
+                {
+                    orderPrice = GetPricePadding(tradeType, orderPrice);
+                }
 
                 var quantity = GetTradeQuantity(tradeType, orderPrice);
 
