@@ -11,5 +11,6 @@ namespace CoinBot.Business.Entities
         public decimal price { get; set; }
         public string side { get; set; }
         public string product_id { get; set; }
+        public bool post_only { get; set; }
     }
 }
