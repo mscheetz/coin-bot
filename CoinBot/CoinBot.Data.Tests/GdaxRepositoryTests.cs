@@ -13,6 +13,7 @@ namespace CoinBot.Data.Tests
     {
         private ApiInformation _exchangeApi;
         private TradeParams _tradeParams;
+        private GDAXTradeParams _gdaxTradeParams;
 
         public GdaxRepositoryTests()
         {
@@ -53,7 +54,7 @@ namespace CoinBot.Data.Tests
             IFileRepository fileRepo = new FileRepository();
             var apiInfo = fileRepo.GetConfig();
             IGdaxRepository repo = new GdaxRepository();
-            repo.SetExchangeApi(apiInfo, true);
+            repo.SetExchangeApi(apiInfo, false);
 
             var accounts = repo.GetBalanceRest().Result;
 
@@ -79,12 +80,12 @@ namespace CoinBot.Data.Tests
             IFileRepository fileRepo = new FileRepository();
             var apiInfo = fileRepo.GetConfig();
             IGdaxRepository repo = new GdaxRepository();
-            repo.SetExchangeApi(apiInfo, true);
+            repo.SetExchangeApi(apiInfo, false);
 
             _tradeParams = new TradeParams
             {
                 side = "sell",
-                price = 10000.00M,
+                price = 100000.00M,
                 quantity = 0.01984100M,
                 symbol = "BTC-USD"
             };
@@ -92,6 +93,42 @@ namespace CoinBot.Data.Tests
             var response = repo.PlaceTrade(_tradeParams).Result;
 
             Assert.True(response != null);
+        }
+
+        [Fact]
+        public void GDAXPlaceRestTrade_QueryRestTrade_CancelRestTrade_Test()
+        {
+            // Arrange
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, false);
+
+            _gdaxTradeParams = new GDAXTradeParams
+            {
+                side = "sell",
+                price = 6285.76M,
+                size = 0.01984100M,
+                product_id = "BTC-USD"
+            };
+
+            // Act
+            var response = repo.PlaceRestTrade(_gdaxTradeParams).Result;
+
+            // Assert
+            Assert.True(response != null);
+
+            // Act
+            var orderResponse = repo.GetRestOrder(response.id).Result;
+
+            // Assert
+            Assert.True(orderResponse != null);
+
+            // Act
+            var cancelResponse = repo.CancelAllTradesRest().Result;
+
+            // Assert
+            Assert.True(cancelResponse == null);
         }
 
         [Fact]
@@ -118,6 +155,19 @@ namespace CoinBot.Data.Tests
             var response = repo.CancelAllTrades().Result;
 
             Assert.True(response != null);
+        }
+
+        [Fact]
+        public void GDAXCancelAllTradesRest_Test()
+        {
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, false);
+
+            var response = repo.CancelAllTradesRest().Result;
+
+            Assert.True(response == null);
         }
 
         [Fact]
