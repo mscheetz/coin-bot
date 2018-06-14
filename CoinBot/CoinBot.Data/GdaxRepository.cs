@@ -269,21 +269,29 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="tradeParams">GDAXTradeParams for setting the trade</param>
         /// <returns>GDAXOrderResponse object</returns>
-        public async Task<GDAXOrderResponse> PlaceTrade(GDAXTradeParams tradeParams)
+        public async Task<GDAXOrderResponse> PlaceRestTrade(GDAXTradeParams tradeParams)
         {
             var gdaxPair = _helper.CreateGdaxPair(tradeParams.product_id);
             tradeParams.product_id = gdaxPair;
+            tradeParams.post_only = true;
             var req = new Request
             {
                 method = "POST",
                 path = "/orders",
-                body = ""
+                body = JsonConvert.SerializeObject(tradeParams)
             };
             var url = baseUrl + req.path;
 
-            var response = await _restRepo.PostApi<GDAXOrderResponse, GDAXTradeParams>(url, tradeParams, GetRequestHeaders(true, req));
-
-            return response;
+            try
+            {
+                var response = await _restRepo.PostApi<GDAXOrderResponse, GDAXTradeParams>(url, tradeParams, GetRequestHeaders(true, req));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _fileRepo.LogError(ex.Message, tradeParams);
+                return null;
+            }
         }
 
         /// <summary>
@@ -321,6 +329,26 @@ namespace CoinBot.Data
         }
 
         /// <summary>
+        /// Get details of an order
+        /// </summary>
+        /// <param name="id">Order Id</param>
+        /// <returns>OrderResponse object</returns>
+        public async Task<GDAXOrder> GetRestOrder(string id)
+        {
+            var req = new Request
+            {
+                method = "GET",
+                path = $"/orders/{id}",
+                body = ""
+            };
+            var url = baseUrl + req.path;
+
+            var response = await _restRepo.GetApi<GDAXOrder>(url, GetRequestHeaders(true, req));
+
+            return response;
+        }
+
+        /// <summary>
         /// Cancel a placed trade
         /// </summary>
         /// <param name="id">Id of trade to cancel</param>
@@ -341,6 +369,32 @@ namespace CoinBot.Data
             var response = await gdaxClient.OrdersService.CancelAllOrdersAsync();
 
             return response;
+        }
+
+        /// <summary>
+        /// Cancel all open trades
+        /// </summary>
+        /// <returns>CancelOrderResponse object</returns>
+        public async Task<CancelOrderResponse> CancelAllTradesRest()
+        {
+            var req = new Request
+            {
+                method = "DELETE",
+                path = "/orders",
+                body = ""
+            };
+            var url = baseUrl + req.path;
+
+            try
+            {
+                var response = await _restRepo.DeleteApi<CancelOrderResponse>(url, GetRequestHeaders(true, req));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _fileRepo.LogError(ex.Message);
+                return null;
+            }
         }
 
         /// <summary>

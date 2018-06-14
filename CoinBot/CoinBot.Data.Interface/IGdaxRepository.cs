@@ -84,7 +84,7 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <param name="tradeParams">GDAXTradeParams for setting the trade</param>
         /// <returns>GDAXOrderResponse object</returns>
-        Task<GDAXOrderResponse> PlaceTrade(GDAXTradeParams tradeParams);
+        Task<GDAXOrderResponse> PlaceRestTrade(GDAXTradeParams tradeParams);
         
         /// <summary>
         /// Place a limit order trade
@@ -109,6 +109,13 @@ namespace CoinBot.Data.Interface
         Task<GDAXSharp.Services.Orders.Models.Responses.OrderResponse> GetOrder(string id);
 
         /// <summary>
+        /// Get details of an order
+        /// </summary>
+        /// <param name="id">Order Id</param>
+        /// <returns>OrderResponse object</returns>
+        Task<GDAXOrder> GetRestOrder(string id);
+
+        /// <summary>
         /// Cancel a placed trade
         /// </summary>
         /// <param name="id">Id of trade to cancel</param>
@@ -120,5 +127,11 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <returns>CancelOrderResponse object</returns>
         Task<CancelOrderResponse> CancelAllTrades();
+        
+        /// <summary>
+        /// Cancel all open trades
+        /// </summary>
+        /// <returns>CancelOrderResponse object</returns>
+        Task<CancelOrderResponse> CancelAllTradesRest();
     }
 }
