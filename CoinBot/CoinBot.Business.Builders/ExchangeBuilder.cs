@@ -95,11 +95,11 @@ namespace CoinBot.Business.Builders
         {
             if(_thisExchange == Exchange.BINANCE)
             {
-                return _bianceRepo.SetExchangeApi(apiInfo);                
+                return _bianceRepo.SetExchangeApi(apiInfo);
             }
             else if(_thisExchange == Exchange.GDAX)
             {
-                return _gdaxRepo.SetExchangeApi(apiInfo);
+                return _gdaxRepo.SetExchangeApi(apiInfo, false);
             }
             else
             {
@@ -202,19 +202,28 @@ namespace CoinBot.Business.Builders
             }
             else if(_thisExchange == Exchange.GDAX)
             {
-                GDAXSharp.Services.Orders.Models.Responses.OrderResponse response;
-
                 // TODO use new trade api
                 if (tradeParams.type == "STOPLOSS")
                 {
-                    response = _gdaxRepo.PlaceStopLimit(tradeParams).Result;
+                    GDAXSharp.Services.Orders.Models.Responses.OrderResponse response = _gdaxRepo.PlaceStopLimit(tradeParams).Result;
+
+                    return GdaxOrderResponseToTradeResponse(response);
                 }
                 else
                 {
-                    response = _gdaxRepo.PlaceTrade(tradeParams).Result;
+                    var gdaxParams = new GDAXTradeParams
+                    {
+                        price = tradeParams.price,
+                        product_id = tradeParams.symbol,
+                        side = tradeParams.side.ToLower(),
+                        size = tradeParams.quantity,
+                        type = "limit"
+                    };
+                    GDAXOrderResponse response = _gdaxRepo.PlaceRestTrade(gdaxParams).Result;
+
+                    return GdaxRestOrderResponseToTradeResponse(response);
                 }
 
-                return GdaxOrderResponseToTradeResponse(response);
             }
             else
             {
@@ -238,9 +247,9 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.GDAX)
             {
-                var response = _gdaxRepo.GetOrder(trade.clientOrderId).Result;
+                var response = _gdaxRepo.GetRestOrder(trade.clientOrderId).Result;
 
-                return GdaxOrderResponseToOrderResponse(response);
+                return response == null ? null : GdaxOrderResponseToOrderResponse(response);
             }
             else
             {
@@ -263,12 +272,14 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.GDAX)
             {
-                var response = _gdaxRepo.CancelAllTrades().Result;
+                var response = _gdaxRepo.CancelAllTradesRest().Result;
 
-                var tradeResponse = new TradeResponse
+                var tradeResponse = new TradeResponse();
+
+                if (response != null)
                 {
-                    clientOrderId = response.OrderIds.ToList().FirstOrDefault().ToString()
-                };
+                    tradeResponse.clientOrderId = response.OrderIds.ToList().FirstOrDefault().ToString();
+                }
 
                 return tradeResponse;
             }
@@ -371,42 +382,77 @@ namespace CoinBot.Business.Builders
             };
 
             return tradeResponse;
-
-//            return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.OrderResponse, TradeResponse>(response);
         }
 
         /// <summary>
-        /// Convert GDAX OrderResponse to OrderResponse
+        /// Convert GDAX OrderResponse to TradeResponse
         /// </summary>
         /// <param name="response">GDAX OrderReponse object</param>
+        /// <returns>TradeReponse object</returns>
+        private TradeResponse GdaxRestOrderResponseToTradeResponse(GDAXOrderResponse response)
+        {
+            if (response == null)
+            {
+                TradeResponse nullResponse = null;
+
+                return nullResponse;
+            }
+
+            TradeType tradeType;
+            Enum.TryParse(response.side, out tradeType);
+            OrderStatus orderStatus;
+            Enum.TryParse(response.status, out orderStatus);
+            TimeInForce tif;
+            Enum.TryParse(response.time_in_force.ToString(), out tif);
+            OrderType orderType;
+            Enum.TryParse(response.type, out orderType);
+
+            var tradeResponse = new TradeResponse
+            {
+                clientOrderId = response.id,
+                executedQty = response.filled_size,
+                orderId = 0,
+                origQty = response.size,
+                price = response.price,
+                side = tradeType,
+                status = orderStatus,
+                symbol = response.product_id,
+                timeInForce = tif,
+                transactTime = _dtHelper.LocalToUnixTime(response.created_at.UtcDateTime),
+                type = orderType
+            };
+
+            return tradeResponse;
+        }
+
+        /// <summary>
+        /// Convert GDAXOrder object to OrderResponse
+        /// </summary>
+        /// <param name="response">GDAXOrder object</param>
         /// <returns>OrderReponse object</returns>
-        private OrderResponse GdaxOrderResponseToOrderResponse(GDAXSharp.Services.Orders.Models.Responses.OrderResponse response)
+        private OrderResponse GdaxOrderResponseToOrderResponse(GDAXOrder response)
         {
             TradeType tradeType;
-            Enum.TryParse(response.Side.ToString(), out tradeType);
+            Enum.TryParse(response.side.ToString().ToUpper(), out tradeType);
             OrderStatus orderStatus;
-            Enum.TryParse(response.Status.ToString(), out orderStatus);
-            TimeInForce tif;
-            Enum.TryParse(response.TimeInForce.ToString(), out tif);
+            Enum.TryParse(response.status.ToString().ToUpper(), out orderStatus);
             OrderType orderType;
-            Enum.TryParse(response.OrderType.ToString(), out orderType);
+            Enum.TryParse(response.type.ToString().ToUpper(), out orderType);
 
             var orderReponse = new OrderResponse
             {
-                clientOrderId = response.Id.ToString(),
-                executedQty = response.ExecutedValue,
-                origQty = response.Size,
-                price = response.Price,
+                clientOrderId = response.id,
+                executedQty = response.fill_size,
+                origQty = response.size,
+                price = response.executed_value,
                 side = tradeType,
                 status = orderStatus,
-                symbol = response.ProductId.ToString(),
-                timeInForce = tif,
-                time = _dtHelper.LocalToUnixTime(response.CreatedAt),
+                symbol = response.product_id,
+                time = _dtHelper.LocalToUnixTime(response.crated_at.UtcDateTime),
                 type = orderType
             };
 
             return orderReponse;
-//            return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.OrderResponse, OrderResponse>(response);
         }
 
         /// <summary>
@@ -423,7 +469,6 @@ namespace CoinBot.Business.Builders
             };
 
             return tradeResponse;
-           // return _helper.MapEntity<GDAXSharp.Services.Orders.Models.Responses.CancelOrderResponse, TradeResponse>(response);
         }
 
         /// <summary>
