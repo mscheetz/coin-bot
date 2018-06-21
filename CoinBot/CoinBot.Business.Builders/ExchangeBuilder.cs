@@ -156,6 +156,11 @@ namespace CoinBot.Business.Builders
             {
                 var account = _bianceRepo.GetBalance().Result;
 
+                if (account == null || account.balances == null)
+                {
+                    return new List<Balance>();
+                }
+
                 return account.balances.Where(b => b.asset.Equals(asset) || b.asset.Equals(pair)).ToList();
             }
             else if (_thisExchange == Exchange.GDAX)
@@ -298,6 +303,14 @@ namespace CoinBot.Business.Builders
         public BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades, int range)
         {
             var close = trades[0].Price;
+            var maxDate = trades[0].Time;
+            maxDate = maxDate.AddSeconds(-maxDate.Second);
+            var tradesPrev = trades.Where(t => t.Time < maxDate).OrderByDescending(t => t.Time).ToArray();
+            var prevClose = 0.0M;
+            if (tradesPrev.Length > 0)
+            {
+                prevClose = tradesPrev[0].Price;
+            }
             var grouped = trades.GroupBy(
                 t => new
                 {
@@ -313,6 +326,10 @@ namespace CoinBot.Business.Builders
                 }).ToList();
 
             grouped[0].close = close;
+            if (grouped.Count > 1)
+            {
+                grouped[1].close = prevClose;
+            }
 
             int size = grouped.Count() < range ? grouped.Count() : range;
 
@@ -432,6 +449,10 @@ namespace CoinBot.Business.Builders
         /// <returns>OrderReponse object</returns>
         private OrderResponse GdaxOrderResponseToOrderResponse(GDAXOrder response)
         {
+            if (response.id == null)
+            {
+                return null;
+            }
             TradeType tradeType;
             Enum.TryParse(response.side.ToString().ToUpper(), out tradeType);
             OrderStatus orderStatus;
