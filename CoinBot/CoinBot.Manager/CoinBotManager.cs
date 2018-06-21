@@ -60,13 +60,11 @@ namespace CoinBot.Manager
         /// </summary>
         public bool StopBot()
         {
-            ServiceReady();
-            if (_botSettings.tradingStrategy == Strategy.BollingerBands)
-                _bollingerBuilder.StopTrading();
-            else if (_botSettings.tradingStrategy == Strategy.Percentage)
-                _bollingerBuilder.StopTrading();
-
-            return true;
+            var settings = new BotSettings()
+            {
+                runBot = false
+            };
+            return _tradeBuilder.SetBotSettings(settings);
         }
 
         /// <summary>

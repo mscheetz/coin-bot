@@ -67,8 +67,26 @@ namespace CoinBot.Business.Entities
         /// </summary>
         public decimal lastBuy { get; set; }
         /// <summary>
+        /// Last sell value
+        /// </summary>
+        public decimal lastSell { get; set; }
+        /// <summary>
         /// Trading fee for exchange (GDAX)
         /// </summary>
         public decimal tradingFee { get; set; }
+        /// <summary>
+        /// Trade validation timer
+        /// </summary>
+        public int tradeValidationCheck { get; set; }
+        /// <summary>
+        /// When true, bot runs
+        /// When false, bot stops
+        /// </summary>
+        public bool runBot { get; set; }
+
+        public BotSettings()
+        {
+            runBot = true;
+        }
     }
 }

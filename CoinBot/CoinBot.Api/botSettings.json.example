@@ -14,5 +14,7 @@
   "mooningTankingTime": 2000,
   "mooningTankingPercent": 100,
   "lastBuy": 7000.0,
-  "tradingFee": 0.003
+  "tradingFee": 0.003,
+  "tradeValidationCheck": 2000,
+  "runBot": true
 }
