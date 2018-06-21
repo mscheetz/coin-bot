@@ -37,6 +37,14 @@ namespace CoinBot.Business.Builders.Interface
         void LoadBotSettingsFile();
 
         /// <summary>
+        /// Update bot settings from file
+        /// </summary>
+        /// <param name="_lastBuy">Last buy value</param>
+        /// <param name="_lastSell">Last sell value</param>
+        /// <returns>Boolean when complete</returns>
+        bool UpdateBotSettings(decimal _lastBuy, decimal _lastSell);
+
+        /// <summary>
         /// Set BotSettings in builder
         /// </summary>
         /// <param name="settings">Updated Settings</param>
@@ -94,9 +102,10 @@ namespace CoinBot.Business.Builders.Interface
         IEnumerable<IEnumerable<BotBalance>> GetBalanceHistory();
 
         /// <summary>
-        /// Set paper balances on load
+        /// Set balances
         /// </summary>
-        void SetBalances();
+        /// <param name="logBalance">Log the balance bool</param>
+        void SetBalances(bool logBalance = true);
 
         /// <summary>
         /// Get paper balances available

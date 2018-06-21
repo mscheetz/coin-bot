@@ -164,6 +164,24 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Update bot settings from file
+        /// </summary>
+        /// <param name="_lastBuy">Last buy value</param>
+        /// <param name="_lastSell">Last sell value</param>
+        /// <returns>Boolean when complete</returns>
+        public bool UpdateBotSettings(decimal _lastBuy, decimal _lastSell)
+        {
+            var settings = _fileRepo.GetSettings();
+            settings.lastBuy = _lastBuy;
+            settings.lastSell = _lastSell;
+            _botSettings = settings;
+            _symbol = settings.tradingPair;
+            GetAssetAndPair();
+
+            return true;
+        }
+
+        /// <summary>
         /// Set BotSettings in builder
         /// </summary>
         /// <param name="settings">Updated Settings</param>
@@ -183,7 +201,8 @@ namespace CoinBot.Business.Builders
                 tradePercent = _botSettings.tradePercent,
                 tradingPair = _botSettings.tradingPair,
                 tradingStatus = _botSettings.tradingStatus,
-                tradingStrategy = _botSettings.tradingStrategy
+                tradingStrategy = _botSettings.tradingStrategy,
+                runBot = _botSettings.runBot
             };
 
             if (settings.buyPercent > 0)
@@ -211,9 +230,12 @@ namespace CoinBot.Business.Builders
             if (settings.tradingStrategy != Strategy.None)
                 updatedSettings.tradingStrategy = settings.tradingStrategy;
 
+            updatedSettings.runBot = settings.runBot;
+
             _fileRepo.UpdateBotSettings(updatedSettings);
             _botSettings = updatedSettings;
             _symbol = _botSettings.tradingPair;
+            GetAssetAndPair();
 
             return true;
         }
@@ -325,9 +347,10 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
-        /// Set paper balances on load
+        /// Set balances
         /// </summary>
-        public void SetBalances()
+        /// <param name="logBalance">Log the balance bool</param>
+        public void SetBalances(bool logBalance = true)
         {
             _botBalances = new List<BotBalance>();
 
@@ -345,7 +368,10 @@ namespace CoinBot.Business.Builders
                 _botBalances.Add(botBalance);
             }
 
-            LogBalances();
+            if (logBalance)
+            {
+                LogBalances();
+            }
         }
         
         /// <summary>
@@ -631,14 +657,31 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean when complete</returns>
         public bool BuyCrypto(decimal orderPrice, TradeType tradeType)
         {
-            var trade = MakeTrade(TradeType.BUY, orderPrice);
-
-            if (trade == null || trade.clientOrderId == null)
+            var tradeComplete = false;
+            int i = 0;
+            TradeResponse trade = null;
+            while (!tradeComplete && i < 2)
             {
-                return false;
-            }
+                trade = MakeTrade(TradeType.BUY, orderPrice);
 
-            var tradeComplete = ValidateTradeComplete(trade);
+                if (trade == null || trade.clientOrderId == null)
+                {
+                    return false;
+                }
+
+                tradeComplete = ValidateTradeComplete(trade);
+
+                if (i == 1 && !tradeComplete)
+                {
+                    return false;
+                }
+
+                i++;
+                if(!tradeComplete) // If trade was not filled, try at a lower price
+                {
+                    orderPrice = orderPrice - 0.01M;
+                }
+            }
 
             UpdateBalances();
 
@@ -671,17 +714,37 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean when complete</returns>
         public bool SellCrypto(decimal orderPrice, TradeType tradeType)
         {
-            CancelStopLoss();
-
-            var trade = MakeTrade(TradeType.SELL, orderPrice);
-
-            if (trade == null || trade.clientOrderId == null)
+            var tradeComplete = false;
+            int i = 0;
+            TradeResponse trade = null;
+            while (!tradeComplete && i < 2)
             {
-                return false;
+                CancelStopLoss();
+
+                trade = MakeTrade(TradeType.SELL, orderPrice);
+
+                if (trade == null || trade.clientOrderId == null)
+                {
+                    return false;
+                }
+
+                tradeComplete = ValidateTradeComplete(trade);
+
+                if(tradeComplete)
+                {
+                    break;
+                }
+                else if(i == 1 && !tradeComplete)
+                {
+                    return false;
+                }
+
+                i++;
+                if (!tradeComplete) // If trade was not filled, try at a higher price
+                {
+                    orderPrice = orderPrice + 0.01M;
+                }
             }
-
-            var tradeComplete = ValidateTradeComplete(trade);
-
             UpdateBalances();
 
             CaptureTransaction(orderPrice, trade.origQty, trade.transactTime, tradeType);
@@ -736,7 +799,7 @@ namespace CoinBot.Business.Builders
                 pair = _symbol,
                 price = price,
                 quantity = quantity,
-                timestamp = _dtHelper.UnixTimeToUTC(timeStamp),
+                timestamp = DateTime.UtcNow,
                 tradeType = EnumHelper.GetEnumDescription((TradeType)tradeType)
             };
 
@@ -760,16 +823,19 @@ namespace CoinBot.Business.Builders
         {
             bool tradeComplete = false;
             int i = 0;
-            while (!tradeComplete || i > 5)
+            while (!tradeComplete || i > 2)
             {
                 i++;
                 tradeComplete = CheckTradeStatus(trade);
-
-                if (!tradeComplete && i < 5)
+                if (tradeComplete)
                 {
-                    Task.WaitAll(Task.Delay(1500));
+                    break;
                 }
-                else if (!tradeComplete && i == 5)
+                if (!tradeComplete && i < 2)
+                {
+                    Task.WaitAll(Task.Delay(_botSettings.tradeValidationCheck));
+                }
+                else if (!tradeComplete && i == 2)
                 {
                     var cancelTradeParams = new CancelTradeParams
                     {
@@ -883,7 +949,7 @@ namespace CoinBot.Business.Builders
                 quantity = symbolBalance.quantity;
                 if (_asset.Equals("BTC"))
                 {
-                    quantity = _helper.RoundDown(quantity, 4);
+                    quantity = _helper.RoundDown(quantity, 6);
                 }
             }
             
@@ -998,10 +1064,10 @@ namespace CoinBot.Business.Builders
             int i = 0;
             while (response == null && i < 5)
             {
-                if (i > 0)
-                {
-                    orderPrice = GetPricePadding(tradeType, orderPrice);
-                }
+                //if (i > 0)
+                //{
+                //    orderPrice = GetPricePadding(tradeType, orderPrice);
+                //}
 
                 var quantity = GetTradeQuantity(tradeType, orderPrice);
 
