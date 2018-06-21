@@ -14,6 +14,7 @@ namespace CoinBot.Data
         private string baseUrl;
         private ApiInformation _apiInfo;
         private DateTimeHelper _dtHelper;
+        private IFileRepository _fileRepo;
 
         /// <summary>
         /// Constructor
@@ -25,6 +26,7 @@ namespace CoinBot.Data
             baseUrl = "https://api.binance.com";
             _apiInfo = new ApiInformation();
             _dtHelper = new DateTimeHelper();
+            _fileRepo = new FileRepository();
         }
 
         /// <summary>
@@ -72,9 +74,17 @@ namespace CoinBot.Data
         {
             string url = CreateUrl("/api/v3/account");
 
-            var response = await _restRepo.GetApiStream<Account>(url, GetRequestHeaders());
+            try
+            {
+                var response = await _restRepo.GetApiStream<Account>(url, GetRequestHeaders());
 
-            return response;
+                return response;
+            }
+            catch(Exception ex)
+            {
+                _fileRepo.LogError($"BinanceRepository.GetBalance() error: {ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>
@@ -89,7 +99,7 @@ namespace CoinBot.Data
             {
                 $"symbol={symbol}",
                 $"orderId={orderId}",
-                $"timestamp={_dtHelper.UTCtoUnixTime()}"
+                //$"timestamp={_dtHelper.UTCtoUnixTime()}"
             };
 
             string url = CreateUrl($"/api/v3/order", true, queryString.ToArray());
@@ -106,11 +116,20 @@ namespace CoinBot.Data
         /// <returns>TradeResponse object</returns>
         public async Task<TradeResponse> PostTrade(TradeParams tradeParams)
         {
-            string url = CreateUrl("/api/v3/order");
+            //tradeParams.timestamp = _dtHelper.UTCtoUnixTime();
 
-            tradeParams.timestamp = _dtHelper.UTCtoUnixTime();
+            var queryString = new List<string>
+            {
+                $"symbol={tradeParams.symbol}",
+                $"side={tradeParams.side}",
+                $"type={tradeParams.type}",
+                $"timeInForce={tradeParams.timeInForce}",
+                $"quantity={tradeParams.quantity}",
+                $"price={tradeParams.price}"
+            };
+            string url = CreateUrl("/api/v3/order", true, queryString.ToArray());
 
-            var response = await _restRepo.PostApi<TradeResponse, TradeParams>(url, tradeParams, GetRequestHeaders());
+            var response = await _restRepo.PostApi<TradeResponse>(url, GetRequestHeaders());
 
             return response;
         }
@@ -175,9 +194,17 @@ namespace CoinBot.Data
 
             string url = CreateUrl($"/api/v1/klines", false, queryString.ToArray());
 
-            var response = await _restRepo.GetApiStream<Candlestick[]>(url);
+            try
+            {
+                var response = await _restRepo.GetApiStream<Candlestick[]>(url);
 
-            return response;
+                return response;
+            }
+            catch(Exception ex)
+            {
+                _fileRepo.LogError($"BinaceRepository.GetCandlestick() error: {ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>
@@ -225,11 +252,19 @@ namespace CoinBot.Data
             }
             var timestamp = GetBinanceTime().ToString();
             var timeStampQS = $"timestamp={timestamp}";
-            var hmac = security.GetBinanceHMACSignature(_apiInfo.apiSecret, timeStampQS);
-
-            url = baseUrl + $"{apiPath}?{timeStampQS}&signature={hmac}";
             if (qsValues != string.Empty)
-                url += "&" + qsValues;
+            {
+                qsValues += $"&{timeStampQS}";
+            }
+            else
+            {
+                qsValues = $"{timeStampQS}";
+            }
+            var hmac = security.GetBinanceHMACSignature(_apiInfo.apiSecret, qsValues);
+
+            url = baseUrl + $"{apiPath}?{qsValues}&signature={hmac}";
+            //if (qsValues != string.Empty)
+            //    url += "&" + qsValues;
 
             return url;
         }
