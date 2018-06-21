@@ -94,7 +94,7 @@ namespace CoinBot.Data
         }
 
         /// <summary>
-        /// Post call to api
+        /// Post call to api with data
         /// </summary>
         /// <typeparam name="T">Type to return</typeparam>
         /// <typeparam name="U">Type to post</typeparam>
@@ -117,6 +117,40 @@ namespace CoinBot.Data
                 var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
 
                 var response = await client.PostAsync(url, content);
+
+                string responseMessage = await response.Content.ReadAsStringAsync();
+
+                try
+                {
+                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                }
+                catch
+                {
+                    return default(T);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Post call to api without data
+        /// </summary>
+        /// <typeparam name="T">Type to return</typeparam>
+        /// <param name="url">Url to access</param>
+        /// <param name="headers">Http Request headers (optional)</param>
+        /// <returns>Type requested</returns>
+        public async Task<T> PostApi<T>(string url, Dictionary<string, string> headers = null)
+        {
+            using (var client = new HttpClient())
+            {
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+                
+                var response = await client.PostAsync(url, null);
 
                 string responseMessage = await response.Content.ReadAsStringAsync();
 

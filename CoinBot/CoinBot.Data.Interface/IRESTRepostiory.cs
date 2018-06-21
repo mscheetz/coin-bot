@@ -37,6 +37,15 @@ namespace CoinBot.Data.Interface
         /// <param name="headers">Http Request headers (optional)</param>
         /// <returns>Type requested</returns>
         Task<T> PostApi<T, U>(string url, U data, Dictionary<string, string> headers = null);
+        
+        /// <summary>
+        /// Post call to api without data
+        /// </summary>
+        /// <typeparam name="T">Type to return</typeparam>
+        /// <param name="url">Url to access</param>
+        /// <param name="headers">Http Request headers (optional)</param>
+        /// <returns>Type requested</returns>
+        Task<T> PostApi<T>(string url, Dictionary<string, string> headers = null);
 
         /// <summary>
         /// Delete call to api
