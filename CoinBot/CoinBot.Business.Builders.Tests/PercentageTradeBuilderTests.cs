@@ -185,7 +185,7 @@ namespace CoinBot.Business.Builders.Tests
 
             _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, lastPrice, lastPrice, TradeType.SELL);
 
-            var result = _bldr.MooningAndTankingCheck(candlestickList[0], TradeType.SELL);
+            var result = _bldr.MooningAndTankingCheck(candlestickList[0], candlestickList[1], TradeType.SELL);
 
             Assert.True(result == TradeType.SELL);
         }
@@ -217,7 +217,7 @@ namespace CoinBot.Business.Builders.Tests
 
             _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, lastPrice, lastPrice, TradeType.SELL);
 
-            var result = _bldr.MooningAndTankingCheck(candlestickList[0], TradeType.SELL);
+            var result = _bldr.MooningAndTankingCheck(candlestickList[0], candlestickList[1], TradeType.SELL);
 
             Assert.True(result == TradeType.SELL);
         }

@@ -24,10 +24,13 @@ namespace CoinBot.Business.Builders
         private TradeType _tradeType;
         private decimal _lastBuy = 0.00000000M;
         private decimal _lastSell = 0.00000000M;
+        private decimal _localHigh = 0.00000000M;
+        private decimal _localLow = 0.00000000M;
         private int _tradeNumber = 0;
         private decimal _lastVolume = 0.00000000M;
         private string _asset = string.Empty;
         private string _pair = string.Empty;
+        private decimal _moonTankPrice = 0.00000000M;
 
         /// <summary>
         /// Constructor
@@ -94,9 +97,17 @@ namespace CoinBot.Business.Builders
             _currentlyTrading = _botSettings.startBotAutomatically == null
                                 ? false
                                 : (bool)_botSettings.startBotAutomatically;
-            if(_botSettings.lastBuy !=0)
+            if(_currentlyTrading && !settings.runBot)
+            {
+                _currentlyTrading = false;
+            }
+            if(_botSettings.lastBuy !=0 && _lastBuy == 0.00000000M)
             {
                 _lastBuy = _botSettings.lastBuy;
+            }
+            if (_botSettings.lastSell != 0 && _lastSell == 0.00000000M)
+            {
+                _lastSell = _botSettings.lastSell;
             }
             return true;
         }
@@ -141,30 +152,39 @@ namespace CoinBot.Business.Builders
             while (currentlyTrading)
             {
                 Task.WaitAll(Task.Delay(_botSettings.priceCheck));
+                if (cycles % 20 == 0)
+                { // Every 10 cycles, reset balances and check bot settings file
+                    _tradeType = CheckInitialTradingType();
+                    _trader.UpdateBotSettings(_lastBuy, _lastSell);
+                    SetBotSettings(_trader.GetBotSettings());
+                }
                 var candleStickArray = _trader.GetCandlesticks(_symbol, interval, 5);
                 int i = candleStickArray.Length - 1;
                 currentStick = candleStickArray[i];
 
-                if (previousStick.close == 0)
+                if (previousStick.close == 0 && i > 2)
                 {
-                    previousStick = candleStickArray[i];
+                    previousStick = candleStickArray[i-1];
                 }
 
-                StoppedOutCheck(currentStick.close);
+                //StoppedOutCheck(currentStick.close);
 
-                if (_tradeType == TradeType.BUY)
+                if (previousStick.closeTime != currentStick.closeTime)
                 {
-                    BuyCryptoCheck(currentStick);
+                    if (_tradeType == TradeType.BUY)
+                    {
+                        BuyCryptoCheck(currentStick, previousStick);
+                    }
+                    else if (_tradeType == TradeType.SELL)
+                    {
+                        SellCryptoCheck(currentStick, previousStick);
+                    }
+                    //if (_tradeNumber >= cycles && cycles > 0)
+                    //{
+                    //    currentlyTrading = false;
+                    //}
+                    cycles++;
                 }
-                else if (_tradeType == TradeType.SELL)
-                {
-                    SellCryptoCheck(currentStick);
-                }
-                if (_tradeNumber >= cycles && cycles > 0)
-                {
-                    currentlyTrading = false;
-                }
-                previousStick = currentStick;
             }
             return true;
         }
@@ -178,12 +198,13 @@ namespace CoinBot.Business.Builders
             _asset = _trader.GetAsset();
             _pair = _trader.GetPair();
 
+            _trader.SetBalances(false);
             var balances = _trader.GetBotBalance();
             var assetQty = balances.Where(b => b.symbol.Equals(_asset)).Select(b => b.quantity).FirstOrDefault();
             var pairQty = balances.Where(b => b.symbol.Equals(_pair)).Select(b => b.quantity).FirstOrDefault();
 
             if ((_pair == "USD" || _pair == "USDT")
-                && pairQty < 10)
+                && pairQty < 10.0M)
             {
                 return TradeType.SELL;
             }
@@ -196,18 +217,20 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Check if sellying coins or not
         /// </summary>
-        /// <param name="cand0leStick">Candlestick object</param>
+        /// <param name="candleStick">current Candlestick object</param>
+        /// <param name="previousStick">previous Candlestick object</param>
         /// <returns>Boolean if trade made</returns>
-        private bool SellCryptoCheck(BotStick candleStick)
+        private bool SellCryptoCheck(BotStick candleStick, BotStick previousStick)
         {
-            var tradeType = MooningAndTankingCheck(candleStick, TradeType.SELL);
+            var tradeType = MooningCheck(candleStick, TradeType.SELL);
             if (tradeType != TradeType.NONE)
             {
-                var sellStatus = _trader.SellCrypto(candleStick.close, tradeType);
+                var sellStatus = _trader.SellCrypto(_moonTankPrice, tradeType);
 
+                    _lastSell = _moonTankPrice;
                 if (sellStatus)
                 {
-                    _lastSell = candleStick.close;
+                    _lastSell = _moonTankPrice;
                     _tradeType = TradeType.BUY;
                     _lastTrade = tradeType;
                     _tradeNumber++;
@@ -223,21 +246,22 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Check if buying coins or not
         /// </summary>
-        /// <param name="candleStick">Candlestick object</param>
+        /// <param name="candleStick">current Candlestick object</param>
+        /// <param name="previousStick">previous Candlestick object</param>
         /// <returns>Boolean if trade made</returns>
-        private bool BuyCryptoCheck(BotStick candleStick)
+        private bool BuyCryptoCheck(BotStick candleStick, BotStick previousStick)
         {
-            var tradeType = MooningAndTankingCheck(candleStick, TradeType.BUY);
+            var tradeType = TankingCheck(candleStick, TradeType.BUY);
             if (tradeType != TradeType.NONE || _tradeNumber == 0)
             {
-                if (_tradeNumber == 0)
-                    tradeType = TradeType.BUY;
+                //if (_tradeNumber == 0)
+                //    tradeType = TradeType.BUY;
 
-                var buyStatus = _trader.BuyCrypto(candleStick.close, tradeType);
+                var buyStatus = _trader.BuyCrypto(_moonTankPrice, tradeType);
 
                 if (buyStatus)
                 {
-                    _lastBuy = candleStick.close;
+                    _lastBuy = _moonTankPrice;
                     _tradeType = TradeType.SELL;
                     _lastTrade = tradeType;
                     _tradeNumber++;
@@ -289,55 +313,67 @@ namespace CoinBot.Business.Builders
 
             return percent >= _botSettings.sellPercent;
         }
-
         /// <summary>
         /// Check if mooning or tanking
         /// </summary>
         /// <param name="candleStick">Current trading stick</param>
+        /// <param name="previousStick">Previous trading stick</param>
         /// <param name="tradeType">Trade Type</param>
         /// <param name="startingPrice">decimal of starting price</param>
         /// <param name="iteration">Int of iteration</param>
         /// <returns>TradeType of result</returns>
-        public TradeType MooningAndTankingCheck(BotStick candleStick, 
+        public TradeType MooningAndTankingCheck(BotStick candleStick, BotStick previousStick,
                                                 TradeType tradeType,
                                                 decimal startingPrice = 0.00000000M,
                                                 int iteration = 0)
         {
-            if(_botSettings.mooningTankingTime == 0)
+            if (_botSettings.mooningTankingTime == 0)
             {
-                return tradeType;
+                //return tradeType;
             }
 
-            if(iteration == 0)
+            if (iteration == 0)
             {
                 startingPrice = candleStick.close;
             }
 
             _lastVolume = candleStick.volume;
 
-            var latestStick = GetNextCandlestick();
+            var sticks = GetNextCandlestick();
+
+            var latestStick = sticks[0];
+            candleStick = sticks[1];
+            previousStick = sticks[1];
+
+            if (latestStick.closeTime == candleStick.closeTime)
+            { // If latest stick has the same close time as current stick, make previous stick the current stick
+                candleStick = previousStick;
+            }
+
+            _moonTankPrice = latestStick.close;
 
             var volumePercentChange = _helper.GetPercent(_lastVolume, latestStick.volume) * 100;
 
-            if(_tradeType == TradeType.BUY)
+            if (_tradeType == TradeType.BUY)
             {
                 var buyPercentReached = BuyPercentReached(latestStick.close);
 
                 if (candleStick.close > latestStick.close
-                    && buyPercentReached)
+                    && buyPercentReached && iteration < 10)
                 {
                     // If current price is less than the previous check 
                     //  (price is dropping)
                     // and buy percent reached
                     // keep checking if dropping more
                     iteration++;
-                    MooningAndTankingCheck(latestStick, tradeType, startingPrice, iteration);
+                    MooningAndTankingCheck(latestStick, candleStick, tradeType, startingPrice, iteration);
                 }
                 else
                 {
                     if (_lastTrade == TradeType.VOLUMESELL
                         && candleStick.close < latestStick.close
-                        && _lastSell > latestStick.close)
+                        && _lastSell > latestStick.close
+                        && _botSettings.mooningTankingTime > 0)
                     {
                         // If last trade was volume sell and current stick is greater than last,
                         // but less than last sell, probably reached ATL: BUY volume sell
@@ -345,8 +381,9 @@ namespace CoinBot.Business.Builders
 
                         return TradeType.VOLUMESELLBUYOFF;
                     }
-                    else if (volumePercentChange > _botSettings.mooningTankingPercent 
-                        && candleStick.close < latestStick.close)
+                    else if (volumePercentChange > _botSettings.mooningTankingPercent
+                        && candleStick.close < latestStick.close
+                        && _botSettings.mooningTankingTime > 0)
                     {
                         // If volume increased more than N% and Latest close is greater than previous close
                         // Probably a mini-moon: BUY
@@ -359,7 +396,7 @@ namespace CoinBot.Business.Builders
                         // Else if not dropping in price from previous check
                         // or buy percent not reached
                         // return buy percent reached
-                        if(buyPercentReached)
+                        if (buyPercentReached)
                         {
                             _trader.LogTradeSignal(SignalType.Percent, TradeType.BUY, latestStick.close, latestStick.volume);
 
@@ -377,20 +414,30 @@ namespace CoinBot.Business.Builders
                 var sellPercentReached = SellPercentReached(latestStick.close);
 
                 if (candleStick.close < latestStick.close
-                    && sellPercentReached)
+                    && sellPercentReached && iteration < 10)
                 {
                     // If current price is greater than the previous check 
                     //  (price is increasing)
                     // and sell percent reached
                     // keep checking if increasing more
                     iteration++;
-                    MooningAndTankingCheck(latestStick, tradeType, startingPrice, iteration);
+                    MooningAndTankingCheck(latestStick, candleStick, tradeType, startingPrice, iteration);
+                }
+                else if (sellPercentReached)
+                {
+                    // Else if not increasing in price from previous check
+                    // or sell percent not reached
+                    // return sell percent reached
+                    _trader.LogTradeSignal(SignalType.Percent, TradeType.SELL, latestStick.close, latestStick.volume);
+
+                    return TradeType.SELL;
                 }
                 else
                 {
-                    if(_lastTrade == TradeType.VOLUMEBUY 
-                        && candleStick.close > latestStick.close 
-                        && _lastBuy < latestStick.close)
+                    if (_lastTrade == TradeType.VOLUMEBUY
+                        && candleStick.close > latestStick.close
+                        && _lastBuy < latestStick.close
+                        && _botSettings.mooningTankingTime > 0)
                     {
                         // If last trade was volume buy and current stick is less than last,
                         // but greater than last buy, probably reached ATH: SELL volume buy
@@ -398,8 +445,9 @@ namespace CoinBot.Business.Builders
 
                         return TradeType.VOLUMEBUYSELLOFF;
                     }
-                    else if (volumePercentChange > _botSettings.mooningTankingPercent 
-                        && candleStick.close > latestStick.close)
+                    else if (volumePercentChange > _botSettings.mooningTankingPercent
+                        && candleStick.close > latestStick.close
+                        && _botSettings.mooningTankingTime > 0)
                     {
                         // If volume increased more than N% and Latest close is less than previous close
                         // Probably a sell off: Sell
@@ -409,19 +457,7 @@ namespace CoinBot.Business.Builders
                     }
                     else
                     {
-                        // Else if not increasing in price from previous check
-                        // or sell percent not reached
-                        // return sell percent reached
-                        if(sellPercentReached)
-                        {
-                            _trader.LogTradeSignal(SignalType.Percent, TradeType.SELL, latestStick.close, latestStick.volume);
-
-                            return TradeType.SELL;
-                        }
-                        else
-                        {
-                            return TradeType.NONE;
-                        }
+                        return TradeType.NONE;
                     }
                 }
             }
@@ -430,16 +466,244 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Check if mooning
+        /// </summary>
+        /// <param name="startingStick">Starting BotStick</param>
+        /// <param name="tradeType">Trade Type</param>
+        /// <param name="prevStick">Previous BotStick (default null)</param>
+        /// <param name="startingPrice">decimal of starting price</param>
+        /// <param name="iteration">Int of iteration</param>
+        /// <returns>TradeType of result</returns>
+        public TradeType MooningCheck(BotStick startingStick
+                                    , TradeType tradeType
+                                    , BotStick prevStick = null
+                                    , decimal startingPrice = 0.00000000M
+                                    , int iteration = 0)
+        {
+            if(_botSettings.mooningTankingTime == 0)
+            {
+                //return tradeType;
+            }
+
+            var sticks = GetNextCandlestick();
+
+            var currentStick = sticks[0];
+            var lastStick = sticks[1];
+
+            if(prevStick == null)
+            {
+                prevStick = lastStick;
+            }
+
+            if(iteration == 0)
+            {
+                startingPrice = lastStick.close;
+            }
+
+            _lastVolume = lastStick.volume;
+
+            SetLocals(currentStick.close, iteration);
+
+            _moonTankPrice = currentStick.close;
+
+            var volumePercentChange = _helper.GetPercent(_lastVolume, currentStick.volume) * 100;
+
+            var sellPercentReached = SellPercentReached(currentStick.close);
+
+            if (currentStick.open < currentStick.close
+                && startingStick.close < currentStick.close
+                && prevStick.close < currentStick.close)
+            //&& sellPercentReached && iteration < 10)
+            {
+                // TODO: set the latest price as the starting price to see if it is increasing during current candle
+                // TODO: do same on tanking
+                // If current price is greater than the previous check 
+                //  (price is increasing)
+                // and sell percent reached
+                // keep checking if increasing more
+                iteration++;
+                MooningCheck(startingStick, tradeType, lastStick, startingPrice, iteration);
+            }
+            else if (sellPercentReached)
+            {
+                // Else if not increasing in price from previous check
+                // or sell percent not reached
+                // return sell percent reached
+                _trader.LogTradeSignal(SignalType.Percent, TradeType.SELL, currentStick.close, currentStick.volume);
+
+                return TradeType.SELL;
+            }
+            else if (_botSettings.mooningTankingTime > 0)
+            {
+                if (_lastTrade == TradeType.VOLUMEBUY
+                    && currentStick.open < currentStick.close
+                    && lastStick.close < currentStick.close 
+                    && _lastBuy < currentStick.close
+                    && _localHigh > currentStick.close)
+                {
+                    // If last trade was volume buy and current stick is less than last,
+                    // but greater than last buy, probably reached ATH: SELL volume buy
+                    _trader.LogTradeSignal(SignalType.Volume, TradeType.VOLUMEBUYSELLOFF, currentStick.close, currentStick.volume);
+
+                    return TradeType.VOLUMEBUYSELLOFF;
+                }
+                else if (volumePercentChange > _botSettings.mooningTankingPercent
+                    && currentStick.open > currentStick.close
+                    && lastStick.close > currentStick.close)
+//                    && _lastBuy < currentStick.close)
+                {
+                    // If volume increased more than N% and Latest close is less than previous close
+                    // Probably a sell off: Sell
+                    _trader.LogTradeSignal(SignalType.Volume, TradeType.VOLUMESELL, currentStick.close, currentStick.volume);
+
+                    return TradeType.VOLUMESELL;
+                }
+                else
+                {
+                    return TradeType.NONE;
+                }
+            }
+            else
+            {
+                return TradeType.NONE;
+            }
+
+            return tradeType;
+        }
+        /// <summary>
+        /// Check if tanking
+        /// </summary>
+        /// <param name="startingStick">Starting BotStick</param>
+        /// <param name="tradeType">Trade Type</param>
+        /// <param name="prevStick">Previous BotStick (default null)</param>
+        /// <param name="startingPrice">decimal of starting price</param>
+        /// <param name="iteration">Int of iteration</param>
+        /// <returns>TradeType of result</returns>
+        public TradeType TankingCheck(BotStick startingStick
+                                    , TradeType tradeType
+                                    , BotStick prevStick = null
+                                    , decimal startingPrice = 0.00000000M
+                                    , int iteration = 0)
+        {
+            if (_botSettings.mooningTankingTime == 0)
+            {
+                //return tradeType;
+            }
+
+            var sticks = GetNextCandlestick();
+
+            var currentStick = sticks[0];
+            var lastStick = sticks[1];
+
+            if (prevStick == null)
+            {
+                prevStick = lastStick;
+            }
+
+            if (iteration == 0)
+            {
+                startingPrice = lastStick.close;
+            }
+
+            SetLocals(currentStick.close, iteration);
+
+            _lastVolume = lastStick.volume;
+
+            _moonTankPrice = currentStick.close;
+
+            var volumePercentChange = _helper.GetPercent(_lastVolume, currentStick.volume) * 100;
+
+            var buyPercentReached = BuyPercentReached(currentStick.close);
+
+            if (currentStick.open > currentStick.close
+                && lastStick.close > currentStick.close
+                && prevStick.close > currentStick.close)
+                //&& buyPercentReached && iteration < 10)
+            {
+                // If current price is less than the previous check 
+                //  (price is dropping)
+                // and buy percent reached
+                // keep checking if dropping more
+                iteration++;
+                TankingCheck(startingStick, tradeType, lastStick, startingPrice, iteration);
+            }
+            else if (buyPercentReached)
+            {
+                // Else if not dropping in price from previous check
+                // or buy percent not reached
+                // return buy percent reached
+                _trader.LogTradeSignal(SignalType.Percent, TradeType.BUY, currentStick.close, currentStick.volume);
+
+                return TradeType.BUY;
+            }
+            else if (_botSettings.mooningTankingTime > 0)
+            {
+                if (_lastTrade == TradeType.VOLUMESELL
+                    && currentStick.open > currentStick.close
+                    && lastStick.close > currentStick.close
+                    && _lastSell > currentStick.close
+                    && _localLow < currentStick.close)
+                {
+                    // If last trade was volume sell and current stick is greater than last,
+                    // but less than last sell, probably reached ATL: BUY volume sell
+                    _trader.LogTradeSignal(SignalType.Volume, TradeType.VOLUMESELLBUYOFF, currentStick.close, currentStick.volume);
+
+                    return TradeType.VOLUMESELLBUYOFF;
+                }
+                else if (volumePercentChange > _botSettings.mooningTankingPercent
+                    && currentStick.open < currentStick.close
+                    && lastStick.close < currentStick.close)
+//                    && _lastSell < currentStick.close)
+                {
+                    // If volume increased more than N% and Latest close is greater than previous close
+                    // Probably a mini-moon: BUY
+                    _trader.LogTradeSignal(SignalType.Volume, TradeType.VOLUMEBUY, currentStick.close, currentStick.volume);
+
+                    return TradeType.VOLUMEBUY;
+                }
+                else
+                {
+                        return TradeType.NONE;
+                }
+            }
+            else
+            {
+                return TradeType.NONE;
+            }
+
+            return tradeType;
+        }
+
+        /// <summary>
+        /// Reset the local high and low values
+        /// </summary>
+        /// <param name="price">Current price</param>
+        /// <param name="iteration">Current iteration</param>
+        private void SetLocals(decimal price, int iteration)
+        {
+            if (iteration == 0)
+            {
+                this._localHigh = price;
+                this._localLow = price;
+            }
+            else
+            {
+                this._localHigh = price > this._localHigh ? price : this._localHigh;
+                this._localLow = price < this._localLow ? price : this._localLow;
+            }
+        }
+
+        /// <summary>
         /// Get next candlestick
         /// </summary>
         /// <returns>Candlestick object</returns>
-        private BotStick GetNextCandlestick()
+        private BotStick[] GetNextCandlestick()
         {
             Task.WaitAll(Task.Delay(_botSettings.mooningTankingTime));
 
-            var candlesticks = _trader.GetCandlesticks(_symbol, Interval.OneM, 1);
+            var candlesticks = _trader.GetCandlesticks(_symbol, Interval.OneM, 2);
 
-            return candlesticks[0];
+            return candlesticks;
         }
     }
 }
