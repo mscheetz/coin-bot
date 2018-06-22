@@ -40,7 +40,7 @@ namespace CoinBot.Api
             services.AddScoped<IGdaxRepository, GdaxRepository>();
             services.AddScoped<IFileRepository, FileRepository>();
             services.AddTransient<IBollingerBandTradeBuilder, BollingerBandTradeBuilder>();
-            services.AddTransient<IPercentageTradeBuilder, PercentageTradeBuilder>();
+            services.AddTransient<IVolumeTradeBuilder, VolumeTradeBuilder>();
             services.AddTransient<ITradeBuilder, TradeBuilder>();
             services.AddTransient<IExchangeBuilder, ExchangeBuilder>();
             services.AddTransient<ICoinBotService, CoinBotManager>();
@@ -51,7 +51,7 @@ namespace CoinBot.Api
                 {
                     Title = "CoinBot API",
                     Description = "RESTful API endpoints for CoinBot",
-                    Contact = new Contact { Name = "CryptoBitfolio", Email = "CryptoBitfolio@gmail.com", Url = "https://twitter.com/CryptoBitfolio" },
+                    Contact = new Contact { Name = "CryptoBitfolio", Email = "cryptoBitfolio@gmail.com", Url = "https://twitter.com/CryptoBitfolio" },
                     Version = "1.0"
 
                 });

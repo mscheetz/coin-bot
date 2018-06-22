@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CoinBot.Business.Builders
 {
-    public class PercentageTradeBuilder : IPercentageTradeBuilder
+    public class VolumeTradeBuilder : IVolumeTradeBuilder
     {
         private IBinanceRepository _repo;
         private IFileRepository _fileRepo;
@@ -36,7 +36,7 @@ namespace CoinBot.Business.Builders
         /// Constructor
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public PercentageTradeBuilder()
+        public VolumeTradeBuilder()
         {
             _repo = new BinanceRepository();
             _fileRepo = new FileRepository();
@@ -48,7 +48,7 @@ namespace CoinBot.Business.Builders
         /// Constructor
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public PercentageTradeBuilder(IBinanceRepository repo, IFileRepository fileRepo, ITradeBuilder trader)
+        public VolumeTradeBuilder(IBinanceRepository repo, IFileRepository fileRepo, ITradeBuilder trader)
         {
             _repo = repo;
             _fileRepo = fileRepo;
@@ -60,7 +60,7 @@ namespace CoinBot.Business.Builders
         /// Constructor
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public PercentageTradeBuilder(IBinanceRepository repo, IFileRepository fileRepo, ITradeBuilder trader
+        public VolumeTradeBuilder(IBinanceRepository repo, IFileRepository fileRepo, ITradeBuilder trader
             , BotSettings settings, decimal lastBuy = 0, decimal lastSell = 0, TradeType tradeType = TradeType.BUY)
         {
             _repo = repo;
@@ -147,14 +147,14 @@ namespace CoinBot.Business.Builders
             bool currentlyTrading = tradingStatus != null ? (bool)tradingStatus : _currentlyTrading;
 
             _trader.SetBalances();
-            _tradeType = CheckInitialTradingType();
+            _tradeType = _trader.GetInitialTradeType();
 
             while (currentlyTrading)
             {
                 Task.WaitAll(Task.Delay(_botSettings.priceCheck));
                 if (cycles % 20 == 0)
                 { // Every 10 cycles, reset balances and check bot settings file
-                    _tradeType = CheckInitialTradingType();
+                    _tradeType = _trader.GetTradingType();
                     _trader.UpdateBotSettings(_lastBuy, _lastSell);
                     SetBotSettings(_trader.GetBotSettings());
                 }
@@ -179,44 +179,10 @@ namespace CoinBot.Business.Builders
                     {
                         SellCryptoCheck(currentStick, previousStick);
                     }
-                    //if (_tradeNumber >= cycles && cycles > 0)
-                    //{
-                    //    currentlyTrading = false;
-                    //}
                     cycles++;
                 }
             }
             return true;
-        }
-
-        /// <summary>
-        /// Check staring balances to determine the first trade type of the bot
-        /// </summary>
-        /// <returns>TradeType value</returns>
-        public TradeType CheckInitialTradingType()
-        {
-            _asset = _trader.GetAsset();
-            _pair = _trader.GetPair();
-
-            _trader.SetBalances(false);
-            var balances = _trader.GetBotBalance();
-            var assetQty = balances.Where(b => b.symbol.Equals(_asset)).Select(b => b.quantity).FirstOrDefault();
-            var pairQty = balances.Where(b => b.symbol.Equals(_pair)).Select(b => b.quantity).FirstOrDefault();
-
-            if ((_pair == "USD" || _pair == "USDT")
-                && pairQty < 10.0M)
-            {
-                return TradeType.SELL;
-            }
-            else if((_pair == "BTC" || _pair =="ETH")
-                && pairQty < 0.0002M)
-            {
-                return TradeType.SELL;
-            }
-            else
-            {
-                return TradeType.BUY;
-            }
         }
 
         /// <summary>

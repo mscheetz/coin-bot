@@ -12,16 +12,16 @@ using Xunit;
 
 namespace CoinBot.Business.Builders.Tests
 {
-    public class PercentageTradeBuilderTests : IDisposable
+    public class VolumeTradeBuilderTests : IDisposable
     {
-        private IPercentageTradeBuilder _bldr;
+        private IVolumeTradeBuilder _bldr;
         private Mock<IBinanceRepository> _repo;
         private Mock<ITradeBuilder> _tradeBldr;
         private Mock<IFileRepository> _fileRepo;
         private TestObjects _testObjs;
         private BotSettings _settings;
 
-        public PercentageTradeBuilderTests()
+        public VolumeTradeBuilderTests()
         {
             _fileRepo = new Mock<IFileRepository>();
             _repo = new Mock<IBinanceRepository>();
@@ -62,7 +62,7 @@ namespace CoinBot.Business.Builders.Tests
             _tradeBldr.Setup(f => f.SellCrypto(It.IsAny<decimal>(), It.IsAny<TradeType>()))
                 .Equals(true);
 
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings);
             //_bldr.SetBotSettings(_settings);
 
             var result = _bldr.RunBot(interval, 3, true);
@@ -74,7 +74,7 @@ namespace CoinBot.Business.Builders.Tests
         public void BuyPercentReached_True_Test()
         {
             decimal price = 0.00001M;
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.00001M, 0.00002M);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.00001M, 0.00002M);
 
             var result = _bldr.BuyPercentReached(price);
 
@@ -85,7 +85,7 @@ namespace CoinBot.Business.Builders.Tests
         public void BuyPercentReached_True_PercentLow_Test()
         {
             decimal price = 0.00001M;
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.00001M, 0.000015M);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.00001M, 0.000015M);
 
             var result = _bldr.BuyPercentReached(price);
 
@@ -96,7 +96,7 @@ namespace CoinBot.Business.Builders.Tests
         public void BuyPercentReached_False_Current_GT_LastSell_Test()
         {
             decimal price = 0.00002M;
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.00001M, 0.000015M);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.00001M, 0.000015M);
 
             var result = _bldr.BuyPercentReached(price);
 
@@ -107,7 +107,7 @@ namespace CoinBot.Business.Builders.Tests
         public void BuyPercentReached_False_Equal_Test()
         {
             decimal price = 0.00001M;
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, price, price);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, price, price);
 
             var result = _bldr.BuyPercentReached(price);
 
@@ -118,7 +118,7 @@ namespace CoinBot.Business.Builders.Tests
         public void SellPercentReached_True_Test()
         {
             decimal price = 0.00002M;
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.00001M, 0.00001M);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.00001M, 0.00001M);
 
             var result = _bldr.SellPercentReached(price);
 
@@ -129,7 +129,7 @@ namespace CoinBot.Business.Builders.Tests
         public void SellPercentReached_False_PercentLow_Test()
         {
             decimal price = 0.00001M;
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.000015M, 0.000015M);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.000015M, 0.000015M);
 
             var result = _bldr.SellPercentReached(price);
 
@@ -140,7 +140,7 @@ namespace CoinBot.Business.Builders.Tests
         public void SellPercentReached_True_Current_GT_LastSell_Test()
         {
             decimal price = 0.00002M;
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.000015M, 0.000015M);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, 0.000015M, 0.000015M);
 
             var result = _bldr.SellPercentReached(price);
 
@@ -151,7 +151,7 @@ namespace CoinBot.Business.Builders.Tests
         public void SellPercentReached_False_Equal_Test()
         {
             decimal price = 0.00001M;
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, price, price);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, price, price);
 
             var result = _bldr.SellPercentReached(price);
 
@@ -183,7 +183,7 @@ namespace CoinBot.Business.Builders.Tests
                 .Returns(csVI)
                 .Returns(csVII);
 
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, lastPrice, lastPrice, TradeType.SELL);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, lastPrice, lastPrice, TradeType.SELL);
 
             var result = _bldr.MooningAndTankingCheck(candlestickList[0], candlestickList[1], TradeType.SELL);
 
@@ -215,7 +215,7 @@ namespace CoinBot.Business.Builders.Tests
                 .Returns(csVI)
                 .Returns(csVII);
 
-            _bldr = new PercentageTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, lastPrice, lastPrice, TradeType.SELL);
+            _bldr = new VolumeTradeBuilder(_repo.Object, _fileRepo.Object, _tradeBldr.Object, _settings, lastPrice, lastPrice, TradeType.SELL);
 
             var result = _bldr.MooningAndTankingCheck(candlestickList[0], candlestickList[1], TradeType.SELL);
 

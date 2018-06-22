@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CoinBot.Business.Builders.Interface
 {
-    public interface IPercentageTradeBuilder
+    public interface IVolumeTradeBuilder
     {
         /// <summary>
         /// Set BotSettings in builder

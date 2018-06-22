@@ -11,13 +11,13 @@ namespace CoinBot.Manager
     public class CoinBotManager : ICoinBotService
     {
         private IBollingerBandTradeBuilder _bollingerBuilder;
-        private IPercentageTradeBuilder _percentageBuilder;
+        private IVolumeTradeBuilder _percentageBuilder;
         private ITradeBuilder _tradeBuilder;
         private Balance _balance;
         private BotSettings _botSettings;
 
         public CoinBotManager(IBollingerBandTradeBuilder bollingerBuilder,
-                              IPercentageTradeBuilder percentageBuilder,
+                              IVolumeTradeBuilder percentageBuilder,
                               ITradeBuilder tradeBuilder)
         {
             this._bollingerBuilder = bollingerBuilder;
