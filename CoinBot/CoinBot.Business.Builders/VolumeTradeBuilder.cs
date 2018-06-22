@@ -13,8 +13,6 @@ namespace CoinBot.Business.Builders
 {
     public class VolumeTradeBuilder : IVolumeTradeBuilder
     {
-        private IBinanceRepository _repo;
-        private IFileRepository _fileRepo;
         private Helper _helper = new Helper();
         private ITradeBuilder _trader;
         private BotSettings _botSettings;
@@ -38,8 +36,6 @@ namespace CoinBot.Business.Builders
         /// <param name="repo">Repository interface</param>
         public VolumeTradeBuilder()
         {
-            _repo = new BinanceRepository();
-            _fileRepo = new FileRepository();
             _trader = new TradeBuilder();
             SetupBuilder();
         }
@@ -48,10 +44,8 @@ namespace CoinBot.Business.Builders
         /// Constructor
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public VolumeTradeBuilder(IBinanceRepository repo, IFileRepository fileRepo, ITradeBuilder trader)
+        public VolumeTradeBuilder(ITradeBuilder trader)
         {
-            _repo = repo;
-            _fileRepo = fileRepo;
             _trader = trader;
             SetupBuilder();
         }
@@ -60,11 +54,9 @@ namespace CoinBot.Business.Builders
         /// Constructor
         /// </summary>
         /// <param name="repo">Repository interface</param>
-        public VolumeTradeBuilder(IBinanceRepository repo, IFileRepository fileRepo, ITradeBuilder trader
+        public VolumeTradeBuilder(ITradeBuilder trader
             , BotSettings settings, decimal lastBuy = 0, decimal lastSell = 0, TradeType tradeType = TradeType.BUY)
         {
-            _repo = repo;
-            _fileRepo = fileRepo;
             _trader = trader;
             SetBotSettings(settings);
             if (lastBuy != 0)
