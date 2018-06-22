@@ -50,7 +50,20 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="settings">Updated Settings</param>
         /// <returns>Boolean when complete</returns>
         bool SetBotSettings(BotSettings settings);
-        
+
+        /// <summary>
+        /// Update balances and get initial trade type
+        /// </summary>
+        /// <returns>TradeType value</returns>
+        TradeType GetInitialTradeType();
+
+        /// <summary>
+        /// Update balances and get current trade type
+        /// </summary>
+        /// <param name="logBalances">Write balances to log?</param>
+        /// <returns>TradeType value</returns>
+        TradeType GetTradingType(bool logBalances = false);
+
         /// <summary>
         /// Get all open stop losses
         /// </summary>

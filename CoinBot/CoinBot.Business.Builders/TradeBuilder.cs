@@ -276,6 +276,42 @@ namespace CoinBot.Business.Builders
             return apiInfo;
         }
 
+        /// <summary>
+        /// Update balances and get initial trade type
+        /// </summary>
+        /// <returns>TradeType value</returns>
+        public TradeType GetInitialTradeType()
+        {
+            return GetTradingType(true);
+        }
+
+        /// <summary>
+        /// Update balances and get current trade type
+        /// </summary>
+        /// <param name="logBalances">Write balances to log?</param>
+        /// <returns>TradeType value</returns>
+        public TradeType GetTradingType(bool logBalances = false)
+        {
+            SetBalances(logBalances);
+            var assetQty = _botBalances.Where(b => b.symbol.Equals(_asset)).Select(b => b.quantity).FirstOrDefault();
+            var pairQty = _botBalances.Where(b => b.symbol.Equals(_pair)).Select(b => b.quantity).FirstOrDefault();
+
+            if ((_pair == "USD" || _pair == "USDT")
+                && pairQty < 10.0M)
+            {
+                return TradeType.SELL;
+            }
+            else if ((_pair == "BTC" || _pair == "ETH")
+                && pairQty < 0.0002M)
+            {
+                return TradeType.SELL;
+            }
+            else
+            {
+                return TradeType.BUY;
+            }
+        }
+
         #endregion Settings Management
 
         #region Trade History
