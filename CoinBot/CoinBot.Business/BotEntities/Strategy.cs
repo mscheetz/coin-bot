@@ -8,6 +8,8 @@ namespace CoinBot.Business.Entities
     {
         None,
         BollingerBands,
-        Percentage
+        OrderBook,
+        Percentage,
+        Volume
     }
 }
