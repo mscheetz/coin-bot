@@ -17,7 +17,7 @@ namespace CoinBot.Business.Entities
         public OrderType type { get; set; }
         public TradeType side { get; set; }
         public decimal stopPrice { get; set; }
-        public decimal iceburgQty { get; set; }
+        public decimal icebergQty { get; set; }
         public long time { get; set; }
         public bool isWorking { get; set; }
     }

@@ -9,7 +9,7 @@ namespace CoinBot.Business.Entities
         NEW,
         PARTIALLY_FILLED,
         FILLED,
-        CANCELLED,
+        CANCELED,
         REJECTED,
         EXPIRED
     }
