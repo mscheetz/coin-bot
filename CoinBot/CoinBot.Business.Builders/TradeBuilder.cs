@@ -774,6 +774,10 @@ namespace CoinBot.Business.Builders
         {
             var pairBalance = _botBalances.Where(b => b.symbol.Equals(_pair)).FirstOrDefault();
             var assetBalance = _botBalances.Where(b => b.symbol.Equals(_asset)).FirstOrDefault();
+            if (pairBalance == null)
+            {
+                return false;
+            }
             if (type == TradeType.BUY)
             {
                 return pairBalance.quantity < 10.0M ? true : false;
