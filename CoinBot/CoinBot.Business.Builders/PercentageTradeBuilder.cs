@@ -227,7 +227,7 @@ namespace CoinBot.Business.Builders
             {
                 var sellStatus = _trader.SellCrypto(_moonTankPrice, tradeType);
 
-                    _lastSell = _moonTankPrice;
+                _lastSell = _moonTankPrice;
                 if (sellStatus)
                 {
                     _lastSell = _moonTankPrice;
@@ -259,6 +259,7 @@ namespace CoinBot.Business.Builders
 
                 var buyStatus = _trader.BuyCrypto(_moonTankPrice, tradeType);
 
+                _lastBuy = _moonTankPrice;
                 if (buyStatus)
                 {
                     _lastBuy = _moonTankPrice;
