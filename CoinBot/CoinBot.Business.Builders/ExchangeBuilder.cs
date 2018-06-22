@@ -344,6 +344,35 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Check if open orders exist
+        /// </summary>
+        /// <param name="symbol">Trading pair to check</param>
+        /// <returns>Boolean of result</returns>
+        public bool OpenOrdersExist(string symbol)
+        {
+            if (_thisExchange == Exchange.BINANCE)
+            {
+
+                OrderResponse[] response = null;
+
+                while(response == null)
+                {
+                    response = _bianceRepo.GetOpenOrders(symbol).Result;
+                }
+
+                return response.Length > 0 ? true : false;
+            }
+            else if (_thisExchange == Exchange.GDAX)
+            {
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Get 1st price with the most support
         /// </summary>
         /// <param name="symbol">String of trading pair</param>

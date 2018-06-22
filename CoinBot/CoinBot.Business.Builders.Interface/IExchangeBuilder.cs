@@ -82,6 +82,13 @@ namespace CoinBot.Business.Builders.Interface
         BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades, int range);
 
         /// <summary>
+        /// Check if open orders exist
+        /// </summary>
+        /// <param name="symbol">Trading pair to check</param>
+        /// <returns>Boolean of result</returns>
+        bool OpenOrdersExist(string symbol);
+
+        /// <summary>
         /// Get 1st price with the most support
         /// </summary>
         /// <param name="symbol">String of trading pair</param>
