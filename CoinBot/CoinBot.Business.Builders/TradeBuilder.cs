@@ -1205,6 +1205,15 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Open orders check
+        /// </summary>
+        /// <returns>Boolean of status</returns>
+        public bool OpenOrdersCheck()
+        {
+            return _exchBldr.OpenOrdersExist(_symbol);
+        }
+
+        /// <summary>
         /// Cancel a trade
         /// </summary>
         /// <param name="tradeParams">CancelTrade parameters</param>

@@ -296,6 +296,12 @@ namespace CoinBot.Business.Builders.Interface
         OrderResponse GetOrderStatus(TradeResponse trade);
 
         /// <summary>
+        /// Open orders check
+        /// </summary>
+        /// <returns>Boolean of status</returns>
+        bool OpenOrdersCheck();
+
+        /// <summary>
         /// Get status of a paper trade
         /// </summary>
         /// <param name="orderId">OrderId of trade</param>

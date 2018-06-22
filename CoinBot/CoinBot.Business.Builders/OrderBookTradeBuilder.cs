@@ -161,17 +161,20 @@ namespace CoinBot.Business.Builders
 
                 StoppedOutCheck(currentStick.close);
 
-                if (previousStick.closeTime != currentStick.closeTime)
+                if (!_trader.OpenOrdersCheck())
                 {
-                    if (_tradeType == TradeType.BUY)
+                    if (previousStick.closeTime != currentStick.closeTime)
                     {
-                        BuyCryptoCheck(currentStick, previousStick);
+                        if (_tradeType == TradeType.BUY)
+                        {
+                            BuyCryptoCheck(currentStick, previousStick);
+                        }
+                        else if (_tradeType == TradeType.SELL)
+                        {
+                            SellCryptoCheck(currentStick, previousStick);
+                        }
+                        cycles++;
                     }
-                    else if (_tradeType == TradeType.SELL)
-                    {
-                        SellCryptoCheck(currentStick, previousStick);
-                    }
-                    cycles++;
                 }
             }
             return true;
