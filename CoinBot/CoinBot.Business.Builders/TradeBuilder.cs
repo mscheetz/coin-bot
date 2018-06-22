@@ -573,6 +573,28 @@ namespace CoinBot.Business.Builders
 
         #endregion Candlesticks
 
+        #region OrderBook
+
+        /// <summary>
+        /// Get next resistance level
+        /// </summary>
+        /// <returns>Decimal of next resistance</returns>
+        public decimal GetResistance()
+        {
+            return _exchBldr.GetResistance(_symbol);
+        }
+
+        /// <summary>
+        /// Get next support level
+        /// </summary>
+        /// <returns>Decimal of next support</returns>
+        public decimal GetSupport()
+        {
+            return _exchBldr.GetSupport(_symbol);
+        }
+
+        #endregion OrderBook
+
         #region Place Trade
 
         /// <summary>
@@ -690,8 +712,9 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="orderPrice">Buy price</param>
         /// <param name="tradeType">Trade Type</param>
+        /// <param name="stopLoss">Place stoploss? default false</param>
         /// <returns>Boolean when complete</returns>
-        public bool BuyCrypto(decimal orderPrice, TradeType tradeType)
+        public bool BuyCrypto(decimal orderPrice, TradeType tradeType, bool stopLoss = false)
         {
             var tradeComplete = false;
             int i = 0;
@@ -724,6 +747,11 @@ namespace CoinBot.Business.Builders
             CaptureTransaction(orderPrice, trade.origQty, trade.transactTime, tradeType);
 
             _lastBuy = orderPrice;
+
+            if (stopLoss)
+            {
+                var stopLossResponse = PlaceStopLoss(orderPrice, trade.origQty);
+            }
 
             return CheckTradeSuccess(TradeType.BUY);
 

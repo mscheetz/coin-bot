@@ -172,6 +172,18 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="range">Number of candlesticks to get</param>
         /// <returns>Array of BotStick objects</returns>
         BotStick[] GetCandlesticks(string symbol, Interval interval, int range);
+        
+        /// <summary>
+        /// Get next resistance level
+        /// </summary>
+        /// <returns>Decimal of next resistance</returns>
+        decimal GetResistance();
+
+        /// <summary>
+        /// Get next support level
+        /// </summary>
+        /// <returns>Decimal of next support</returns>
+        decimal GetSupport();
 
         /// <summary>
         /// Place a trade
@@ -198,8 +210,9 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <param name="orderPrice">Buy price</param>
         /// <param name="tradeType">Trade Type</param>
+        /// <param name="stopLoss">Place stoploss? default false</param>
         /// <returns>Boolean when complete</returns>
-        bool BuyCrypto(decimal orderPrice, TradeType tradeType);
+        bool BuyCrypto(decimal orderPrice, TradeType tradeType, bool stopLoss = false);
 
         /// <summary>
         /// Sell crypto
