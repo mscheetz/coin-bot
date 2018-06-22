@@ -47,19 +47,5 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="currentPrice">Current price</param>
         /// <returns>Boolean of result</returns>
         bool SellPercentReached(decimal currentPrice);
-
-        /// <summary>
-        /// Check if mooning or tanking
-        /// </summary>
-        /// <param name="candleStick">Current trading stick</param>
-        /// <param name="previousStick">Previous trading stick</param>
-        /// <param name="tradeType">Trade Type</param>
-        /// <param name="startingPrice">decimal of starting price</param>
-        /// <param name="iteration">Int of iteration</param>
-        /// <returns>TradeType of result</returns>
-        TradeType MooningAndTankingCheck(BotStick candleStick, BotStick previousStick,
-                                                TradeType tradeType,
-                                                decimal startingPrice = 0.00000000M,
-                                                int iteration = 0);
     }
 }
