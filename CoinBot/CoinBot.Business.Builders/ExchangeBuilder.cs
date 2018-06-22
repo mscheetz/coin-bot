@@ -344,6 +344,110 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Get 1st price with the most support
+        /// </summary>
+        /// <param name="symbol">String of trading pair</param>
+        /// <returns>Decimal of price</returns>
+        public decimal GetSupport(string symbol)
+        {
+            if (_thisExchange == Exchange.BINANCE)
+            {
+                var pair = symbol.Substring(symbol.Length - 4) == "USDT"
+                                ? symbol.Substring(symbol.Length - 4)
+                                : symbol.Substring(symbol.Length - 3);
+                var orderBook = _bianceRepo.GetOrderBook(symbol).Result;
+
+                decimal support = 0.00000000M;
+                decimal prevQty = 0.0M;
+
+                for (int i = 0; i < orderBook.bids.Length; i++)
+                {
+                    support = i == 0 ? orderBook.bids[i].price : support;
+
+                    if (orderBook.bids[i].quantity > prevQty)
+                    {
+                        support = orderBook.bids[i].price;
+                    }
+
+                    if ((pair != "USDT" || pair != "USD")
+                        && orderBook.asks[i].price * orderBook.asks[i].quantity >= 0.1M)
+                    {
+                        break;
+                    }
+                    else if ((pair == "USDT" || pair == "USD")
+                        && orderBook.bids[i].quantity >= 1)
+                    {
+                        break;
+                    }
+
+                    prevQty = orderBook.bids[i].quantity;
+                }
+
+                return support;
+            }
+            else if (_thisExchange == Exchange.GDAX)
+            {
+                return 0.00000000M;
+            }
+            else
+            {
+                return 0.00000000M;
+            }
+        }
+
+        /// <summary>
+        /// Get 1st price with the most resistance
+        /// </summary>
+        /// <param name="symbol">String of trading pair</param>
+        /// <returns>Decimal of price</returns>
+        public decimal GetResistance(string symbol)
+        {
+            if (_thisExchange == Exchange.BINANCE)
+            {
+                var pair = symbol.Substring(symbol.Length - 4) == "USDT"
+                                ? symbol.Substring(symbol.Length - 4)
+                                : symbol.Substring(symbol.Length - 3);
+                var orderBook = _bianceRepo.GetOrderBook(symbol).Result;
+
+                decimal resistance = 0.00000000M;
+                decimal prevQty = 0.0M;
+
+                for (int i = 0; i < orderBook.asks.Length; i++)
+                {
+                    resistance = i == 0 ? orderBook.asks[i].price : resistance;
+
+                    if (orderBook.asks[i].quantity > prevQty)
+                    {
+                        resistance = orderBook.asks[i].price;
+                    }
+
+                    if ((pair != "USDT" || pair != "USD")
+                        && orderBook.asks[i].price * orderBook.asks[i].quantity >= 0.1M)
+                    {
+                        break;
+                    }
+                    else if ((pair == "USDT" || pair == "USD")
+                        && orderBook.asks[i].quantity >= 1)
+                    {
+                        break;
+                    }
+
+                    prevQty = orderBook.asks[i].quantity;
+                }
+
+                return resistance;
+            }
+            else if (_thisExchange == Exchange.GDAX)
+            {
+                return 0.00000000M;
+            }
+            else
+            {
+                return 0.00000000M;
+            }
+        }
+
+        /// <summary>
         /// Convert GdaxTrade array to BotStick array
         /// </summary>
         /// <param name="trades">ProductTrade array</param>

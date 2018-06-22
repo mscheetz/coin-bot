@@ -80,5 +80,19 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="range">Size of array to return</param>
         /// <returns>BotStick array</returns>
         BotStick[] GetSticksFromGdaxTrades(GdaxTrade[] trades, int range);
+
+        /// <summary>
+        /// Get 1st price with the most support
+        /// </summary>
+        /// <param name="symbol">String of trading pair</param>
+        /// <returns>Decimal of price</returns>
+        decimal GetSupport(string symbol);
+
+        /// <summary>
+        /// Get 1st price with the most resistance
+        /// </summary>
+        /// <param name="symbol">String of trading pair</param>
+        /// <returns>Decimal of price</returns>
+        decimal GetResistance(string symbol);
     }
 }
