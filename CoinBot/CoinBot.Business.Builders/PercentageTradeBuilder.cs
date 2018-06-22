@@ -549,8 +549,8 @@ namespace CoinBot.Business.Builders
                 }
                 else if (volumePercentChange > _botSettings.mooningTankingPercent
                     && currentStick.open > currentStick.close
-                    && lastStick.close > currentStick.close)
-//                    && _lastBuy < currentStick.close)
+                    && lastStick.close > currentStick.close
+                    && _lastBuy < currentStick.close)
                 {
                     // If volume increased more than N% and Latest close is less than previous close
                     // Probably a sell off: Sell
@@ -652,8 +652,8 @@ namespace CoinBot.Business.Builders
                 }
                 else if (volumePercentChange > _botSettings.mooningTankingPercent
                     && currentStick.open < currentStick.close
-                    && lastStick.close < currentStick.close)
-//                    && _lastSell < currentStick.close)
+                    && lastStick.close < currentStick.close
+                    && _lastSell > currentStick.close)
                 {
                     // If volume increased more than N% and Latest close is greater than previous close
                     // Probably a mini-moon: BUY
