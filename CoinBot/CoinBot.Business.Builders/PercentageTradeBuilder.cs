@@ -208,6 +208,11 @@ namespace CoinBot.Business.Builders
             {
                 return TradeType.SELL;
             }
+            else if((_pair == "BTC" || _pair =="ETH")
+                && pairQty < 0.0002M)
+            {
+                return TradeType.SELL;
+            }
             else
             {
                 return TradeType.BUY;
