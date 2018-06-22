@@ -11,8 +11,11 @@ namespace CoinBot.Data
 {
     public class RESTRepository : IRESTRepository
     {
+        private IFileRepository _fileRepo;
+
         public RESTRepository()
         {
+            _fileRepo = new FileRepository();
         }
 
         /// <summary>
@@ -34,16 +37,24 @@ namespace CoinBot.Data
                     }
                 }
 
-                var response = await client.GetAsync(url);
-
-                string responseMessage = await response.Content.ReadAsStringAsync();
-                
                 try
-                {
-                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                { 
+                    var response = await client.GetAsync(url);
+
+                    string responseMessage = await response.Content.ReadAsStringAsync();
+                
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<T>(responseMessage);
+                    }
+                    catch
+                    {
+                        return default(T);
+                    }
                 }
-                catch
+                catch (HttpRequestException ex)
                 {
+                    _fileRepo.LogError($"GetApi: {url}    error: {ex}");
                     return default(T);
                 }
             }
@@ -70,24 +81,33 @@ namespace CoinBot.Data
                 }
 
                 var responseMessage = String.Empty;
-                var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-                var sb = new StringBuilder();
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                {
-                    using (var sr = new StreamReader(stream, Encoding.UTF8))
+                try
+                { 
+                    var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                    var sb = new StringBuilder();
+
+                    using (var stream = await response.Content.ReadAsStreamAsync())
                     {
-                        sb.Append(sr.ReadToEnd());
+                        using (var sr = new StreamReader(stream, Encoding.UTF8))
+                        {
+                            sb.Append(sr.ReadToEnd());
+                        }
+
+                        responseMessage = sb.ToString();
                     }
 
-                    responseMessage = sb.ToString();
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<T>(responseMessage);
+                    }
+                    catch
+                    {
+                        return default(T);
+                    }
                 }
-
-                try
+                catch (HttpRequestException ex)
                 {
-                    return JsonConvert.DeserializeObject<T>(responseMessage);
-                }
-                catch
-                {
+                    _fileRepo.LogError($"GetApiStream: {url}    error: {ex}");
                     return default(T);
                 }
             }
@@ -116,16 +136,24 @@ namespace CoinBot.Data
 
                 var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
 
-                var response = await client.PostAsync(url, content);
-
-                string responseMessage = await response.Content.ReadAsStringAsync();
-
                 try
-                {
-                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                { 
+                    var response = await client.PostAsync(url, content);
+
+                    string responseMessage = await response.Content.ReadAsStringAsync();
+
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<T>(responseMessage);
+                    }
+                    catch
+                    {
+                        return default(T);
+                    }
                 }
-                catch
+                catch (HttpRequestException ex)
                 {
+                    _fileRepo.LogError($"PostApi: {url}    error: {ex}");
                     return default(T);
                 }
             }
@@ -149,17 +177,25 @@ namespace CoinBot.Data
                         client.DefaultRequestHeaders.Add(header.Key, header.Value);
                     }
                 }
-                
-                var response = await client.PostAsync(url, null);
-
-                string responseMessage = await response.Content.ReadAsStringAsync();
 
                 try
                 {
-                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                    var response = await client.PostAsync(url, null);
+
+                    string responseMessage = await response.Content.ReadAsStringAsync();
+
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<T>(responseMessage);
+                    }
+                    catch
+                    {
+                        return default(T);
+                    }
                 }
-                catch
+                catch (HttpRequestException ex)
                 {
+                    _fileRepo.LogError($"PostApi: {url}    error: {ex}");
                     return default(T);
                 }
             }
@@ -184,16 +220,24 @@ namespace CoinBot.Data
                     }
                 }
 
-                var response = await client.DeleteAsync(url);
-
-                string responseMessage = await response.Content.ReadAsStringAsync();
-
                 try
                 {
-                    return JsonConvert.DeserializeObject<T>(responseMessage);
+                    var response = await client.DeleteAsync(url);
+
+                    string responseMessage = await response.Content.ReadAsStringAsync();
+
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<T>(responseMessage);
+                    }
+                    catch
+                    {
+                        return default(T);
+                    }
                 }
-                catch
+                catch(HttpRequestException ex)
                 {
+                    _fileRepo.LogError($"DeleteApi: {url}    error: {ex}");
                     return default(T);
                 }
             }
