@@ -74,6 +74,20 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
+        public void GetOpenOrdersTest()
+        {
+            IBinanceRepository repo = new BinanceRepository();
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            repo.SetExchangeApi(apiInfo);
+            var pair = "INSBTC";
+
+            var orders = repo.GetOpenOrders(pair).Result.ToArray();
+
+            Assert.True(orders.Length > 0);
+        }
+
+        [Fact]
         public void GetOrderBookTest()
         {
             IBinanceRepository repo = new BinanceRepository();

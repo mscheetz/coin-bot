@@ -131,6 +131,25 @@ namespace CoinBot.Data
         }
 
         /// <summary>
+        /// Get all open orders
+        /// </summary>
+        /// <param name="symbol">string of symbol</param>
+        /// <returns>Array OrderResponse object</returns>
+        public async Task<OrderResponse[]> GetOpenOrders(string symbol)
+        {
+            var queryString = new List<string>
+            {
+                $"symbol={symbol}"
+            };
+
+            string url = CreateUrl($"/api/v3/openOrders", true, queryString.ToArray());
+
+            var response = await _restRepo.GetApiStream<OrderResponse[]>(url, GetRequestHeaders());
+
+            return response;
+        }
+
+        /// <summary>
         /// Get Order Book for a pair
         /// </summary>
         /// <param name="symbol">string of trading pair</param>

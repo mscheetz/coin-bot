@@ -48,7 +48,14 @@ namespace CoinBot.Data.Interface
         /// <param name="limit">Int of orders count to return, default 20</param>
         /// <returns>Array OrderResponse object</returns>
         Task<OrderResponse[]> GetOrders(string symbol, int limit = 20);
-        
+
+        /// <summary>
+        /// Get all open orders
+        /// </summary>
+        /// <param name="symbol">string of symbol</param>
+        /// <returns>Array OrderResponse object</returns>
+        Task<OrderResponse[]> GetOpenOrders(string symbol);
+
         /// <summary>
         /// Get Order Book for a pair
         /// </summary>
