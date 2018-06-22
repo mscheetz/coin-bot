@@ -58,5 +58,33 @@ namespace CoinBot.Data.Tests
 
             Assert.True(candleSticks.Count > 0);
         }
+
+        [Fact]
+        public void GetAllOrdersTest()
+        {
+            IBinanceRepository repo = new BinanceRepository();
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            repo.SetExchangeApi(apiInfo);
+            var pair = "INSBTC";
+
+            var orders = repo.GetOrders(pair).Result.ToArray();
+
+            Assert.True(orders.Length > 0);
+        }
+
+        [Fact]
+        public void GetOrderBookTest()
+        {
+            IBinanceRepository repo = new BinanceRepository();
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            repo.SetExchangeApi(apiInfo);
+            var pair = "INSBTC";
+
+            var orders = repo.GetOrderBook(pair).Result;
+
+            Assert.True(orders != null);
+        }
     }
 }

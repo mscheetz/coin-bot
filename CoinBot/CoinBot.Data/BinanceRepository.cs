@@ -110,14 +110,52 @@ namespace CoinBot.Data
         }
 
         /// <summary>
+        /// Get all current user order information
+        /// </summary>
+        /// <param name="symbol">string of symbol</param>
+        /// <param name="limit">Int of orders count to return, default 20</param>
+        /// <returns>Array OrderResponse object</returns>
+        public async Task<OrderResponse[]> GetOrders(string symbol, int limit = 20)
+        {
+            var queryString = new List<string>
+            {
+                $"symbol={symbol}",
+                $"limit={limit}"
+            };
+
+            string url = CreateUrl($"/api/v3/allOrders", true, queryString.ToArray());
+
+            var response = await _restRepo.GetApiStream<OrderResponse[]>(url, GetRequestHeaders());
+
+            return response;
+        }
+
+        /// <summary>
+        /// Get Order Book for a pair
+        /// </summary>
+        /// <param name="symbol">string of trading pair</param>
+        /// <returns>OrderBook object</returns>
+        public async Task<OrderBook> GetOrderBook(string symbol)
+        {
+            var queryString = new List<string>
+            {
+                $"symbol={symbol}"
+            };
+
+            string url = CreateUrl($"/api/v1/depth", false, queryString.ToArray());
+
+            var response = await _restRepo.GetApiStream<OrderBook>(url, GetRequestHeaders());
+
+            return response;
+        }
+
+        /// <summary>
         /// Post/Place a trade
         /// </summary>
         /// <param name="tradeParams">Trade to place</param>
         /// <returns>TradeResponse object</returns>
         public async Task<TradeResponse> PostTrade(TradeParams tradeParams)
         {
-            //tradeParams.timestamp = _dtHelper.UTCtoUnixTime();
-
             var queryString = new List<string>
             {
                 $"symbol={tradeParams.symbol}",

@@ -295,6 +295,55 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Get Latest Buy and Sell orders that were filled
+        /// </summary>
+        /// <param name="symbol">String of trading symbol</param>
+        /// <returns>Array of OrderReponses</returns>
+        public OrderResponse[] GetLatestOrders(string symbol)
+        {
+            if (_thisExchange == Exchange.BINANCE)
+            {
+                var response = _bianceRepo.GetOrders(symbol).Result;
+
+                var orderReverse = response.Where(o => o.status == OrderStatus.FILLED)
+                                           .OrderByDescending(o => o.time).ToArray();
+
+                var orderList = new List<OrderResponse>();
+
+                var buyFound = false;
+                var sellFound = false;
+                for (int i = 0; i < orderReverse.Length; i++)
+                {
+                    if(orderReverse[i].side == TradeType.BUY && !buyFound)
+                    {
+                        orderList.Add(orderReverse[i]);
+                        buyFound = true;
+                    }
+                    if (orderReverse[i].side == TradeType.SELL && !sellFound)
+                    {
+                        orderList.Add(orderReverse[i]);
+                        sellFound = true;
+                    }
+
+                    if (buyFound && sellFound)
+                    {
+                        break;
+                    }
+                }
+
+                return orderList.ToArray();
+            }
+            else if(_thisExchange == Exchange.GDAX)
+            {
+                return null;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Convert GdaxTrade array to BotStick array
         /// </summary>
         /// <param name="trades">ProductTrade array</param>

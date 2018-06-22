@@ -40,6 +40,21 @@ namespace CoinBot.Data.Interface
         /// <param name="orderId">long of orderId</param>
         /// <returns>OrderResponse object</returns>
         Task<OrderResponse> GetOrder(string symbol, long orderId);
+        
+        /// <summary>
+        /// Get all order information
+        /// </summary>
+        /// <param name="symbol">string of symbol</param>
+        /// <param name="limit">Int of orders count to return, default 20</param>
+        /// <returns>Array OrderResponse object</returns>
+        Task<OrderResponse[]> GetOrders(string symbol, int limit = 20);
+        
+        /// <summary>
+        /// Get Order Book for a pair
+        /// </summary>
+        /// <param name="symbol">string of trading pair</param>
+        /// <returns>OrderBook object</returns>
+        Task<OrderBook> GetOrderBook(string symbol);
 
         /// <summary>
         /// Post/Place a trade

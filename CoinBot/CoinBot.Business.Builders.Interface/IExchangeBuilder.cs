@@ -60,6 +60,13 @@ namespace CoinBot.Business.Builders.Interface
         OrderResponse GetOrderDetail(TradeResponse trade, string symbol = "");
 
         /// <summary>
+        /// Get Last Buy and Sell orders that were filled
+        /// </summary>
+        /// <param name="symbol">String of trading symbol</param>
+        /// <returns>Array of OrderReponses</returns>
+        OrderResponse[] GetLatestOrders(string symbol);
+
+        /// <summary>
         /// Delete a trade
         /// </summary>
         /// <param name="tradeParams">CancelTradeParams object</param>
