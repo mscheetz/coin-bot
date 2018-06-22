@@ -101,7 +101,7 @@ namespace CoinBot.Tests.Entities
                 executedQty = 1,
                 orderId = 1,
                 origQty = 1,
-                iceburgQty = 1,
+                icebergQty = 1,
                 isWorking = true,
                 price = _orderPrice,
                 side = TradeType.BUY,
