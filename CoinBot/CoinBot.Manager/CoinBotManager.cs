@@ -11,17 +11,17 @@ namespace CoinBot.Manager
     public class CoinBotManager : ICoinBotService
     {
         private IBollingerBandTradeBuilder _bollingerBuilder;
-        private IVolumeTradeBuilder _percentageBuilder;
+        private IVolumeTradeBuilderOG _volumeBuilderOG;
         private ITradeBuilder _tradeBuilder;
         private Balance _balance;
         private BotSettings _botSettings;
 
         public CoinBotManager(IBollingerBandTradeBuilder bollingerBuilder,
-                              IVolumeTradeBuilder percentageBuilder,
+                              IVolumeTradeBuilderOG volumeBuilderOG,
                               ITradeBuilder tradeBuilder)
         {
             this._bollingerBuilder = bollingerBuilder;
-            this._percentageBuilder = percentageBuilder;
+            this._volumeBuilderOG = volumeBuilderOG;
             this._tradeBuilder = tradeBuilder;
             _botSettings = _tradeBuilder.GetBotSettings();
         }
@@ -49,8 +49,8 @@ namespace CoinBot.Manager
             ServiceReady();
             if (_botSettings.tradingStrategy == Strategy.BollingerBands)
                 _bollingerBuilder.StartTrading(interval);
-            else if (_botSettings.tradingStrategy == Strategy.Percentage)
-                _percentageBuilder.StartTrading(interval);
+            else if (_botSettings.tradingStrategy == Strategy.Volume)
+                _volumeBuilderOG.StartTrading(interval);
 
             return true;
         }

@@ -50,7 +50,7 @@ namespace CoinBot.Business.Builders.Tests
                 .Returns(null)
                 .Returns(null)
                 .Returns(null);
-            _tradeBldr.SetupSequence(f => f.BuyCrypto(It.IsAny<decimal>(), It.IsAny<TradeType>()))
+            _tradeBldr.SetupSequence(f => f.BuyCrypto(It.IsAny<decimal>(), It.IsAny<TradeType>(), It.IsAny<bool>()))
                 .Returns(true)
                 .Returns(true);
             _tradeBldr.Setup(f => f.SellCrypto(It.IsAny<decimal>(), It.IsAny<TradeType>()))
