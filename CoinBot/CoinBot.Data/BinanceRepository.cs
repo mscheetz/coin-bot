@@ -98,8 +98,7 @@ namespace CoinBot.Data
             var queryString = new List<string>
             {
                 $"symbol={symbol}",
-                $"orderId={orderId}",
-                //$"timestamp={_dtHelper.UTCtoUnixTime()}"
+                $"orderId={orderId}"
             };
 
             string url = CreateUrl($"/api/v3/order", true, queryString.ToArray());
@@ -259,7 +258,7 @@ namespace CoinBot.Data
             }
             catch(Exception ex)
             {
-                _fileRepo.LogError($"BinaceRepository.GetCandlestick() error: {ex.Message}");
+                _fileRepo.LogError($"BinanceRepository.GetCandlestick() error: {ex.Message}");
                 return null;
             }
         }
