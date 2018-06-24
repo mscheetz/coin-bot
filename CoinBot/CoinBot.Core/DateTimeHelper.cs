@@ -76,6 +76,16 @@ namespace CoinBot.Core
         }
 
         /// <summary>
+        /// Convert current UTC DateTime to unix timestamp milliseconds included
+        /// </summary>
+        /// <returns>unix timestamp</returns>
+        public long UTCtoUnixTimeMilliseconds()
+        {
+            return Convert.ToInt64((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMilliseconds);
+            //return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+
+        /// <summary>
         /// Convert UTC DateTime to unix timestamp
         /// </summary>
         /// <param name="localTime">UTC DateTime object</param>
