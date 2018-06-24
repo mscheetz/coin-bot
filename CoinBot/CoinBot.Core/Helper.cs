@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace CoinBot.Core
@@ -118,6 +119,43 @@ namespace CoinBot.Core
             char[] a = toUpperCase.ToCharArray();
             a[0] = char.ToUpper(a[0]);
             return new string(a);
+        }
+
+        /// <summary>
+        /// Convert an array of strings to a string
+        /// </summary>
+        /// <param name="myArray">Array of strings</param>
+        /// <returns>String of array values</returns>
+        public string ArrayToString(string[] myArray)
+        {
+            var qsValues = string.Empty;
+
+            for (int i = 0; i < myArray.Length; i++)
+            {
+                qsValues += qsValues != string.Empty ? "&" : "";
+                qsValues += myArray[i];
+            }
+
+            return qsValues;
+        }
+
+        /// <summary>
+        /// Convert an object to a string of property names and values
+        /// </summary>
+        /// <typeparam name="T">Object type</typeparam>
+        /// <param name="myObject">Object to convert</param>
+        /// <returns>String of properties and values</returns>
+        public string ObjectToString<T>(T myObject)
+        {
+            var qsValues = string.Empty;
+
+            foreach (PropertyInfo p in myObject.GetType().GetProperties())
+            {
+                qsValues += qsValues != string.Empty ? "&" : "";
+                qsValues += $"{p.Name}={p.GetValue(myObject, null)}";
+            }
+
+            return qsValues;
         }
     }
 }
