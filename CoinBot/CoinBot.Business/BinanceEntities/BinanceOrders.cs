@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CoinBot.Business.Entities
 {
-    [JsonConverter(typeof(Converter.ObjectToArrayConverter<Candlestick>))]
+    [JsonConverter(typeof(Converter.ObjectToArrayConverter<BinanceOrders>))]
     public class BinanceOrders
     {
         [JsonProperty(Order = 1)]
