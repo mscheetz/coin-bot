@@ -60,8 +60,9 @@ namespace CoinBot.Data.Interface
         /// Get Order Book for a pair
         /// </summary>
         /// <param name="symbol">string of trading pair</param>
+        /// <param name="limit">Number of orders to return</param>
         /// <returns>OrderBook object</returns>
-        Task<OrderBook> GetOrderBook(string symbol);
+        Task<OrderBook> GetOrderBook(string symbol, int limit = 100);
 
         /// <summary>
         /// Post/Place a trade

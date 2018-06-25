@@ -152,12 +152,14 @@ namespace CoinBot.Data
         /// Get Order Book for a pair
         /// </summary>
         /// <param name="symbol">string of trading pair</param>
+        /// <param name="limit">Number of orders to return</param>
         /// <returns>OrderBook object</returns>
-        public async Task<OrderBook> GetOrderBook(string symbol)
+        public async Task<OrderBook> GetOrderBook(string symbol, int limit = 100)
         {
             var queryString = new List<string>
             {
-                $"symbol={symbol}"
+                $"symbol={symbol}",
+                $"limit={limit}"
             };
 
             string url = CreateUrl($"/api/v1/depth", false, queryString.ToArray());

@@ -80,7 +80,7 @@ namespace CoinBot.Data.Tests
             IFileRepository fileRepo = new FileRepository();
             var apiInfo = fileRepo.GetConfig();
             repo.SetExchangeApi(apiInfo);
-            var pair = "INSBTC";
+            var pair = "BTCUSDT";
 
             var orders = repo.GetOpenOrders(pair).Result.ToArray();
 
