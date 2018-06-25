@@ -157,5 +157,19 @@ namespace CoinBot.Core
 
             return qsValues;
         }
+
+        /// <summary>
+        /// Create new decmial to the Nth power
+        /// </summary>
+        /// <param name="precision">precision of decimal</param>
+        /// <param name="value">Value to set, default = 1</param>
+        /// <returns>New decimal</returns>
+        public decimal DecimalValueAtPrecision(int precision, int value = 1)
+        {
+            var pow = Math.Pow(10, precision);
+            decimal newValue = value / (decimal)pow;
+
+            return newValue;
+        }
     }
 }
