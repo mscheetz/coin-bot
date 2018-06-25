@@ -199,7 +199,7 @@ namespace CoinBot.Business.Builders
 
                 var stopPrice = _lastBuy - (_lastBuy * (decimal)_botSettings.stopLoss);
 
-                if (stopPrice <= candleStick[0].close)
+                if (stopPrice <= candleStick[0].close && _lastBuy > 0.00000000M)
                 {
                     _trader.CancelOpenOrders();
 
