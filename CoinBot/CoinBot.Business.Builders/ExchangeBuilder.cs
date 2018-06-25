@@ -373,64 +373,42 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
-        /// Get 1st price with the most support
+        /// Get open orders
         /// </summary>
-        /// <param name="symbol">String of trading pair</param>
-        /// <returns>Decimal of price</returns>
-        public decimal GetSupport(string symbol)
+        /// <param name="symbol">Symbol to check</param>
+        /// <returns>Array of OrderResponse objects</returns>
+        public OrderResponse[] GetOpenOrders(string symbol)
         {
+            OrderResponse[] response = null;
+
             if (_thisExchange == Exchange.BINANCE)
             {
-                var pair = symbol.Substring(symbol.Length - 4) == "USDT"
-                                ? symbol.Substring(symbol.Length - 4)
-                                : symbol.Substring(symbol.Length - 3);
-                var orderBook = _bianceRepo.GetOrderBook(symbol).Result;
-
-                decimal support = 0.00000000M;
-                decimal prevQty = 0.0M;
-
-                for (int i = 0; i < orderBook.bids.Length; i++)
+                while (response == null)
                 {
-                    support = i == 0 ? orderBook.bids[i].price : support;
-
-                    if (orderBook.bids[i].quantity > prevQty)
-                    {
-                        support = orderBook.bids[i].price;
-                    }
-
-                    if ((pair != "USDT" || pair != "USD")
-                        && orderBook.asks[i].price * orderBook.asks[i].quantity >= 0.1M)
-                    {
-                        break;
-                    }
-                    else if ((pair == "USDT" || pair == "USD")
-                        && orderBook.bids[i].quantity >= 1)
-                    {
-                        break;
-                    }
-
-                    prevQty = orderBook.bids[i].quantity;
+                    response = _bianceRepo.GetOpenOrders(symbol).Result;
                 }
-
-                return support;
             }
             else if (_thisExchange == Exchange.GDAX)
             {
-                return 0.00000000M;
             }
             else
             {
-                return 0.00000000M;
             }
+
+            return response;
         }
 
         /// <summary>
-        /// Get 1st price with the most resistance
+        /// Get 1st price with the most support at or above specified volume
         /// </summary>
         /// <param name="symbol">String of trading pair</param>
+        /// <param name="volume">Volume to set buy price</param>
         /// <returns>Decimal of price</returns>
-        public decimal GetResistance(string symbol)
+        public OrderBookDetail GetSupport(string symbol, decimal volume)
         {
+            decimal support = 0.00000000M;
+            int i = 0;
+            int precision = 0;
             if (_thisExchange == Exchange.BINANCE)
             {
                 var pair = symbol.Substring(symbol.Length - 4) == "USDT"
@@ -438,42 +416,151 @@ namespace CoinBot.Business.Builders
                                 : symbol.Substring(symbol.Length - 3);
                 var orderBook = _bianceRepo.GetOrderBook(symbol).Result;
 
-                decimal resistance = 0.00000000M;
-                decimal prevQty = 0.0M;
-
-                for (int i = 0; i < orderBook.asks.Length; i++)
+                if (!StaleMateCheck(orderBook.bids[0], orderBook.asks[0], volume))
                 {
-                    resistance = i == 0 ? orderBook.asks[i].price : resistance;
-
-                    if (orderBook.asks[i].quantity > prevQty)
+                    for (i = 0; i < orderBook.bids.Length; i++)
                     {
-                        resistance = orderBook.asks[i].price;
-                    }
+                        var obPrice = orderBook.bids[i].price;
+                        var trimedPrice = obPrice.ToString().TrimEnd('0');
+                        var price = Convert.ToDecimal(trimedPrice);
+                        var thisPrecision = BitConverter.GetBytes(decimal.GetBits(price)[3])[2];
+                        precision = thisPrecision > precision ? thisPrecision : precision;
+                        var vol = orderBook.bids[i].price * orderBook.bids[i].quantity;
 
-                    if ((pair != "USDT" || pair != "USD")
-                        && orderBook.asks[i].price * orderBook.asks[i].quantity >= 0.1M)
-                    {
-                        break;
-                    }
-                    else if ((pair == "USDT" || pair == "USD")
-                        && orderBook.asks[i].quantity >= 1)
-                    {
-                        break;
-                    }
+                        if (vol >= volume)
+                        {
+                            support = price;
+                            break;
+                        }
 
-                    prevQty = orderBook.asks[i].quantity;
+                        //support = i == 0 ? orderBook.bids[i].price : support;
+
+                        //if (orderBook.bids[i].quantity > prevQty)
+                        //{
+                        //    support = orderBook.bids[i].price;
+                        //}
+
+                        //if ((pair != "USDT" || pair != "USD")
+                        //    && orderBook.asks[i].price * orderBook.asks[i].quantity >= 0.1M)
+                        //{
+                        //    break;
+                        //}
+                        //else if ((pair == "USDT" || pair == "USD")
+                        //    && orderBook.bids[i].quantity >= 1)
+                        //{
+                        //    break;
+                        //}
+
+                        //prevQty = orderBook.bids[i].quantity;
+                    }
                 }
-
-                return resistance;
             }
             else if (_thisExchange == Exchange.GDAX)
             {
-                return 0.00000000M;
             }
             else
             {
-                return 0.00000000M;
             }
+            var response = new OrderBookDetail
+            {
+                price = support,
+                precision = precision,
+                position = i
+            };
+
+            return response;
+    }
+
+        /// <summary>
+        /// Get 1st price with the most resistance at or above specified volume
+        /// </summary>
+        /// <param name="symbol">String of trading pair</param>
+        /// <param name="volume">Volume to set buy price</param>
+        /// <returns>Decimal of price</returns>
+        public OrderBookDetail GetResistance(string symbol, decimal volume)
+        {
+            decimal resistance = 0.00000000M;
+            int i = 0;
+            int precision = 0;
+            if (_thisExchange == Exchange.BINANCE)
+            {
+                var pair = symbol.Substring(symbol.Length - 4) == "USDT"
+                                ? symbol.Substring(symbol.Length - 4)
+                                : symbol.Substring(symbol.Length - 3);
+                var orderBook = _bianceRepo.GetOrderBook(symbol).Result;
+
+                if (!StaleMateCheck(orderBook.bids[0], orderBook.asks[0], volume))
+                {
+                    for (i = 0; i < orderBook.asks.Length; i++)
+                    {
+                        var obPrice = orderBook.asks[i].price;
+                        var trimedPrice = obPrice.ToString().TrimEnd('0');
+                        var price = Convert.ToDecimal(trimedPrice);
+                        var thisPrecision = BitConverter.GetBytes(decimal.GetBits(price)[3])[2];
+                        precision = thisPrecision > precision ? thisPrecision : precision;
+                        var vol = orderBook.asks[i].price * orderBook.asks[i].quantity;
+
+                        if (vol >= volume)
+                        {
+                            resistance = orderBook.asks[i].price;
+                            break;
+                        }
+
+                        //resistance = i == 0 ? orderBook.asks[i].price : resistance;
+
+                        //if (orderBook.asks[i].quantity > prevQty)
+                        //{
+                        //    resistance = orderBook.asks[i].price;
+                        //}
+
+                        //if ((pair != "USDT" || pair != "USD")
+                        //    && orderBook.asks[i].price * orderBook.asks[i].quantity >= 0.1M)
+                        //{
+                        //    break;
+                        //}
+                        //else if ((pair == "USDT" || pair == "USD")
+                        //    && orderBook.asks[i].quantity >= 1)
+                        //{
+                        //    break;
+                        //}
+
+                        //prevQty = orderBook.asks[i].quantity;
+                    }
+                }
+
+            }
+            else if (_thisExchange == Exchange.GDAX)
+            {
+            }
+            else
+            {
+            }
+            var response = new OrderBookDetail
+            {
+                price = resistance,
+                precision = precision,
+                position = i
+            };
+
+            return response;
+        }
+
+        /// <summary>
+        /// Compare two BinanceOrder objects, if they are both at volume, stale mate is reached
+        /// </summary>
+        /// <param name="buys">Top Buy orders</param>
+        /// <param name="sells">Bottom Sell orders</param>
+        /// <param name="volume">Volume to trigger</param>
+        /// <returns>Boolean if stale mate reached</returns>
+        public bool StaleMateCheck(BinanceOrders buys, BinanceOrders sells, decimal volume)
+        {
+            if (buys.price * buys.quantity >= volume
+                && sells.price * sells.quantity >= volume)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

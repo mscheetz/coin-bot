@@ -89,17 +89,26 @@ namespace CoinBot.Business.Builders.Interface
         bool OpenOrdersExist(string symbol);
 
         /// <summary>
-        /// Get 1st price with the most support
+        /// Get open orders
         /// </summary>
-        /// <param name="symbol">String of trading pair</param>
-        /// <returns>Decimal of price</returns>
-        decimal GetSupport(string symbol);
+        /// <param name="symbol">Symbol to check</param>
+        /// <returns>Array of OrderResponse objects</returns>
+        OrderResponse[] GetOpenOrders(string symbol);
 
         /// <summary>
-        /// Get 1st price with the most resistance
+        /// Get 1st price with the most support at or above specified volume
         /// </summary>
         /// <param name="symbol">String of trading pair</param>
+        /// <param name="volume">Volume to set buy price</param>
         /// <returns>Decimal of price</returns>
-        decimal GetResistance(string symbol);
+        OrderBookDetail GetSupport(string symbol, decimal volume);
+
+        /// <summary>
+        /// Get 1st price with the most resistance at or above specified volume
+        /// </summary>
+        /// <param name="symbol">String of trading pair</param>
+        /// <param name="volume">Volume to set buy price</param>
+        /// <returns>Decimal of price</returns>
+        OrderBookDetail GetResistance(string symbol, decimal volume);
     }
 }
