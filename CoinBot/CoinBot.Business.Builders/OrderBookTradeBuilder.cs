@@ -148,9 +148,7 @@ namespace CoinBot.Business.Builders
                     _trader.UpdateBotSettings(_lastBuy, _lastSell);
                     SetBotSettings(_trader.GetBotSettings());
                 }
-
-                CeilingFloorCheck();
-
+                
                 var tradeOpen = _trader.OpenOrdersCheck();
 
                 if(tradeOpen)
