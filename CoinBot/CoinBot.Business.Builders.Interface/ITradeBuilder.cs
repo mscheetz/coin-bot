@@ -211,16 +211,18 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="orderPrice">Buy price</param>
         /// <param name="tradeType">Trade Type</param>
         /// <param name="stopLoss">Place stoploss? default false</param>
+        /// <param name="validateTrade">Validated trade complete, default = true</param>
         /// <returns>Boolean when complete</returns>
-        bool BuyCrypto(decimal orderPrice, TradeType tradeType, bool stopLoss = false);
+        bool BuyCrypto(decimal orderPrice, TradeType tradeType, bool stopLoss = false, bool validateTrade = true);
 
         /// <summary>
         /// Sell crypto
         /// </summary>
         /// <param name="orderPrice">Current price</param>
         /// <param name="tradeType">Trade Type</param>
+        /// <param name="validateTrade">Validate trade is complete, default = true</param>
         /// <returns>Boolean when complete</returns>
-        bool SellCrypto(decimal orderPrice, TradeType tradeType);
+        bool SellCrypto(decimal orderPrice, TradeType tradeType, bool validateTrade = true);
 
         /// <summary>
         /// Get price padding to avoid GDAX transaction fees
@@ -275,6 +277,12 @@ namespace CoinBot.Business.Builders.Interface
         void CancelTrade(long orderId, string origClientOrderId);
 
         /// <summary>
+        /// Cancel all open orders for the current trading pair
+        /// </summary>
+        /// <returns>Boolen when complete</returns>
+        bool CancelOpenOrders();
+
+        /// <summary>
         /// Cancel a trade
         /// </summary>
         /// <param name="tradeParams">CancelTrade parameters</param>
@@ -300,6 +308,12 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <returns>Boolean of status</returns>
         bool OpenOrdersCheck();
+        
+        /// <summary>
+        /// Gets latest buy and sell prices for the current pair
+        /// </summary>
+        /// <returns>Array of decimals</returns>
+        decimal[] GetLastBuySellPrice();
 
         /// <summary>
         /// Get status of a paper trade

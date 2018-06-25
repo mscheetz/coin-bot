@@ -576,21 +576,35 @@ namespace CoinBot.Business.Builders
         #region OrderBook
 
         /// <summary>
-        /// Get next resistance level
+        /// Get next resistance level if within 3 spots of bottom resistance
         /// </summary>
         /// <returns>Decimal of next resistance</returns>
         public decimal GetResistance()
         {
-            return _exchBldr.GetResistance(_symbol);
+            var detail = _exchBldr.GetResistance(_symbol, _botSettings.orderBookQuantity);
+            var resistance = detail.price;
+            var places = detail.position;
+            var sellPrice = places == 0 
+                ? resistance 
+                : resistance - _helper.DecimalValueAtPrecision(detail.precision);
+
+            return places <= 3 ? sellPrice : 0.00000000M;
         }
 
         /// <summary>
-        /// Get next support level
+        /// Get next support level if within 3 spots of top support level
         /// </summary>
         /// <returns>Decimal of next support</returns>
         public decimal GetSupport()
         {
-            return _exchBldr.GetSupport(_symbol);
+            var detail = _exchBldr.GetSupport(_symbol, _botSettings.orderBookQuantity);
+            var support = detail.price;
+            var places = detail.position;
+            var buyPrice = places == 0
+                ? support
+                : support + _helper.DecimalValueAtPrecision(detail.precision);
+
+            return places <= 3 ? buyPrice : 0.00000000M;
         }
 
         #endregion OrderBook
@@ -713,8 +727,9 @@ namespace CoinBot.Business.Builders
         /// <param name="orderPrice">Buy price</param>
         /// <param name="tradeType">Trade Type</param>
         /// <param name="stopLoss">Place stoploss? default false</param>
+        /// <param name="validateTrade">Validated trade complete, default = true</param>
         /// <returns>Boolean when complete</returns>
-        public bool BuyCrypto(decimal orderPrice, TradeType tradeType, bool stopLoss = false)
+        public bool BuyCrypto(decimal orderPrice, TradeType tradeType, bool stopLoss = false, bool validateTrade = true)
         {
             var tradeComplete = false;
             int i = 0;
@@ -728,7 +743,14 @@ namespace CoinBot.Business.Builders
                     return false;
                 }
 
-                tradeComplete = ValidateTradeComplete(trade);
+                if (validateTrade)
+                {
+                    tradeComplete = ValidateTradeComplete(trade);
+                }
+                else
+                { 
+                    tradeComplete = true;
+                }
 
                 if (i == 1 && !tradeComplete)
                 {
@@ -740,6 +762,11 @@ namespace CoinBot.Business.Builders
                 {
                     orderPrice = orderPrice - 0.01M;
                 }
+            }
+
+            if(!validateTrade)
+            {
+                return true;
             }
 
             UpdateBalances();
@@ -754,20 +781,6 @@ namespace CoinBot.Business.Builders
             }
 
             return CheckTradeSuccess(TradeType.BUY);
-
-            //if (!tradeComplete)
-            //{
-            //    return false;
-            //}
-
-            //_lastBuy = orderPrice;
-            
-
-            //var stopLoss = PlaceStopLoss(orderPrice, trade.origQty);
-
-            ////UpdateBalances();
-
-            //return true;
         }
 
         /// <summary>
@@ -775,8 +788,9 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="orderPrice">Current price</param>
         /// <param name="tradeType">Trade Type</param>
+        /// <param name="validateTrade">Validate trade is complete, default = true</param>
         /// <returns>Boolean when complete</returns>
-        public bool SellCrypto(decimal orderPrice, TradeType tradeType)
+        public bool SellCrypto(decimal orderPrice, TradeType tradeType, bool validateTrade = true)
         {
             var tradeComplete = false;
             int i = 0;
@@ -792,7 +806,14 @@ namespace CoinBot.Business.Builders
                     return false;
                 }
 
-                tradeComplete = ValidateTradeComplete(trade);
+                if (validateTrade)
+                {
+                    tradeComplete = ValidateTradeComplete(trade);
+                }
+                else
+                {
+                    tradeComplete = true;
+                }
 
                 if(tradeComplete)
                 {
@@ -809,6 +830,11 @@ namespace CoinBot.Business.Builders
                     orderPrice = orderPrice + 0.01M;
                 }
             }
+            if(!validateTrade)
+            {
+                return true;
+            }
+
             UpdateBalances();
 
             CaptureTransaction(orderPrice, trade.origQty, trade.transactTime, tradeType);
@@ -816,17 +842,6 @@ namespace CoinBot.Business.Builders
             _lastSell = orderPrice;
 
             return CheckTradeSuccess(TradeType.SELL);
-
-            //if (!tradeComplete)
-            //{
-            //    return false;
-            //}
-
-
-
-            ////UpdateBalances();
-
-            //return true;
         }
 
         /// <summary>
@@ -1003,6 +1018,7 @@ namespace CoinBot.Business.Builders
         /// <returns>decimal of quantity to purchase</returns>
         public decimal GetTradeQuantity(TradeType tradeType, decimal orderPrice)
         {
+            int roundTo = 2;
             decimal quantity = 0.00000000M;
             if (tradeType == TradeType.BUY)
             {
@@ -1021,13 +1037,18 @@ namespace CoinBot.Business.Builders
                 }
             }
             
+            if(_asset.Equals("BTC"))
+            {
+                roundTo = 6;
+            }
+
             if(_botSettings.exchange == Exchange.GDAX)
             {
                 // Remove potential trade fee for GDAX trades
                 quantity = quantity - (quantity * _botSettings.tradingFee);
             }
 
-            var roundedDown = _helper.RoundDown(quantity, 6);
+            decimal roundedDown = _helper.RoundDown(quantity, roundTo);
 
             return roundedDown;
         }
@@ -1202,6 +1223,44 @@ namespace CoinBot.Business.Builders
             };
 
             var response = CancelTrade(tradeParams);
+        }
+
+        /// <summary>
+        /// Cancel all open orders for the current trading pair
+        /// </summary>
+        /// <returns>Boolen when complete</returns>
+        public bool CancelOpenOrders()
+        {
+            var openOrders = _exchBldr.GetOpenOrders(_symbol);
+
+            while (openOrders != null)
+            {
+                for (var i = 0; i < openOrders.Length; i++)
+                {
+                    CancelTrade(openOrders[i].orderId, openOrders[i].clientOrderId);
+                }
+                openOrders = _exchBldr.GetOpenOrders(_symbol);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Gets latest buy and sell prices for the current pair
+        /// </summary>
+        /// <returns>Array of decimals</returns>
+        public decimal[] GetLastBuySellPrice()
+        {
+            var orders = _exchBldr.GetLatestOrders(_symbol);
+
+            var lastBuy = orders.Where(o => o.side == TradeType.BUY).Select(o => o.price).FirstOrDefault();
+            var lastSell = orders.Where(o => o.side == TradeType.SELL).Select(o => o.price).FirstOrDefault();
+            
+            return new decimal[] 
+            {
+                lastBuy > 0 ? lastBuy : 0.00000000M,
+                lastSell > 0 ? lastSell : 0.00000000M
+            };
         }
 
         /// <summary>
