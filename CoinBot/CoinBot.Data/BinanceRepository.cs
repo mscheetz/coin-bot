@@ -308,7 +308,7 @@ namespace CoinBot.Data
 
                 return url;
             }
-            var timestamp = GetBinanceTime().ToString();
+            var timestamp = _dtHelper.UTCtoUnixTimeMilliseconds();
             var timeStampQS = $"timestamp={timestamp}";
             if (qsValues != string.Empty)
             {
