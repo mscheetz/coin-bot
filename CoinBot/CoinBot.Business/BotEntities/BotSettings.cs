@@ -83,6 +83,14 @@ namespace CoinBot.Business.Entities
         /// When false, bot stops
         /// </summary>
         public bool runBot { get; set; }
+        /// <summary>
+        /// Total quantity (in trading pair) to check before setting buy/sell price
+        /// </summary>
+        public decimal orderBookQuantity { get; set; }
+        /// <summary>
+        /// Interval, in cycles to reset balances and bot settings
+        /// </summary>
+        public int traderResetInterval { get; set; }
 
         public BotSettings()
         {
