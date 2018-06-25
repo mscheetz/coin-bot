@@ -127,15 +127,13 @@ namespace CoinBot.Business.Builders
         /// Run Trading Bot
         /// </summary>
         /// <param name="interval">Candlestick Interval</param>
-        /// <param name="cycles">Int of cycles to run (default -1, run infinitely)</param>
+        /// <param name="cycle">Int of cycles to run (default -1, run infinitely)</param>
         /// <param name="tradingStatus">Bool of trading status (default null, use setting)</param>
         /// <returns>Boolean when complete</returns>
-        public bool RunBot(Interval interval, int cycles = -1, bool? tradingStatus = null)
+        public bool RunBot(Interval interval, int cycle = -1, bool? tradingStatus = null)
         {
             _trader.SetupRepository();
             _tradeType = TradeType.BUY;
-            var currentStick = new BotStick();
-            var previousStick = new BotStick();
             bool currentlyTrading = tradingStatus != null ? (bool)tradingStatus : _currentlyTrading;
 
             _trader.SetBalances();
@@ -144,99 +142,158 @@ namespace CoinBot.Business.Builders
             while (currentlyTrading)
             {
                 Task.WaitAll(Task.Delay(_botSettings.priceCheck));
-                if (cycles % 20 == 0)
-                { // Every 10 cycles, reset balances and check bot settings file
+                if (cycle % _botSettings.traderResetInterval == 0)
+                { // Every N cycles, reset balances and check bot settings file
                     _tradeType = _trader.GetTradingType();
                     _trader.UpdateBotSettings(_lastBuy, _lastSell);
                     SetBotSettings(_trader.GetBotSettings());
                 }
-                var candleStickArray = _trader.GetCandlesticks(_symbol, interval, 5);
-                int i = candleStickArray.Length - 1;
-                currentStick = candleStickArray[i];
 
-                if (previousStick.close == 0 && i > 2)
+                CeilingFloorCheck();
+
+                var tradeOpen = _trader.OpenOrdersCheck();
+
+                if(tradeOpen)
                 {
-                    previousStick = candleStickArray[i-1];
+                    tradeOpen = CeilingFloorCheck();
                 }
 
-                StoppedOutCheck(currentStick.close);
+                var stopLoss = StopLossCheck();
 
-                if (!_trader.OpenOrdersCheck())
+                if (stopLoss)
                 {
-                    if (previousStick.closeTime != currentStick.closeTime)
+                    tradeOpen = _trader.OpenOrdersCheck();
+                }
+
+                if (!tradeOpen)
+                {
+                    if (cycle > 0)
                     {
-                        if (_tradeType == TradeType.BUY)
-                        {
-                            BuyCryptoCheck(currentStick, previousStick);
-                        }
-                        else if (_tradeType == TradeType.SELL)
-                        {
-                            SellCryptoCheck(currentStick, previousStick);
-                        }
-                        cycles++;
+                        UpdateLastPrices();
                     }
+
+                    _tradeType = _trader.GetTradingType();
+
+                    if (_tradeType == TradeType.BUY)
+                    {
+                        BuyCryptoCheck();
+                    }
+                    else if (_tradeType == TradeType.SELL)
+                    {
+                        SellCryptoCheck();
+                    }
+                    cycle++;
                 }
             }
             return true;
         }
 
         /// <summary>
-        /// Check if sellying coins or not
+        /// Check if stop loss percent has been reached
+        /// Sell if so
         /// </summary>
-        /// <param name="candleStick">current Candlestick object</param>
-        /// <param name="previousStick">previous Candlestick object</param>
-        /// <returns>Boolean if trade made</returns>
-        private bool SellCryptoCheck(BotStick candleStick, BotStick previousStick)
+        /// <returns>Boolean true if hit, false otherwise</returns>
+        private bool StopLossCheck()
         {
-            var tradeType = TradeType.SELL;//MooningCheck(candleStick, TradeType.SELL);
-            if (tradeType != TradeType.NONE)
+            if (_tradeType == TradeType.SELL)
             {
-                var sellStatus = _trader.SellCrypto(_moonTankPrice, tradeType);
+                var candleStick = _trader.GetCandlesticks(_botSettings.tradingPair, Interval.OneM, 1);
 
-                _lastSell = _moonTankPrice;
-                if (sellStatus)
+                var stopPrice = _lastBuy - (_lastBuy * (decimal)_botSettings.stopLoss);
+
+                if (stopPrice <= candleStick[0].close)
                 {
-                    _lastSell = _moonTankPrice;
-                    _tradeType = TradeType.BUY;
-                    _lastTrade = tradeType;
-                    _tradeNumber++;
+                    _trader.CancelOpenOrders();
+
+                    candleStick = _trader.GetCandlesticks(_botSettings.tradingPair, Interval.OneM, 1);
+                    _trader.SellCrypto(candleStick[0].close, TradeType.STOPLOSS);
+                    return true;
                 }
-                return sellStatus;
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         /// <summary>
-        /// Check if buying coins or not
+        /// If the set orders have moved out of range, cancel open orders
         /// </summary>
-        /// <param name="candleStick">current Candlestick object</param>
-        /// <param name="previousStick">previous Candlestick object</param>
-        /// <returns>Boolean if trade made</returns>
-        private bool BuyCryptoCheck(BotStick candleStick, BotStick previousStick)
+        /// <returns>Boolean when complete</returns>
+        private bool CeilingFloorCheck()
         {
-            var tradeType = TradeType.BUY;// TankingCheck(candleStick, TradeType.BUY);
-            if (tradeType != TradeType.NONE || _tradeNumber == 0)
+            var price = 0.00000000M;
+            if (_tradeType == TradeType.SELL)
             {
-
-                var buyStatus = _trader.BuyCrypto(_moonTankPrice, tradeType, true);
-
-                _lastBuy = _moonTankPrice;
-                if (buyStatus)
-                {
-                    _lastBuy = _moonTankPrice;
-                    _tradeType = TradeType.SELL;
-                    _lastTrade = tradeType;
-                    _tradeNumber++;
-                }
-                return buyStatus;
+                price = _trader.GetResistance();
             }
             else
             {
+                price = _trader.GetSupport();
+            }
+
+            if (price == 0.00000000M)
+            {
+                _trader.CancelOpenOrders();
                 return false;
             }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Get price and place a sell order
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        private bool SellCryptoCheck()
+        {
+            var price = _trader.GetResistance();
+            if (price > 0.00000000M)
+                _trader.SellCrypto(price, TradeType.SELL, false);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Get price and place a buy order
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        private bool BuyCryptoCheck()
+        {
+            var price = _trader.GetSupport();
+            if (price > 0.00000000M)
+            _trader.BuyCrypto(price, TradeType.BUY, false, false);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Update the latest buy sell prices
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        private bool UpdateLastPrices()
+        {
+            var prices = _trader.GetLastBuySellPrice();
+
+            _lastBuy = prices[0];
+            _lastSell = prices[1];
+
+            return true;
+        }
+
+        /// <summary>
+        /// Get buy price from order book
+        /// </summary>
+        /// <returns>Decimal of price</returns>
+        private decimal OrderBookBuyPrice()
+        {
+            return _trader.GetSupport();
+        }
+
+        /// <summary>
+        /// Get sell price from order book
+        /// </summary>
+        /// <returns>Decimal of price</returns>
+        private decimal OrderBookSellPrice()
+        {
+            return _trader.GetResistance();
         }
 
         /// <summary>
