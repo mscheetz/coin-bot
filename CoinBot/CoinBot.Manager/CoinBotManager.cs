@@ -12,16 +12,19 @@ namespace CoinBot.Manager
     {
         private IBollingerBandTradeBuilder _bollingerBuilder;
         private IVolumeTradeBuilderOG _volumeBuilderOG;
+        private IOrderBookTradeBuilder _orderBookTradeBuilder;
         private ITradeBuilder _tradeBuilder;
         private Balance _balance;
         private BotSettings _botSettings;
 
         public CoinBotManager(IBollingerBandTradeBuilder bollingerBuilder,
                               IVolumeTradeBuilderOG volumeBuilderOG,
+                              IOrderBookTradeBuilder orderBookTradeBuilder,
                               ITradeBuilder tradeBuilder)
         {
             this._bollingerBuilder = bollingerBuilder;
             this._volumeBuilderOG = volumeBuilderOG;
+            this._orderBookTradeBuilder = orderBookTradeBuilder;
             this._tradeBuilder = tradeBuilder;
             _botSettings = _tradeBuilder.GetBotSettings();
         }
@@ -51,6 +54,8 @@ namespace CoinBot.Manager
                 _bollingerBuilder.StartTrading(interval);
             else if (_botSettings.tradingStrategy == Strategy.Volume)
                 _volumeBuilderOG.StartTrading(interval);
+            else if (_botSettings.tradingStrategy == Strategy.OrderBook)
+                _orderBookTradeBuilder.StartTrading(interval);
 
             return true;
         }

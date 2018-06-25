@@ -41,6 +41,7 @@ namespace CoinBot.Api
             services.AddScoped<IFileRepository, FileRepository>();
             services.AddTransient<IBollingerBandTradeBuilder, BollingerBandTradeBuilder>();
             services.AddTransient<IVolumeTradeBuilderOG, VolumeTradeBuilderOG>();
+            services.AddTransient<IOrderBookTradeBuilder, OrderBookTradeBuilder>();
             services.AddTransient<IVolumeTradeBuilder, VolumeTradeBuilder>();
             services.AddTransient<ITradeBuilder, TradeBuilder>();
             services.AddTransient<IExchangeBuilder, ExchangeBuilder>();
