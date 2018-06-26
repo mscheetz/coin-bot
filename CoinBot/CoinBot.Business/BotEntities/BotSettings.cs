@@ -31,6 +31,10 @@ namespace CoinBot.Business.Entities
         /// </summary>
         public double stopLoss { get; set; }
         /// <summary>
+        /// Check for stop loss?
+        /// </summary>
+        public bool stopLossCheck { get; set; }
+        /// <summary>
         /// Percent of holdings to trade
         /// </summary>
         public double tradePercent { get; set; }
