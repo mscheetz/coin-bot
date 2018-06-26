@@ -25,6 +25,7 @@ namespace CoinBot.Business.Builders
         private string _pair;
         private List<BotBalance> _botBalances;
         private int _tradeNumber;
+        private SignalType _signalType;
         private List<TradeInformation> _tradeInformation;
         private TradeInformation _lastTrade;
         private List<OpenOrder> _openOrderList;
@@ -160,6 +161,21 @@ namespace CoinBot.Business.Builders
         {
             _botSettings = _fileRepo.GetSettings();
             _symbol = _botSettings.tradingPair;
+            switch(_botSettings.tradingStrategy)
+            {
+                case Strategy.OrderBook:
+                    _signalType = SignalType.OrderBook;
+                    break;
+                case Strategy.Percentage:
+                    _signalType = SignalType.Percent;
+                    break;
+                case Strategy.Volume:
+                    _signalType = SignalType.Volume;
+                    break;
+                default:
+                    _signalType = SignalType.None;
+                    break;
+            }
             GetAssetAndPair();
         }
 
@@ -1237,6 +1253,15 @@ namespace CoinBot.Business.Builders
             {
                 for (var i = 0; i < openOrders.Length; i++)
                 {
+                    var signal = new TradeSignal
+                    {
+                        pair = _symbol,
+                        price = openOrders[i].price,
+                        signal = _signalType,
+                        tradeType = TradeType.CANCELTRADE,
+                        transactionDate = DateTime.UtcNow,
+                    };
+                    _fileRepo.LogSignal(signal);
                     CancelTrade(openOrders[i].orderId, openOrders[i].clientOrderId);
                 }
                 openOrders = _exchBldr.GetOpenOrders(_symbol);
