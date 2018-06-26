@@ -22,6 +22,12 @@ namespace CoinBot.Business.Entities
         [Description("VOLUMESELLBUYOFF")]
         VOLUMESELLBUYOFF,
         [Description("STOPLOSS")]
-        STOPLOSS
+        STOPLOSS,
+        [Description("ORDERBOOKBUY")]
+        ORDERBOOKBUY,
+        [Description("ORDERBOOKSELL")]
+        ORDERBOOKSELL,
+        [Description("CANCELTRADE")]
+        CANCELTRADE
     }
 }
