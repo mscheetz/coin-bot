@@ -416,7 +416,7 @@ namespace CoinBot.Business.Builders
                                 : symbol.Substring(symbol.Length - 3);
                 var orderBook = _bianceRepo.GetOrderBook(symbol).Result;
 
-                if (!StaleMateCheck(orderBook.bids[0], orderBook.asks[0], volume))
+                if (!StaleMateCheck(orderBook.bids.Take(2).ToArray(), orderBook.asks.Take(2).ToArray(), volume))
                 {
                     for (i = 0; i < orderBook.bids.Length; i++)
                     {
@@ -489,7 +489,7 @@ namespace CoinBot.Business.Builders
                                 : symbol.Substring(symbol.Length - 3);
                 var orderBook = _bianceRepo.GetOrderBook(symbol).Result;
 
-                if (!StaleMateCheck(orderBook.bids[0], orderBook.asks[0], volume))
+                if (!StaleMateCheck(orderBook.bids.Take(2).ToArray(), orderBook.asks.Take(2).ToArray(), volume))
                 {
                     for (i = 0; i < orderBook.asks.Length; i++)
                     {
@@ -546,16 +546,18 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
-        /// Compare two BinanceOrder objects, if they are both at volume, stale mate is reached
+        /// Compare 1st 2 BinanceOrder objects, if one or both at volume, stale mate is reached
         /// </summary>
         /// <param name="buys">Top Buy orders</param>
         /// <param name="sells">Bottom Sell orders</param>
         /// <param name="volume">Volume to trigger</param>
         /// <returns>Boolean if stale mate reached</returns>
-        public bool StaleMateCheck(BinanceOrders buys, BinanceOrders sells, decimal volume)
+        public bool StaleMateCheck(BinanceOrders[] buys, BinanceOrders[] sells, decimal volume)
         {
-            if (buys.price * buys.quantity >= volume
-                && sells.price * sells.quantity >= volume)
+            if ((buys[0].price * buys[0].quantity >= volume 
+                || buys[1].price * buys[1].quantity >= volume)
+                && (sells[0].price * sells[0].quantity >= volume
+                || sells[1].price * sells[1].quantity >= volume))
             {
                 return true;
             }
