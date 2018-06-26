@@ -15,6 +15,7 @@ namespace CoinBot.Business.Builders
     {
         private Helper _helper = new Helper();
         private ITradeBuilder _trader;
+        private IFileRepository _fileRepo;
         private BotSettings _botSettings;
         private string _symbol;
         private bool _currentlyTrading;
@@ -37,6 +38,7 @@ namespace CoinBot.Business.Builders
         public OrderBookTradeBuilder()
         {
             _trader = new TradeBuilder();
+            _fileRepo = new FileRepository();
             SetupBuilder();
         }
 
@@ -156,7 +158,7 @@ namespace CoinBot.Business.Builders
                     tradeOpen = CeilingFloorCheck();
                 }
 
-                var stopLoss = StopLossCheck();
+                var stopLoss = !_botSettings.stopLossCheck ? false : StopLossCheck();
 
                 if (stopLoss)
                 {
@@ -197,14 +199,25 @@ namespace CoinBot.Business.Builders
             {
                 var candleStick = _trader.GetCandlesticks(_botSettings.tradingPair, Interval.OneM, 1);
 
-                var stopPrice = _lastBuy - (_lastBuy * (decimal)_botSettings.stopLoss);
+                var stopPrice = _lastBuy - (_lastBuy * (decimal)(_botSettings.stopLoss/100));
 
-                if (stopPrice <= candleStick[0].close && _lastBuy > 0.00000000M)
+                if (stopPrice >= candleStick[0].close && _lastBuy > 0.00000000M)
                 {
                     _trader.CancelOpenOrders();
 
                     candleStick = _trader.GetCandlesticks(_botSettings.tradingPair, Interval.OneM, 1);
                     _trader.SellCrypto(candleStick[0].close, TradeType.STOPLOSS);
+                    var signal = new TradeSignal
+                    {
+                        lastBuy = _lastBuy,
+                        lastSell = _lastSell,
+                        pair = _symbol,
+                        price = candleStick[0].close,
+                        signal = SignalType.OrderBook,
+                        tradeType = TradeType.STOPLOSS,
+                        transactionDate = DateTime.UtcNow
+                    };
+                    _fileRepo.LogSignal(signal);
                     return true;
                 }
             }
@@ -244,7 +257,20 @@ namespace CoinBot.Business.Builders
         {
             var price = _trader.GetResistance();
             if (price > 0.00000000M)
+            {
                 _trader.SellCrypto(price, TradeType.SELL, false);
+                //var signal = new TradeSignal
+                //{
+                //    lastBuy = _lastBuy,
+                //    lastSell = _lastSell,
+                //    pair = _symbol,
+                //    price = price,
+                //    signal = SignalType.OrderBook,                    
+                //    tradeType = TradeType.ORDERBOOKSELL,
+                //    transactionDate = DateTime.UtcNow
+                //};
+                //_fileRepo.LogSignal(signal);
+            }  
 
             return true;
         }
@@ -257,8 +283,20 @@ namespace CoinBot.Business.Builders
         {
             var price = _trader.GetSupport();
             if (price > 0.00000000M)
-            _trader.BuyCrypto(price, TradeType.BUY, false, false);
-
+            {
+                _trader.BuyCrypto(price, TradeType.BUY, false, false);
+                //var signal = new TradeSignal
+                //{
+                //    lastBuy = _lastBuy,
+                //    lastSell = _lastSell,
+                //    pair = _symbol,
+                //    price = price,
+                //    signal = SignalType.OrderBook,
+                //    tradeType = TradeType.ORDERBOOKBUY,
+                //    transactionDate = DateTime.UtcNow
+                //};
+                //_fileRepo.LogSignal(signal);
+            }
             return true;
         }
 
