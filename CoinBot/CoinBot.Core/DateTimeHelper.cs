@@ -81,8 +81,8 @@ namespace CoinBot.Core
         /// <returns>unix timestamp</returns>
         public long UTCtoUnixTimeMilliseconds()
         {
-            return Convert.ToInt64((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMilliseconds);
-            //return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            //return Convert.ToInt64((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalMilliseconds);
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 
         /// <summary>

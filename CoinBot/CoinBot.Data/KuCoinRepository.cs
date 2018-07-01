@@ -4,6 +4,7 @@ using CoinBot.Core;
 using CoinBot.Data.Interface;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -90,8 +91,8 @@ namespace CoinBot.Data
         /// <returns>Balance array</returns>
         public async Task<Business.Entities.KuCoinEntities.Balance[]> GetBalance()
         {
-            var endpoint = "/account/balance";
-            var url = baseUrl + "/v1" + endpoint;
+            var endpoint = "/v1/account/balance";
+            var url = baseUrl + endpoint;
 
             var headers = GetRequestHeaders(endpoint, null);
 
@@ -160,9 +161,9 @@ namespace CoinBot.Data
 
             var queryString = new List<string>
             {
-                $"symbol={symbol}",
                 $"limit={limit}",
-                $"page={page}"
+                $"page={page}",
+                $"symbol={symbol}"
             };
 
             var headers = GetRequestHeaders(endpoint, queryString.ToArray());
@@ -187,8 +188,7 @@ namespace CoinBot.Data
         /// <returns>KuCoinOpenOrders object</returns>
         public async Task<OpenOrderResponse> GetOpenOrders(string symbol)
         {
-            var endpoint = "/v1/open/active";
-            var url = baseUrl + endpoint;
+            var endpoint = "/v1/order/active";
 
             var queryString = new List<string>
             {
@@ -196,6 +196,8 @@ namespace CoinBot.Data
             };
 
             var headers = GetRequestHeaders(endpoint, queryString.ToArray());
+
+            var url = baseUrl + endpoint + $"?{queryString[0]}";
 
             try
             {
@@ -367,13 +369,10 @@ namespace CoinBot.Data
         {
             var nonce = _dtHelper.UTCtoUnixTimeMilliseconds().ToString();
             var headers = new Dictionary<string, string>();
-           // headers.Add("Content-Type", "application/json");
+
             headers.Add("KC-API-KEY", _apiInfo.apiKey);
             headers.Add("KC-API-NONCE", nonce);
             headers.Add("KC-API-SIGNATURE", GetSignature(endpoint, nonce, queryString, 0));
-            //headers.Add("Accept-Language", "en_US");
-            //headers.Add("User-Agent", "KuCoin Request");
-            //headers.Add("Accept-Encoding", "gzip, deflate");
 
             return headers;
         }
@@ -382,12 +381,10 @@ namespace CoinBot.Data
         {
             var nonce = _dtHelper.UTCtoUnixTimeMilliseconds().ToString();
             var headers = new Dictionary<string, string>();
+
             headers.Add("KC-API-KEY", _apiInfo.apiKey);
             headers.Add("KC-API-NONCE", nonce);
             headers.Add("KC-API-SIGNATURE", GetSignature(endpoint, nonce, queryString, postData));
-            headers.Add("Accept-Language", "en_US");
-            headers.Add("User-Agent", "KuCoin Request");
-            headers.Add("Accept-Encoding", "gzip, deflate");
 
             return headers;
         }
@@ -395,6 +392,8 @@ namespace CoinBot.Data
         private string GetSignature<T>(string endpoint, string nonce, string[] queryString = null, T value = default(T))
         {
             queryString = queryString ?? new string[0];
+
+            Array.Sort(queryString, StringComparer.InvariantCulture);
 
             var qsValues = string.Empty;
 
@@ -409,7 +408,7 @@ namespace CoinBot.Data
 
             var sigString = $"{endpoint}/{nonce}/{qsValues}";
 
-            var signature = security.GetBinanceHMACSignature(_apiInfo.apiSecret, sigString);
+            var signature = security.GetKuCoinHMCACSignature(_apiInfo.apiSecret, sigString);
 
             return signature;
         }

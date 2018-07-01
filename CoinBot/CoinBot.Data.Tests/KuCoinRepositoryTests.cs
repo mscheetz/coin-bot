@@ -88,5 +88,34 @@ namespace CoinBot.Data.Tests
 
             Assert.True(tick != null);
         }
+
+        [Fact]
+        public void GetOrdersTest()
+        {
+            IKuCoinRepository repo = new KuCoinRepository();
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            repo.SetExchangeApi(apiInfo);
+            var symbol = "DCC-BTC";
+
+            var orders = repo.GetOrders(symbol).Result;
+
+            Assert.True(orders != null);
+        }
+
+        [Fact]
+        public void GetOpenOrdersTest()
+        {
+            IKuCoinRepository repo = new KuCoinRepository();
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            repo.SetExchangeApi(apiInfo);
+            var symbol = "DCC-BTC";
+
+            var orders = repo.GetOpenOrders(symbol).Result;
+
+            if(orders != null)
+                Assert.True(orders != null);
+        }
     }
 }
