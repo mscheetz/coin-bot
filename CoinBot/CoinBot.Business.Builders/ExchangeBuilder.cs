@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CoinBot.Business.Builders
 {
@@ -305,17 +304,6 @@ namespace CoinBot.Business.Builders
             if (_thisExchange == Exchange.BINANCE)
             {
                 var response = _bianceRepo.GetOrders(symbol).Result;
-                int i = 0;
-                while(response == null && i < 3)
-                {
-                    response = _bianceRepo.GetOrders(symbol).Result;
-                    i++;
-                }
-
-                if(response == null)
-                {
-                    return null;
-                }
 
                 var orderReverse = response.Where(o => o.status == OrderStatus.FILLED)
                                            .OrderByDescending(o => o.time).ToArray();
@@ -324,7 +312,7 @@ namespace CoinBot.Business.Builders
 
                 var buyFound = false;
                 var sellFound = false;
-                for (i = 0; i < orderReverse.Length; i++)
+                for (int i = 0; i < orderReverse.Length; i++)
                 {
                     if(orderReverse[i].side == TradeType.BUY && !buyFound)
                     {
@@ -500,13 +488,6 @@ namespace CoinBot.Business.Builders
                                 ? symbol.Substring(symbol.Length - 4)
                                 : symbol.Substring(symbol.Length - 3);
                 var orderBook = _bianceRepo.GetOrderBook(symbol).Result;
-                
-                while(orderBook == null && i < 3)
-                {
-                    Task.WaitAll(Task.Delay(1000));
-                    orderBook = _bianceRepo.GetOrderBook(symbol).Result;
-                    i++;
-                }
 
                 if (!StaleMateCheck(orderBook.bids.Take(2).ToArray(), orderBook.asks.Take(2).ToArray(), volume))
                 {

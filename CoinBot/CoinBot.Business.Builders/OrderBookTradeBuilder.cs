@@ -167,11 +167,10 @@ namespace CoinBot.Business.Builders
 
                 if (!tradeOpen)
                 {
-                    UpdateLastPrices();
-                    //if (cycle > 0)
-                    //{
-                    //    UpdateLastPrices();
-                    //}
+                    if (cycle > 0)
+                    {
+                        UpdateLastPrices();
+                    }
 
                     _tradeType = _trader.GetTradingType();
 
@@ -257,7 +256,7 @@ namespace CoinBot.Business.Builders
         private bool SellCryptoCheck()
         {
             var price = _trader.GetResistance();
-            if (price > 0.00000000M && _lastBuy > 0.00000000M && price > _lastBuy)
+            if (price > 0.00000000M)
             {
                 _trader.SellCrypto(price, TradeType.SELL, false);
                 //var signal = new TradeSignal
@@ -283,7 +282,7 @@ namespace CoinBot.Business.Builders
         private bool BuyCryptoCheck()
         {
             var price = _trader.GetSupport();
-            if (price > 0.00000000M && price < _lastSell)
+            if (price > 0.00000000M)
             {
                 _trader.BuyCrypto(price, TradeType.BUY, false, false);
                 //var signal = new TradeSignal
