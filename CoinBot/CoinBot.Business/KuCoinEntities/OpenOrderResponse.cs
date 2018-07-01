@@ -9,7 +9,7 @@ namespace CoinBot.Business.Entities.KuCoinEntities
     {
         [JsonProperty(PropertyName = "SELL")]
         public OpenOrderDetail[] openSells { get; set; }
-        [JsonProperty(PropertyName = "BUYs")]
+        [JsonProperty(PropertyName = "BUY")]
         public OpenOrderDetail[] openBuys { get; set; }
     }
 }
