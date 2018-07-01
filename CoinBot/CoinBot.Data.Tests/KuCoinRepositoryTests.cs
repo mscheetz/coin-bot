@@ -114,8 +114,7 @@ namespace CoinBot.Data.Tests
 
             var orders = repo.GetOpenOrders(symbol).Result;
 
-            if(orders != null)
-                Assert.True(orders != null);
+            Assert.True(orders != null);
         }
     }
 }

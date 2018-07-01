@@ -69,8 +69,8 @@ namespace CoinBot.Data
         {
             var to = _dtHelper.UTCtoUnixTime();
             var from = to - (size * limit * 60);
-            var endpoint = $"/open/chart/history?symbol={symbol}&resolution={size}&from={from}&to={to}";
-            var url = baseUrl + "/v1" + endpoint;
+            var endpoint = $"/v1/open/chart/history?symbol={symbol}&resolution={size}&from={from}&to={to}";
+            var url = baseUrl + endpoint;
 
             try
             {

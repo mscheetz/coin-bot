@@ -17,7 +17,7 @@ namespace CoinBot.Business.Entities.KuCoinEntities
         [JsonProperty(Order = 4)]
         public decimal quantity { get; set; }
         [JsonProperty(Order = 5)]
-        public long zeroValue { get; set; }
+        public decimal filledQuantity { get; set; }
         [JsonProperty(Order = 6)]
         public string orderId { get; set; }
     }
