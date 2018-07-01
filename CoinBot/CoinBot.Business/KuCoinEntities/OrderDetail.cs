@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CoinBot.Business.Entities.KuCoinEntities
 {
-    public class OrderDetail
+    public class OrderDetail<T>
     {
         public string coinType { get; set; }
         public decimal dealValueTotal { get; set; }
@@ -12,7 +12,7 @@ namespace CoinBot.Business.Entities.KuCoinEntities
         public decimal feeTotal { get; set; }
         public string userOid { get; set; }
         public decimal dealAmount { get; set; }
-        public DealOrder dealOrders { get; set; }
+        public DealOrder<T> dealOrders { get; set; }
         public string coinTypePair { get; set; }
         public decimal orderPrice { get; set; }
         public string type { get; set; }

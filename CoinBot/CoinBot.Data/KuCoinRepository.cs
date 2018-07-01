@@ -84,7 +84,7 @@ namespace CoinBot.Data
                 return null;
             }
         }
-        
+
         /// <summary>
         /// Get account balance
         /// </summary>
@@ -102,7 +102,7 @@ namespace CoinBot.Data
 
                 return response.data;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _fileRepo.LogError($"KuCoinRepository.GetBalance() error: {ex.Message}");
                 return null;
@@ -118,7 +118,7 @@ namespace CoinBot.Data
         /// <param name="page">Page number, default 1</param>
         /// <param name="limit">Number of fills to return, default 20</param>
         /// <returns>OrderResponse object</returns>
-        public async Task<OrderDetail> GetOrder(string symbol, TradeType tradeType, long orderId, int page = 1, int limit = 20)
+        public async Task<OrderListDetail> GetOrder(string symbol, TradeType tradeType, long orderId, int page = 1, int limit = 20)
         {
             var endpoint = "/v1/order/detail";
             var url = baseUrl + endpoint;
@@ -136,9 +136,9 @@ namespace CoinBot.Data
 
             try
             {
-                var response = await _restRepo.GetApiStream<ApiResponse<OrderDetail>>(url, headers);
+                var response = await _restRepo.GetApiStream<ApiResponse<DealOrder<OrderListDetail>>>(url, headers);
 
-                return response.data;
+                return response.data.datas;
             }
             catch (Exception ex)
             {
@@ -154,10 +154,9 @@ namespace CoinBot.Data
         /// <param name="limit">Int of orders count to return, default 20</param>
         /// <param name="page">Int of page number</param>
         /// <returns>OpenOrderResponse object</returns>
-        public async Task<OpenOrderResponse> GetOrders(string symbol, int limit = 20, int page = 1)
+        public async Task<OrderListDetail[]> GetOrders(string symbol, int limit = 20, int page = 1)
         {
             var endpoint = "/v1/deal-orders";
-            var url = baseUrl + endpoint;
 
             var queryString = new List<string>
             {
@@ -168,11 +167,13 @@ namespace CoinBot.Data
 
             var headers = GetRequestHeaders(endpoint, queryString.ToArray());
 
+            var url = baseUrl + endpoint + $"?{queryString[0]}&{queryString[1]}&{queryString[2]}";
+
             try
             {
-                var response = await _restRepo.GetApiStream<ApiResponse<OpenOrderResponse>>(url, headers);
+                var response = await _restRepo.GetApiStream<ApiResponse<DealOrder<OrderListDetail[]>>>(url, headers);
 
-                return response.data;
+                return response.data.datas;
             }
             catch (Exception ex)
             {

@@ -46,7 +46,7 @@ namespace CoinBot.Data.Interface
         /// <param name="page">Page number, default 1</param>
         /// <param name="limit">Number of fills to return, default 20</param>
         /// <returns>OrderResponse object</returns>
-        Task<OrderDetail> GetOrder(string symbol, TradeType tradeType, long orderId, int page = 1, int limit = 20);
+        Task<OrderListDetail> GetOrder(string symbol, TradeType tradeType, long orderId, int page = 1, int limit = 20);
 
         /// <summary>
         /// Get all current user order information
@@ -55,7 +55,7 @@ namespace CoinBot.Data.Interface
         /// <param name="limit">Int of orders count to return, default 20</param>
         /// <param name="page">Int of page number</param>
         /// <returns>OpenOrderResponse object</returns>
-        Task<OpenOrderResponse> GetOrders(string symbol, int limit = 20, int page = 1);
+        Task<OrderListDetail[]> GetOrders(string symbol, int limit = 20, int page = 1);
 
         /// <summary>
         /// Get all open orders
