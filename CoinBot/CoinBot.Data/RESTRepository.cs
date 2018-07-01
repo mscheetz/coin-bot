@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,7 +55,12 @@ namespace CoinBot.Data
                 }
                 catch (HttpRequestException ex)
                 {
-                    _fileRepo.LogError($"GetApi: {url}    error: {ex}");
+                    _fileRepo.LogError($"{DateTime.UtcNow} GetApi: {url}    error: {ex}");
+                    return default(T);
+                }
+                catch (WebException e)
+                {
+                    _fileRepo.LogError($"{DateTime.UtcNow} GetApiStream: {url}    error: {e}");
                     return default(T);
                 }
             }
@@ -107,7 +113,12 @@ namespace CoinBot.Data
                 }
                 catch (HttpRequestException ex)
                 {
-                    _fileRepo.LogError($"GetApiStream: {url}    error: {ex}");
+                    _fileRepo.LogError($"{DateTime.UtcNow} GetApiStream: {url}    error: {ex}");
+                    return default(T);
+                }
+                catch(WebException e)
+                {
+                    _fileRepo.LogError($"{DateTime.UtcNow} GetApiStream: {url}    error: {e}");
                     return default(T);
                 }
             }
@@ -153,7 +164,12 @@ namespace CoinBot.Data
                 }
                 catch (HttpRequestException ex)
                 {
-                    _fileRepo.LogError($"PostApi: {url}    error: {ex}");
+                    _fileRepo.LogError($"{DateTime.UtcNow} PostApi: {url}    error: {ex}");
+                    return default(T);
+                }
+                catch (WebException e)
+                {
+                    _fileRepo.LogError($"{DateTime.UtcNow} PostApi: {url}    error: {e}");
                     return default(T);
                 }
             }
@@ -195,7 +211,12 @@ namespace CoinBot.Data
                 }
                 catch (HttpRequestException ex)
                 {
-                    _fileRepo.LogError($"PostApi: {url}    error: {ex}");
+                    _fileRepo.LogError($"{DateTime.UtcNow} PostApi: {url}    error: {ex}");
+                    return default(T);
+                }
+                catch (WebException e)
+                {
+                    _fileRepo.LogError($"{DateTime.UtcNow} PostApi: {url}    error: {e}");
                     return default(T);
                 }
             }
@@ -237,7 +258,12 @@ namespace CoinBot.Data
                 }
                 catch(HttpRequestException ex)
                 {
-                    _fileRepo.LogError($"DeleteApi: {url}    error: {ex}");
+                    _fileRepo.LogError($"{DateTime.UtcNow} DeleteApi: {url}    error: {ex}");
+                    return default(T);
+                }
+                catch (WebException e)
+                {
+                    _fileRepo.LogError($"{DateTime.UtcNow} DeleteApi: {url}    error: {e}");
                     return default(T);
                 }
             }
