@@ -1278,6 +1278,11 @@ namespace CoinBot.Business.Builders
         {
             var orders = _exchBldr.GetLatestOrders(_symbol);
 
+            if(orders == null)
+            {
+                return new decimal[] { 0.00000000M, 0.00000000M };
+            }
+
             var lastBuy = orders.Where(o => o.side == TradeType.BUY).Select(o => o.price).FirstOrDefault();
             var lastSell = orders.Where(o => o.side == TradeType.SELL).Select(o => o.price).FirstOrDefault();
             
