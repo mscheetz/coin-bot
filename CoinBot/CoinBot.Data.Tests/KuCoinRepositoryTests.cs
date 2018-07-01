@@ -116,5 +116,27 @@ namespace CoinBot.Data.Tests
 
             Assert.True(orders != null);
         }
+
+        [Fact]
+        public void PostTradeTest()
+        {
+            IKuCoinRepository repo = new KuCoinRepository();
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            repo.SetExchangeApi(apiInfo);
+            var symbol = "DCC-BTC";
+            var tradeParams = new TradeParams
+            {
+                price = 0.00000400M,
+                quantity = 3000,
+                symbol = symbol,
+                timeInForce = TimeInForce.GTC.ToString(),
+                type = "BUY"
+            };
+
+            var orderDetail = repo.PostTrade(tradeParams).Result;
+
+            Assert.True(orderDetail != null);
+        }
     }
 }
