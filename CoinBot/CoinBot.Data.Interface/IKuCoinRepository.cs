@@ -82,9 +82,11 @@ namespace CoinBot.Data.Interface
         /// <summary>
         /// Delete/Cancel a trade
         /// </summary>
-        /// <param name="tradeParams">Trade to delete</param>
+        /// <param name="symbol">Trading symbol</param>
+        /// <param name="orderOid">Order id to cancel</param>
+        /// <param name="tradeType">Trade type to cancel</param>
         /// <returns>TradeResponse object</returns>
-        Task<DeleteResponse> DeleteTrade(CancelTradeParams tradeParams, TradeType tradeType);
+        Task<DeleteResponse> DeleteTrade(string symbol, string orderOid, string tradeType);
 
         /// <summary>
         /// Get Ticker for all pairs

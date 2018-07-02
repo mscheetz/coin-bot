@@ -244,26 +244,23 @@ namespace CoinBot.Data
         /// <returns>KuCoinResponse object</returns>
         public async Task<ApiResponse<Dictionary<string, string>>> PostTrade(TradeParams tradeParams)
         {
-            var endpoint = "/v1/order";
-            var url = baseUrl + endpoint;
+            var endpoint = $"/v1/order";
 
             var queryString = new List<string>
             {
-                $"symbol={tradeParams.symbol}"
+                $"symbol={tradeParams.symbol}",
+                $"amount={tradeParams.quantity}",
+                $"price={tradeParams.price}",
+                $"type={tradeParams.type}"
             };
 
-            var tradeReq = new TradeRequest
-            {
-                amount = tradeParams.quantity,
-                price = tradeParams.price,
-                type = tradeParams.type
-            };
+            var headers = GetRequestHeaders(endpoint, queryString.ToArray());
 
-            var headers = PostRequestHeaders(endpoint, queryString.ToArray(), tradeReq);
+            var url = baseUrl + endpoint + $"?{_helper.ArrayToString(queryString.ToArray())}";
 
             try
             {
-                var response = await _restRepo.PostApi<ApiResponse<Dictionary<string, string>>, TradeRequest>(url, tradeReq, headers);
+                var response = await _restRepo.PostApi<ApiResponse<Dictionary<string, string>>>(url, headers);
 
                 return response;
             }
@@ -277,24 +274,28 @@ namespace CoinBot.Data
         /// <summary>
         /// Delete/Cancel a trade
         /// </summary>
-        /// <param name="tradeParams">Trade to delete</param>
+        /// <param name="symbol">Trading symbol</param>
+        /// <param name="orderOid">Order id to cancel</param>
+        /// <param name="tradeType">Trade type to cancel</param>
         /// <returns>TradeResponse object</returns>
-        public async Task<DeleteResponse> DeleteTrade(CancelTradeParams tradeParams, TradeType tradeType)
+        public async Task<DeleteResponse> DeleteTrade(string symbol, string orderOid, string tradeType)
         {
             var endpoint = "/v1/cancel-order";
-            var url = baseUrl + endpoint;
 
-            var req = new DeleteRequest
+            var queryString = new List<string>
             {
-                orderOid = tradeParams.origClientOrderId,
-                type = tradeType.ToString()
+                $"symbol={symbol}",
+                $"orderOid={orderOid}",
+                $"type={tradeType}"
             };
 
-            var headers = PostRequestHeaders<DeleteRequest>(endpoint, null, req);
+            var headers = GetRequestHeaders(endpoint, queryString.ToArray());
+
+            var url = baseUrl + endpoint + $"?{_helper.ArrayToString(queryString.ToArray())}";
 
             try
             {
-                var response = await _restRepo.PostApi<DeleteResponse, DeleteRequest>(url, req, headers);
+                var response = await _restRepo.PostApi<DeleteResponse>(url, headers);
 
                 return response;
             }
@@ -402,7 +403,7 @@ namespace CoinBot.Data
             {
                 qsValues = _helper.ArrayToString(queryString);
             }
-            if(typeof(T) != typeof(int))
+            else if(typeof(T) != typeof(int))
             {
                 qsValues += _helper.ObjectToString<T>(value);
             }

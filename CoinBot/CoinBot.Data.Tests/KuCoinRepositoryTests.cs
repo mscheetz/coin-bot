@@ -130,13 +130,44 @@ namespace CoinBot.Data.Tests
                 price = 0.00000400M,
                 quantity = 3000,
                 symbol = symbol,
-                timeInForce = TimeInForce.GTC.ToString(),
                 type = "BUY"
             };
 
             var orderDetail = repo.PostTrade(tradeParams).Result;
 
             Assert.True(orderDetail != null);
+        }
+
+        [Fact]
+        public void GetAndCancelOpenTradeTest()
+        {
+            IKuCoinRepository repo = new KuCoinRepository();
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            repo.SetExchangeApi(apiInfo);
+            var symbol = "DCC-BTC";
+
+            var orders = repo.GetOpenOrders(symbol).Result;
+
+            Assert.True(orders != null);
+
+            if (orders.openBuys.Length > 0)
+            {
+                var orderId = orders.openBuys[0].orderId;
+
+                var cancelDetail = repo.DeleteTrade(symbol, orderId, orders.openBuys[0].type).Result;
+
+                Assert.True(cancelDetail != null);
+            }
+
+            if(orders.openSells.Length > 0)
+            {
+                var orderId = orders.openSells[0].orderId;
+
+                var cancelDetail = repo.DeleteTrade(symbol, orderId, orders.openSells[0].type).Result;
+
+                Assert.True(cancelDetail != null);
+            }
         }
     }
 }
