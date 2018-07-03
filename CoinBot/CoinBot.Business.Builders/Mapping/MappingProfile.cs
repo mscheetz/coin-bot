@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CoinBot.Business.Entities;
+using CoinBot.Business.Entities.KuCoinEntities;
 using GDAXSharp.Services.Products.Models;
 using System;
 using System.Collections.Generic;
@@ -77,6 +78,27 @@ namespace CoinBot.Business.Builders.Mapping
                 .ForMember(o => o.ProductId, map => map.MapFrom(t => t.symbol))
                 .ForMember(o => o.TimeInForce, map => map.MapFrom(t => t.timeInForce))
                 .ForMember(o => o.OrderType, map => map.MapFrom(t => t.type));
+
+            CreateMap<BinanceOrders, Entities.KuCoinEntities.OrderBook>()
+                .ForMember(o => o.pairTotal, map => map.MapFrom(b => b.ignore))
+                .ForMember(o => o.price, map => map.MapFrom(b => b.price))
+                .ForMember(o => o.quantity, map => map.MapFrom(b => b.quantity));
+            
+            CreateMap<OrderResponse, Entities.KuCoinEntities.OpenOrderDetail>()
+                .ForMember(o => o.filledQuantity, map => map.MapFrom(b => b.executedQty))
+                .ForMember(o => o.orderId, map => map.MapFrom(b => b.orderId))
+                .ForMember(o => o.price, map => map.MapFrom(b => b.price))
+                .ForMember(o => o.quantity, map => map.MapFrom(b => b.origQty))
+                .ForMember(o => o.timestamp, map => map.MapFrom(b => b.time))
+                .ForMember(o => o.type, map => map.MapFrom(b => b.type));
+
+            CreateMap<OrderResponse, Entities.KuCoinEntities.OrderListDetail>()
+                .ForMember(o => o.amount, map => map.MapFrom(b => b.executedQty))
+                .ForMember(o => o.oid, map => map.MapFrom(b => b.orderId))
+                .ForMember(o => o.dealPrice, map => map.MapFrom(b => b.price))
+                .ForMember(o => o.amount, map => map.MapFrom(b => b.origQty))
+                .ForMember(o => o.createdAt, map => map.MapFrom(b => b.time))
+                .ForMember(o => o.direction, map => map.MapFrom(b => b.type));
         }
     }
 }
