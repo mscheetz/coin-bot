@@ -10,5 +10,6 @@ namespace CoinBot.Business.Entities
         public long orderId { get; set; }
         public string origClientOrderId { get; set; }
         public long timestamp { get; set; }
+        public string type { get; set; }
     }
 }

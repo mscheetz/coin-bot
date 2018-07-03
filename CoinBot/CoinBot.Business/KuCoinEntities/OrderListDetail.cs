@@ -6,6 +6,7 @@ namespace CoinBot.Business.Entities.KuCoinEntities
 {
     public class OrderListDetail
     {
+        public decimal amount { get; set; }
         public string coinType { get; set; }
         public decimal dealValue { get; set; }
         public decimal fee { get; set; }

@@ -13,7 +13,7 @@ namespace CoinBot.Business.Entities.KuCoinEntities
         [JsonProperty(PropertyName = "t")]
         public long[] timestamp { get; set; }
         [JsonProperty(PropertyName = "v")]
-        public double[] volume { get; set; }
+        public decimal[] volume { get; set; }
         [JsonProperty(PropertyName = "h")]
         public decimal[] high { get; set; }
         [JsonProperty(PropertyName = "l")]
