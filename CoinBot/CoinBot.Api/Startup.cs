@@ -38,6 +38,7 @@ namespace CoinBot.Api
 
             services.AddScoped<IBinanceRepository, BinanceRepository>();
             services.AddScoped<IGdaxRepository, GdaxRepository>();
+            services.AddScoped<IKuCoinRepository, KuCoinRepository>();
             services.AddScoped<IFileRepository, FileRepository>();
             services.AddTransient<IBollingerBandTradeBuilder, BollingerBandTradeBuilder>();
             services.AddTransient<IVolumeTradeBuilderOG, VolumeTradeBuilderOG>();
