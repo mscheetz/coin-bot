@@ -161,7 +161,7 @@ namespace CoinBot.Data
         /// <returns>GdaxTrade array</returns>
         public async Task<GdaxTrade[]> GetTrades(string pair)
         {
-            var gdaxPair = _helper.CreateGdaxPair(pair);
+            var gdaxPair = _helper.CreateDashedPair(pair);
             var url = baseUrl + $"/products/{gdaxPair}/trades";
 
             var response = await _restRepo.GetApiStream<GdaxTrade[]>(url, GetRequestHeaders());
@@ -271,7 +271,7 @@ namespace CoinBot.Data
         /// <returns>GDAXOrderResponse object</returns>
         public async Task<GDAXOrderResponse> PlaceRestTrade(GDAXTradeParams tradeParams)
         {
-            var gdaxPair = _helper.CreateGdaxPair(tradeParams.product_id);
+            var gdaxPair = _helper.CreateDashedPair(tradeParams.product_id);
             tradeParams.product_id = gdaxPair;
             tradeParams.post_only = true;
             var req = new Request
@@ -301,7 +301,7 @@ namespace CoinBot.Data
         /// <returns>GDAXOrderResponse object</returns>
         public async Task<GDAXOrderResponse> PlaceStopLimit(GDAXStopLostParams tradeParams)
         {
-            var gdaxPair = _helper.CreateGdaxPair(tradeParams.product_id);
+            var gdaxPair = _helper.CreateDashedPair(tradeParams.product_id);
             tradeParams.product_id = gdaxPair;
             var req = new Request
             {

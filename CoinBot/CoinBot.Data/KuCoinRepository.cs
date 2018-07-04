@@ -67,9 +67,10 @@ namespace CoinBot.Data
         /// <returns>ChartValue object</returns>
         public async Task<ChartValue> GetCandlesticks(string symbol, int size, int limit)
         {
+            var kuPair = _helper.CreateDashedPair(symbol);
             var to = _dtHelper.UTCtoUnixTime();
             var from = to - (size * limit * 60);
-            var endpoint = $"/v1/open/chart/history?symbol={symbol}&resolution={size}&from={from}&to={to}";
+            var endpoint = $"/v1/open/chart/history?symbol={kuPair}&resolution={size}&from={from}&to={to}";
             var url = baseUrl + endpoint;
 
             try
@@ -122,10 +123,11 @@ namespace CoinBot.Data
         {
             var endpoint = "/v1/order/detail";
             var url = baseUrl + endpoint;
+            var kuPair = _helper.CreateDashedPair(symbol);
 
             var queryString = new List<string>
             {
-                $"symbol={symbol}",
+                $"symbol={kuPair}",
                 $"type={tradeType.ToString()}",
                 $"limit={limit}",
                 $"page={page}",
@@ -157,12 +159,13 @@ namespace CoinBot.Data
         public async Task<OrderListDetail[]> GetOrders(string symbol, int limit = 20, int page = 1)
         {
             var endpoint = "/v1/deal-orders";
+            var kuPair = _helper.CreateDashedPair(symbol);
 
             var queryString = new List<string>
             {
                 $"limit={limit}",
                 $"page={page}",
-                $"symbol={symbol}"
+                $"symbol={kuPair}"
             };
 
             var headers = GetRequestHeaders(endpoint, queryString.ToArray());
@@ -190,10 +193,11 @@ namespace CoinBot.Data
         public async Task<OpenOrderResponse> GetOpenOrders(string symbol)
         {
             var endpoint = "/v1/order/active";
+            var kuPair = _helper.CreateDashedPair(symbol);
 
             var queryString = new List<string>
             {
-                $"symbol={symbol}"
+                $"symbol={kuPair}"
             };
 
             var headers = GetRequestHeaders(endpoint, queryString.ToArray());
@@ -221,7 +225,8 @@ namespace CoinBot.Data
         /// <returns>OrderBook object</returns>
         public async Task<OrderBookResponse> GetOrderBook(string symbol, int limit = 100)
         {
-            var endpoint = $"/v1/open/orders?symbol={symbol}&limit={limit}";
+            var kuPair = _helper.CreateDashedPair(symbol);
+            var endpoint = $"/v1/open/orders?symbol={kuPair}&limit={limit}";
             var url = baseUrl + endpoint;
             
             try
@@ -245,13 +250,14 @@ namespace CoinBot.Data
         public async Task<ApiResponse<Dictionary<string, string>>> PostTrade(TradeParams tradeParams)
         {
             var endpoint = $"/v1/order";
+            var kuPair = _helper.CreateDashedPair(tradeParams.symbol);
 
             var queryString = new List<string>
             {
-                $"symbol={tradeParams.symbol}",
+                $"symbol={kuPair}",
                 $"amount={tradeParams.quantity}",
                 $"price={tradeParams.price}",
-                $"type={tradeParams.type}"
+                $"type={tradeParams.side}"
             };
 
             var headers = GetRequestHeaders(endpoint, queryString.ToArray());
@@ -281,10 +287,11 @@ namespace CoinBot.Data
         public async Task<DeleteResponse> DeleteTrade(string symbol, string orderOid, string tradeType)
         {
             var endpoint = "/v1/cancel-order";
+            var kuPair = _helper.CreateDashedPair(symbol);
 
             var queryString = new List<string>
             {
-                $"symbol={symbol}",
+                $"symbol={kuPair}",
                 $"orderOid={orderOid}",
                 $"type={tradeType}"
             };
@@ -335,7 +342,8 @@ namespace CoinBot.Data
         /// <returns>KuCoinTick object</returns>
         public async Task<Tick> GetTick(string symbol)
         {
-            var endpoint = $"/v1/open/tick?symbol={symbol}";
+            var kuPair = _helper.CreateDashedPair(symbol);
+            var endpoint = $"/v1/open/tick?symbol={kuPair}";
             var url = baseUrl + endpoint;
 
             try

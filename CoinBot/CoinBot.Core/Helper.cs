@@ -91,11 +91,11 @@ namespace CoinBot.Core
         }
 
         /// <summary>
-        /// Creates GDAX pair
+        /// Creates dashed pair (ie BTC-ETH)
         /// </summary>
         /// <param name="pair">String of pair</param>
-        /// <returns>String of GDAX pair</returns>
-        public string CreateGdaxPair(string pair)
+        /// <returns>String of pair</returns>
+        public string CreateDashedPair(string pair)
         {
             if (pair.IndexOf("-") < 0)
             {
