@@ -17,6 +17,7 @@ namespace CoinBot.Business.Builders.Tests
     {
         private Mock<IBinanceRepository> _binanceRepo;
         private Mock<IGdaxRepository> _gdaxRepo;
+        private Mock<IKuCoinRepository> _kuRepo;
         private Mock<IFileRepository> _fileRepo;
         private TestObjects _testObjects;
         private ITradeBuilder _tradeBuilder;
@@ -29,6 +30,7 @@ namespace CoinBot.Business.Builders.Tests
             _orderPrice = 0.001234M;
             _binanceRepo = new Mock<IBinanceRepository>();
             _gdaxRepo = new Mock<IGdaxRepository>();
+            _kuRepo = new Mock<IKuCoinRepository>();
             _fileRepo = new Mock<IFileRepository>();
         }
 
@@ -43,7 +45,7 @@ namespace CoinBot.Business.Builders.Tests
             // Arrange
             _gdaxRepo.Setup(g => g.GetTrades(It.IsAny<string>())).ReturnsAsync(_testObjects.GetGdaxTrades().ToArray());
 
-            _xchBuilder = new ExchangeBuilder(_binanceRepo.Object, _gdaxRepo.Object);
+            _xchBuilder = new ExchangeBuilder(_binanceRepo.Object, _gdaxRepo.Object, _kuRepo.Object);
             _xchBuilder.SetExchange(_testObjects.GetBotSettings());
 
             // Act
@@ -61,7 +63,7 @@ namespace CoinBot.Business.Builders.Tests
             settings.exchange = Exchange.GDAX;
             _gdaxRepo.Setup(g => g.PlaceTrade(It.IsAny<TradeParams>()))
                      .ReturnsAsync(_testObjects.GetGDAXOrderResponse());
-            _xchBuilder = new ExchangeBuilder(_binanceRepo.Object, _gdaxRepo.Object);
+            _xchBuilder = new ExchangeBuilder(_binanceRepo.Object, _gdaxRepo.Object, _kuRepo.Object);
             _xchBuilder.SetExchange(settings);
 
             // Act
