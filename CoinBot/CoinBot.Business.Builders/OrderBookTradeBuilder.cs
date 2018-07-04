@@ -283,17 +283,17 @@ namespace CoinBot.Business.Builders
             {
                 _trader.SellCrypto(price, TradeType.SELL, false);
                 _tradeType = TradeType.BUY;
-                //var signal = new TradeSignal
-                //{
-                //    lastBuy = _lastBuy,
-                //    lastSell = _lastSell,
-                //    pair = _symbol,
-                //    price = price,
-                //    signal = SignalType.OrderBook,                    
-                //    tradeType = TradeType.ORDERBOOKSELL,
-                //    transactionDate = DateTime.UtcNow
-                //};
-                //_fileRepo.LogSignal(signal);
+                var signal = new TradeSignal
+                {
+                    lastBuy = _lastBuy,
+                    lastSell = _lastSell,
+                    pair = _symbol,
+                    price = price,
+                    signal = SignalType.OrderBook,
+                    tradeType = TradeType.ORDERBOOKSELL,
+                    transactionDate = DateTime.UtcNow
+                };
+                _fileRepo.LogSignal(signal);
             }  
 
             return true;
@@ -311,17 +311,17 @@ namespace CoinBot.Business.Builders
             {
                 _trader.BuyCrypto(price, TradeType.BUY, false, false);
                 _tradeType = TradeType.SELL;
-                //var signal = new TradeSignal
-                //{
-                //    lastBuy = _lastBuy,
-                //    lastSell = _lastSell,
-                //    pair = _symbol,
-                //    price = price,
-                //    signal = SignalType.OrderBook,
-                //    tradeType = TradeType.ORDERBOOKBUY,
-                //    transactionDate = DateTime.UtcNow
-                //};
-                //_fileRepo.LogSignal(signal);
+                var signal = new TradeSignal
+                {
+                    lastBuy = _lastBuy,
+                    lastSell = _lastSell,
+                    pair = _symbol,
+                    price = price,
+                    signal = SignalType.OrderBook,
+                    tradeType = TradeType.ORDERBOOKBUY,
+                    transactionDate = DateTime.UtcNow
+                };
+                _fileRepo.LogSignal(signal);
             }
             return true;
         }
