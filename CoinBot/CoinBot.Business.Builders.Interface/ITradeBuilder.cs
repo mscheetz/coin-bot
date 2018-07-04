@@ -172,7 +172,14 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="range">Number of candlesticks to get</param>
         /// <returns>Array of BotStick objects</returns>
         BotStick[] GetCandlesticks(string symbol, Interval interval, int range);
-        
+
+        /// <summary>
+        /// Get order book position of a price
+        /// </summary>
+        /// <param name="price">Decimal of price to find</param>
+        /// <returns>Int of position in order book</returns>
+        int? GetPricePostion(decimal price);
+
         /// <summary>
         /// Get next resistance level
         /// </summary>
@@ -274,7 +281,8 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <param name="orderId">OrderId to cancel</param>
         /// <param name="origClientOrderId">ClientOrderId to cancel</param>
-        void CancelTrade(long orderId, string origClientOrderId);
+        /// <param name="tradeType">Trade type</param>
+        void CancelTrade(long orderId, string origClientOrderId, string tradeType = "");
 
         /// <summary>
         /// Cancel all open orders for the current trading pair

@@ -592,6 +592,16 @@ namespace CoinBot.Business.Builders
         #region OrderBook
 
         /// <summary>
+        /// Get order book position of a price
+        /// </summary>
+        /// <param name="price">Decimal of price to find</param>
+        /// <returns>Int of position in order book</returns>
+        public int? GetPricePostion(decimal price)
+        {
+            return _exchBldr.GetPricePosition(_symbol, price);
+        }
+
+        /// <summary>
         /// Get next resistance level if within 3 spots of bottom resistance
         /// </summary>
         /// <returns>Decimal of next resistance</returns>
@@ -941,7 +951,8 @@ namespace CoinBot.Business.Builders
                         orderId = trade.orderId,
                         origClientOrderId = trade.clientOrderId,
                         symbol = trade.symbol,
-                        timestamp = trade.transactTime
+                        timestamp = trade.transactTime,
+                        type = trade.side.ToString()
                     };
                     CancelTrade(cancelTradeParams);
 
@@ -1095,7 +1106,8 @@ namespace CoinBot.Business.Builders
             {
                 symbol = _symbol,
                 orderId = _openStopLossList[0].orderId,
-                origClientOrderId = _openStopLossList[0].clientOrderId
+                origClientOrderId = _openStopLossList[0].clientOrderId,
+                type = "SELL"
             };
 
             var result = CancelTrade(tradeParams);
@@ -1229,13 +1241,15 @@ namespace CoinBot.Business.Builders
         /// </summary>
         /// <param name="orderId">OrderId to cancel</param>
         /// <param name="origClientOrderId">ClientOrderId to cancel</param>
-        public void CancelTrade(long orderId, string origClientOrderId)
+        /// <param name="tradeType">Trade type</param>
+        public void CancelTrade(long orderId, string origClientOrderId, string tradeType = "")
         {
             var tradeParams = new CancelTradeParams
             {
                 symbol = _symbol,
                 orderId = orderId,
-                origClientOrderId = origClientOrderId
+                origClientOrderId = origClientOrderId,
+                type = tradeType
             };
 
             var response = CancelTrade(tradeParams);
@@ -1249,7 +1263,7 @@ namespace CoinBot.Business.Builders
         {
             var openOrders = _exchBldr.GetOpenOrders(_symbol);
 
-            while (openOrders != null)
+            while (openOrders != null && openOrders.Count() > 0)
             {
                 for (var i = 0; i < openOrders.Length; i++)
                 {
@@ -1262,7 +1276,7 @@ namespace CoinBot.Business.Builders
                         transactionDate = DateTime.UtcNow,
                     };
                     _fileRepo.LogSignal(signal);
-                    CancelTrade(openOrders[i].orderId, openOrders[i].clientOrderId);
+                    CancelTrade(openOrders[i].orderId, openOrders[i].clientOrderId, openOrders[i].side.ToString());
                 }
                 openOrders = _exchBldr.GetOpenOrders(_symbol);
             }
