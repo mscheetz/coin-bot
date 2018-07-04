@@ -95,6 +95,10 @@ namespace CoinBot.Business.Entities
         /// Interval, in cycles to reset balances and bot settings
         /// </summary>
         public int traderResetInterval { get; set; }
+        /// <summary>
+        /// Trade in trading competition?
+        /// </summary>
+        public bool tradingCompetition { get; set; }
 
         public BotSettings()
         {
