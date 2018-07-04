@@ -22,6 +22,8 @@ namespace CoinBot.Business.Builders
         private IKuCoinRepository _kuRepo;
         private Helper _helper;
         private DateTimeHelper _dtHelper;
+        private bool _competition;
+        private string _symbol;
         private string _pair = string.Empty;
         private string _asset = string.Empty;
 
@@ -76,7 +78,9 @@ namespace CoinBot.Business.Builders
         /// <param name="settings">BotSettings Object</param>
         public void SetExchange(BotSettings settings)
         {
+            _symbol = settings.tradingPair;
             _thisExchange = settings.exchange;
+            _competition = settings.tradingCompetition;
         }
 
         /// <summary>
@@ -182,6 +186,7 @@ namespace CoinBot.Business.Builders
         /// <returns>Collection of Balance objects</returns>
         public List<Entities.Balance> GetBalance(string asset, string pair)
         {
+            int i = 0;
             if (_thisExchange == Exchange.BINANCE)
             {
                 var account = _bianceRepo.GetBalance().Result;
@@ -199,7 +204,7 @@ namespace CoinBot.Business.Builders
 
                 var balances = new List<Entities.Balance>();
 
-                for (int i = 0; i < accountList.Count(); i++)
+                for (i = 0; i < accountList.Count(); i++)
                 {
                     if (accountList[i].Currency.ToString().Equals(asset)
                         || accountList[i].Currency.ToString().Equals(pair))
@@ -218,10 +223,24 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.KUCOIN)
             {
-                var accountList = _kuRepo.GetBalance().Result.ToArray();
+                var accountList = _kuRepo.GetBalance().Result;
+
+                while(accountList == null && i < 3)
+                {
+                    accountList = _kuRepo.GetBalance().Result;
+                    i++;
+                }
+
                 var balances = new List<Entities.Balance>();
 
-                for (int i = 0; i < accountList.Count(); i++)
+                if(accountList == null)
+                {
+                    return balances;
+                }
+
+                accountList = accountList.ToArray();
+
+                for (i = 0; i < accountList.Count(); i++)
                 {
                     if (accountList[i].coinType.ToString().Equals(asset)
                         || accountList[i].coinType.ToString().Equals(pair))
@@ -286,17 +305,20 @@ namespace CoinBot.Business.Builders
             {
                 var response = _kuRepo.PostTrade(tradeParams).Result;
 
-                var tradeResponse = new TradeResponse
+                if (response.msg.Equals("Operation succeeded.") || response.msg.Equals("OK"))
                 {
-                    clientOrderId = response.data["clientOid"],
-                    origQty = tradeParams.quantity,
-                    price = tradeParams.price,
-                    side = (TradeType)Enum.Parse(typeof(TradeType), tradeParams.side),
-                    symbol = tradeParams.symbol,
-                    type = (OrderType)Enum.Parse(typeof(OrderType), tradeParams.type)
-                };
-
-                return tradeResponse;
+                    var tradeResponse = new TradeResponse
+                    {
+                        clientOrderId = response.data["orderOid"],
+                        origQty = tradeParams.quantity,
+                        price = tradeParams.price,
+                        side = (TradeType)Enum.Parse(typeof(TradeType), tradeParams.side),
+                        symbol = tradeParams.symbol,
+                        type = (OrderType)Enum.Parse(typeof(OrderType), tradeParams.type)
+                    };
+                    return tradeResponse;
+                }
+                return null;
             }
             else
             {
@@ -437,9 +459,18 @@ namespace CoinBot.Business.Builders
         /// <returns>OrderResponse array</returns>
         public OrderResponse[] GetOrders(string symbol)
         {
+            int i = 0;
             if (_thisExchange == Exchange.BINANCE)
             {
-                return _bianceRepo.GetOrders(symbol).Result;
+                var binanceOrders = _bianceRepo.GetOrders(symbol).Result;
+
+                while (binanceOrders == null && i < 3)
+                {
+                    binanceOrders = _bianceRepo.GetOrders(symbol).Result;
+                    i++;
+                }
+
+                return binanceOrders;
             }
             else if (_thisExchange == Exchange.GDAX)
             {
@@ -448,6 +479,12 @@ namespace CoinBot.Business.Builders
             else if (_thisExchange == Exchange.KUCOIN)
             {
                 var kuOrders = _kuRepo.GetOrders(symbol).Result;
+
+                while (kuOrders == null && i < 3)
+                {
+                    kuOrders = _kuRepo.GetOrders(symbol).Result;
+                    i++;
+                }
 
                 return KuCoinOrderListDetailToOrderResponseArray(kuOrders, symbol);
             }
@@ -465,6 +502,7 @@ namespace CoinBot.Business.Builders
         public bool OpenOrdersExist(string symbol)
         {
             OrderResponse[] response = null;
+            int i = 0;
             if (_thisExchange == Exchange.BINANCE)
             {
                 while(response == null)
@@ -482,7 +520,14 @@ namespace CoinBot.Business.Builders
                 {
                     var kuOrders = _kuRepo.GetOpenOrders(symbol).Result;
 
-                    response = KuCoinOrderResponseToOrderResponse(kuOrders);
+                    while (kuOrders == null && i < 3)
+                    {
+                        kuOrders = _kuRepo.GetOpenOrders(symbol).Result;
+                        i++;
+                    }
+
+                    if(kuOrders != null)
+                        response = KuCoinOrderResponseToOrderResponse(kuOrders);
                 }
             }
             else
@@ -501,7 +546,7 @@ namespace CoinBot.Business.Builders
         public OrderResponse[] GetOpenOrders(string symbol)
         {
             OrderResponse[] response = null;
-
+            int i = 0;
             if (_thisExchange == Exchange.BINANCE)
             {
                 while (response == null)
@@ -518,7 +563,14 @@ namespace CoinBot.Business.Builders
                 {
                     var kuOrders = _kuRepo.GetOpenOrders(symbol).Result;
 
-                    response = KuCoinOrderResponseToOrderResponse(kuOrders);
+                    while (kuOrders == null && i < 3)
+                    {
+                        kuOrders = _kuRepo.GetOpenOrders(symbol).Result;
+                        i++;
+                    }
+
+                    if(kuOrders != null)
+                        response = KuCoinOrderResponseToOrderResponse(kuOrders);
                 }
             }
             else
@@ -526,6 +578,48 @@ namespace CoinBot.Business.Builders
             }
 
             return response;
+        }
+
+        /// <summary>
+        /// Get order book position of a price
+        /// </summary>
+        /// <param name="symbol">String of trading symbol</param>
+        /// <param name="price">Decimal of price to find</param>
+        /// <returns>Int of position</returns>
+        public int? GetPricePosition(string symbol, decimal price)
+        {
+            int i = 0;
+            var orderBook = GetOrderBook(symbol);
+
+            while (orderBook == null && i < 3)
+            {
+                Task.WaitAll(Task.Delay(1000));
+                orderBook = GetOrderBook(symbol);
+                i++;
+            }
+
+            if (price >= orderBook.asks[0].price)
+            {
+                for (i = 0; i < orderBook.asks.Length; i++)
+                {
+                    if(price <= orderBook.asks[i].price)
+                    {
+                        return i;
+                    }
+                }
+            }
+            else if (price <= orderBook.bids[0].price)
+            {
+                for (i = 0; i < orderBook.bids.Length; i++)
+                {
+                    if (price >= orderBook.bids[i].price)
+                    {
+                        return i;
+                    }
+
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -539,6 +633,7 @@ namespace CoinBot.Business.Builders
             decimal support = 0.00000000M;
             int i = 0;
             int precision = 0;
+            OrderBookDetail response;
             //var pair = symbol.Substring(symbol.Length - 4) == "USDT"
             //                ? symbol.Substring(symbol.Length - 4)
             //                : symbol.Substring(symbol.Length - 3);
@@ -551,7 +646,24 @@ namespace CoinBot.Business.Builders
                 i++;
             }
 
-            if (!StaleMateCheck(orderBook.bids.Take(2).ToArray(), orderBook.asks.Take(2).ToArray(), volume))
+            if (_competition)
+            {
+                var obPrice = orderBook.bids[i].price;
+                var trimedPrice = obPrice.ToString().TrimEnd('0');
+                var price = Convert.ToDecimal(trimedPrice);
+                var thisPrecision = BitConverter.GetBytes(decimal.GetBits(price)[3])[2];
+                response = new OrderBookDetail
+                {
+                    price = price,
+                    precision = thisPrecision,
+                    position = 0
+                };
+
+                return response;
+            }
+            var staleMate = StaleMateCheck(orderBook.bids.Take(2).ToArray(), orderBook.asks.Take(2).ToArray(), volume);
+
+            if (!staleMate)
             {
                 for (i = 0; i < orderBook.bids.Length; i++)
                 {
@@ -569,7 +681,7 @@ namespace CoinBot.Business.Builders
                     }
                 }
             }
-            var response = new OrderBookDetail
+            response = new OrderBookDetail
             {
                 price = support,
                 precision = precision,
@@ -588,6 +700,7 @@ namespace CoinBot.Business.Builders
         public OrderBookDetail GetResistance(string symbol, decimal volume)
         {
             decimal resistance = 0.00000000M;
+            OrderBookDetail response;
             int i = 0;
             int precision = 0;
             //var pair = symbol.Substring(symbol.Length - 4) == "USDT"
@@ -601,7 +714,25 @@ namespace CoinBot.Business.Builders
                 i++;
             }
 
-            if (!StaleMateCheck(orderBook.bids.Take(2).ToArray(), orderBook.asks.Take(2).ToArray(), volume))
+            if(_competition)
+            {
+                var obPrice = orderBook.asks[i].price;
+                var trimedPrice = obPrice.ToString().TrimEnd('0');
+                var price = Convert.ToDecimal(trimedPrice);
+                var thisPrecision = BitConverter.GetBytes(decimal.GetBits(price)[3])[2];
+                response = new OrderBookDetail
+                {
+                    price = price,
+                    precision = thisPrecision,
+                    position = 0
+                };
+
+                return response;
+            }
+
+            var staleMate = StaleMateCheck(orderBook.bids.Take(2).ToArray(), orderBook.asks.Take(2).ToArray(), volume);
+
+            if (!staleMate)
             {
                 for (i = 0; i < orderBook.asks.Length; i++)
                 {
@@ -619,7 +750,7 @@ namespace CoinBot.Business.Builders
                     }
                 }
             }
-            var response = new OrderBookDetail
+            response = new OrderBookDetail
             {
                 price = resistance,
                 precision = precision,
@@ -638,7 +769,11 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean if stale mate reached</returns>
         public bool StaleMateCheck(BinanceOrders[] buys, BinanceOrders[] sells, decimal volume)
         {
-            if ((buys[0].price * buys[0].quantity >= volume 
+            if(_competition)
+            {
+                return false;
+            }
+            else if ((buys[0].price * buys[0].quantity >= volume 
                 || buys[1].price * buys[1].quantity >= volume)
                 && (sells[0].price * sells[0].quantity >= volume
                 || sells[1].price * sells[1].quantity >= volume))
@@ -657,10 +792,16 @@ namespace CoinBot.Business.Builders
         public Entities.OrderBook GetOrderBook(string symbol)
         {
             Entities.OrderBook orderBook = null;
-
+            int i = 0;
             if (_thisExchange == Exchange.BINANCE)
             {
                 orderBook = _bianceRepo.GetOrderBook(symbol).Result;
+
+                while (orderBook == null && i < 3)
+                {
+                    orderBook = _bianceRepo.GetOrderBook(symbol).Result;
+                    i++;
+                }                    
             }
             else if(_thisExchange == Exchange.GDAX)
             {
@@ -670,7 +811,14 @@ namespace CoinBot.Business.Builders
             {
                 var kuBook = _kuRepo.GetOrderBook(symbol).Result;
 
-                orderBook = KuCoinOrderBookToOrderBook(kuBook);
+                while (kuBook == null && i < 3)
+                {
+                    kuBook = _kuRepo.GetOrderBook(symbol).Result;
+                    i++;
+                }
+
+                if(kuBook !=null)
+                    orderBook = KuCoinOrderBookToOrderBook(kuBook);
             }
 
             return orderBook;
@@ -725,8 +873,8 @@ namespace CoinBot.Business.Builders
 
         private OrderResponse[] KuCoinOrderResponseToOrderResponse(OpenOrderResponse kuOrders)
         {
-            var buys = KuCoinOpenOrderDetailToOrderReponse(kuOrders.openBuys);
-            var sells = KuCoinOpenOrderDetailToOrderReponse(kuOrders.openSells);
+            var buys = KuCoinOpenOrderDetailToOrderReponse(kuOrders.openBuys, TradeType.BUY);
+            var sells = KuCoinOpenOrderDetailToOrderReponse(kuOrders.openSells, TradeType.SELL);
 
             var orderResponses = new OrderResponse[buys.Length + sells.Length];
             buys.CopyTo(orderResponses, 0);
@@ -735,9 +883,26 @@ namespace CoinBot.Business.Builders
             return orderResponses;
         }
 
-        private OrderResponse[] KuCoinOpenOrderDetailToOrderReponse(OpenOrderDetail[] openOrderDetails)
+        private OrderResponse[] KuCoinOpenOrderDetailToOrderReponse(OpenOrderDetail[] openOrderDetails, TradeType tradeType)
         {
-            return this._helper.MapEntity<OpenOrderDetail[], OrderResponse[]>(openOrderDetails);
+            var orderResponseList = new List<OrderResponse>();
+
+            for (int i = 0; i < openOrderDetails.Length; i++)
+            {
+                var orderResponse = new OrderResponse
+                {
+                    clientOrderId = openOrderDetails[i].orderId,
+                    executedQty = openOrderDetails[i].filledQuantity,
+                    origQty = openOrderDetails[i].quantity,
+                    price = openOrderDetails[i].price,
+                    side = tradeType,
+                    symbol = _symbol,
+                    time = openOrderDetails[i].timestamp
+                };
+                orderResponseList.Add(orderResponse);
+            }
+
+            return orderResponseList.ToArray();
         }
 
         private Entities.OrderBook KuCoinOrderBookToOrderBook(OrderBookResponse orderBookResponse)
@@ -778,7 +943,21 @@ namespace CoinBot.Business.Builders
 
         private BinanceOrders[] KuCoinOrdersToBinanceOrders(Entities.KuCoinEntities.OrderBook[] kuOrders)
         {
-            return this._helper.MapEntity<Entities.KuCoinEntities.OrderBook[], BinanceOrders[]>(kuOrders);
+            var orderList = new List<BinanceOrders>();
+
+            for (int i = 0; i < kuOrders.Length; i++)
+            {
+                var order = new BinanceOrders
+                {
+                    //ignore = kuOrders[i].pairTotal,
+                    price = kuOrders[i].price,
+                    quantity = kuOrders[i].quantity
+                };
+
+                orderList.Add(order);
+            }
+
+            return orderList.ToArray();
         }
 
         private OrderResponse KuCoinOrderListDetailToOrderResponse(OrderListDetail order, string symbol)

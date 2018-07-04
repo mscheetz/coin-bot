@@ -96,6 +96,14 @@ namespace CoinBot.Business.Builders.Interface
         OrderResponse[] GetOpenOrders(string symbol);
 
         /// <summary>
+        /// Get order book position of a price
+        /// </summary>
+        /// <param name="symbol">String of trading symbol</param>
+        /// <param name="price">Decimal of price to find</param>
+        /// <returns>Int of position</returns>
+        int? GetPricePosition(string symbol, decimal price);
+
+        /// <summary>
         /// Get 1st price with the most support at or above specified volume
         /// </summary>
         /// <param name="symbol">String of trading pair</param>
