@@ -100,6 +100,7 @@ namespace CoinBot.Data
                         }
 
                         responseMessage = sb.ToString();
+                        responseMessage = responseMessage.Replace("null", "0");
                     }
 
                     try
