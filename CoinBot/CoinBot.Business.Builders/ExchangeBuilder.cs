@@ -144,12 +144,14 @@ namespace CoinBot.Business.Builders
         /// <returns>BotStick Array</returns>
         public BotStick[] GetCandlesticks(string symbol, Interval interval, int range)
         {
+            int i = 0;
             if (_thisExchange == Exchange.BINANCE)
             {
                 Candlestick[] sticks = null;
 
-                while (sticks == null)
+                while (sticks == null && i < 3)
                 {
+                    i++;
                     sticks = _bianceRepo.GetCandlestick(symbol, interval, range).Result;
                 }
 
@@ -168,9 +170,13 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.KUCOIN)
             {
-                var values = _kuRepo.GetCandlesticks(symbol, IntervalToKuCoinInterval(interval), range).Result;
-
-                return KuCoinChartValueArrayToBotStickArray(values);
+                var values = _kuRepo.GetCandlesticks(symbol, interval, range).Result;
+                while ((values == null || values.close.Length == 0) && i < 3)
+                {
+                    i++;
+                    values = _kuRepo.GetCandlesticks(symbol, interval, range).Result;
+                }
+                return values.close.Length == 0 ? new BotStick[0] : KuCoinChartValueArrayToBotStickArray(values);
             }
             else
             {
@@ -922,17 +928,41 @@ namespace CoinBot.Business.Builders
             var botStickList = new List<BotStick>();
 
             int i = values.close.Length;
+            //Array.Reverse(values.close);
+            //Array.Reverse(values.timestamp);
+            //Array.Reverse(values.high);
+            //Array.Reverse(values.low);
+            //Array.Reverse(values.open);
+            //Array.Reverse(values.volume);
 
             for (int j = 0; j < i; j++)
             {
+                var iVal = j;
+                var volume = values.volume[iVal];
+                if(values.close[j] == 0)
+                {
+                    if ((j+1) < i && values.close[j + 1] != 0)
+                    {
+                        iVal = j + 1;
+                    }
+                    else if ((j + 2) < i && values.close[j + 2] != 0)
+                    {
+                        iVal = j + 2;
+                    }
+                    else
+                    {
+                        iVal = j - 1;
+                    }
+                    volume = 0M;
+                }
                 var botStick = new BotStick
                 {
-                    close = values.close[j],
-                    closeTime = values.timestamp[j],
-                    high = values.high[j],
-                    low = values.low[j],
-                    open = values.open[j],
-                    volume = values.volume[j]
+                    close = values.close[iVal],
+                    closeTime = values.timestamp[iVal],
+                    high = values.high[iVal],
+                    low = values.low[iVal],
+                    open = values.open[iVal],
+                    volume = volume
                 };
 
                 botStickList.Add(botStick);
@@ -991,31 +1021,6 @@ namespace CoinBot.Business.Builders
             }
             
             return responses.ToArray();
-        }
-
-        private int IntervalToKuCoinInterval(Interval interval)
-        {
-            switch(interval)
-            {
-                case Interval.OneM:
-                    return 0;
-                case Interval.FiveM:
-                    return 1;
-                case Interval.FifteenM:
-                    return 2;
-                case Interval.ThirtyM:
-                    return 3;
-                case Interval.OneH:
-                    return 4;
-                case Interval.FourH:
-                    return 5;
-                case Interval.OneD:
-                    return 6;
-                case Interval.OneW:
-                    return 7;
-                default:
-                    return 0;
-            }
         }
 
         /// <summary>
