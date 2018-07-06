@@ -76,6 +76,28 @@ namespace CoinBot.Core
         }
 
         /// <summary>
+        /// Convert end of current minute to unix timestamp
+        /// </summary>
+        /// <returns>unix timestamp</returns>
+        public long UTCEndOfMinuteToUnixTime()
+        {
+            var roundedTime = RoundUp(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+
+            return UTCtoUnixTime(roundedTime);
+        }
+
+        /// <summary>
+        /// Round time up
+        /// </summary>
+        /// <param name="dateTime">Current time</param>
+        /// <param name="timeSpan">Time span to round up to</param>
+        /// <returns>Rouned up time</returns>
+        public DateTime RoundUp(DateTime dateTime, TimeSpan timeSpan)
+        {
+            return new DateTime((dateTime.Ticks + timeSpan.Ticks - 1) / timeSpan.Ticks * timeSpan.Ticks, dateTime.Kind);
+        }
+
+        /// <summary>
         /// Convert current UTC DateTime to unix timestamp milliseconds included
         /// </summary>
         /// <returns>unix timestamp</returns>
