@@ -329,5 +329,39 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="orderId">OrderId of trade</param>
         /// <returns>OrderResponse</returns>
         OrderResponse GetPaperOrderStatus(long orderId);
+
+        #region Moon and Tank Check
+
+        /// <summary>
+        /// Check if mooning
+        /// </summary>
+        /// <param name="startingPrice">decimal of starting price</param>
+        /// <param name="prevStick">Previous BotStick (default null)</param>
+        /// <param name="iteration">Int of iteration</param>
+        /// <returns>Decimal of sell price</returns>
+        decimal OrderBookSellCheck(decimal startingPrice = 0.00000000M
+                                    , BotStick prevStick = null
+                                    , int iteration = 0);
+
+        /// <summary>
+        /// Check if tanking
+        /// </summary>
+        /// <param name="startingPrice">decimal of starting price</param>
+        /// <param name="prevStick">Previous BotStick (default null)</param>
+        /// <param name="iteration">Int of iteration</param>
+        /// <returns>Decimal of buy price</returns>
+        decimal OrderBookBuyCheck(decimal startingPrice = 0.00000000M
+                                    , BotStick prevStick = null
+                                    , int iteration = 0);
+
+        /// <summary>
+        /// Get next candlestick
+        /// </summary>
+        /// <param name="interval">Trade interval, default 1 minute</param>
+        /// <param name="stickCount">Int of sticks to return, default 2</param>
+        /// <returns>Candlestick object</returns>
+        BotStick[] GetNextCandlestick();
+
+        #endregion Moon and Tank Check
     }
 }

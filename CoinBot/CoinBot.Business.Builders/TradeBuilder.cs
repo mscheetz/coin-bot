@@ -1045,7 +1045,7 @@ namespace CoinBot.Business.Builders
         /// <returns>decimal of quantity to purchase</returns>
         public decimal GetTradeQuantity(TradeType tradeType, decimal orderPrice)
         {
-            int roundTo = 2;
+            int roundTo = 1;
             decimal quantity = 0.00000000M;
             if (tradeType == TradeType.BUY)
             {
@@ -1081,6 +1081,107 @@ namespace CoinBot.Business.Builders
         }
 
         #endregion Pair and Quantity
+
+        #region Moon and Tank Check
+        
+        /// <summary>
+        /// Check if mooning
+        /// </summary>
+        /// <param name="startingPrice">decimal of starting price</param>
+        /// <param name="prevStick">Previous BotStick (default null)</param>
+        /// <param name="iteration">Int of iteration</param>
+        /// <returns>decimal of sell price</returns>
+        public decimal OrderBookSellCheck(decimal startingPrice = 0.00000000M
+                                    , BotStick prevStick = null
+                                    , int iteration = 0)
+        {
+            var sticks = GetNextCandlestick();
+            var currentStick = sticks[0];
+            var lastStick = sticks[1];
+
+            if (prevStick == null)
+            {
+                prevStick = lastStick;
+            }
+            
+            if (startingPrice < currentStick.close
+                && currentStick.open < currentStick.close
+                && prevStick.close < currentStick.close)
+            {
+                // TODO: set the latest price as the starting price to see if it is increasing during current candle
+                // TODO: do same on tanking
+                // If current price is greater than the previous check 
+                //  (price is increasing)
+                // and sell percent reached
+                // keep checking if increasing more
+                iteration++;
+                OrderBookSellCheck(startingPrice, lastStick, iteration);
+            }
+            else
+            {
+                return iteration == 0 ? startingPrice : currentStick.close;
+            }
+
+            return 0.00000000M;
+        }
+
+        /// <summary>
+        /// Check if tanking
+        /// </summary>
+        /// <param name="startingPrice">decimal of starting price</param>
+        /// <param name="prevStick">Previous BotStick (default null)</param>
+        /// <param name="iteration">Int of iteration</param>
+        /// <returns>decimal of buy price</returns>
+        public decimal OrderBookBuyCheck(decimal startingPrice = 0.00000000M
+                                    , BotStick prevStick = null
+                                    , int iteration = 0)
+        {
+            var sticks = GetNextCandlestick();
+
+            var currentStick = sticks[0];
+            var lastStick = sticks[1];
+
+            if (prevStick == null)
+            {
+                prevStick = lastStick;
+            }
+
+            if (startingPrice > currentStick.close
+                && currentStick.open > currentStick.close
+                && lastStick.close > currentStick.close
+                && prevStick.close > currentStick.close)
+            {
+                // If current price is less than the previous check 
+                //  (price is dropping)
+                // and buy percent reached
+                // keep checking if dropping more
+                iteration++;
+                OrderBookBuyCheck(startingPrice, lastStick, iteration);
+            }
+            else
+            {
+                return iteration == 0 ? startingPrice : currentStick.close;
+            }
+
+            return 0.00000000M;
+        }
+
+        /// <summary>
+        /// Get next candlestick
+        /// </summary>
+        /// <param name="interval">Trade interval, default 1 minute</param>
+        /// <param name="stickCount">Int of sticks to return, default 2</param>
+        /// <returns>Candlestick object</returns>
+        public BotStick[] GetNextCandlestick()
+        {
+            Task.WaitAll(Task.Delay(_botSettings.mooningTankingTime));
+
+            var candlesticks = GetCandlesticks(_symbol, _botSettings.chartInterval, 2);
+
+            return candlesticks;
+        }
+        
+        #endregion Moon and Tank Check
 
         #region Stop Loss Management
 
@@ -1187,7 +1288,10 @@ namespace CoinBot.Business.Builders
                 //}
 
                 var quantity = GetTradeQuantity(tradeType, orderPrice);
-
+                if(i > 0)
+                {
+                    quantity = quantity - i;
+                }
                 _lastPrice = orderPrice;
                 _lastQty = quantity;
                 _lastTradeType = tradeType;
