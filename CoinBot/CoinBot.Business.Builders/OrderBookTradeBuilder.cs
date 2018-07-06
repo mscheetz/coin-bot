@@ -49,6 +49,7 @@ namespace CoinBot.Business.Builders
         public OrderBookTradeBuilder(ITradeBuilder trader)
         {
             _trader = trader;
+            _fileRepo = new FileRepository();
             SetupBuilder();
         }
 
@@ -60,6 +61,7 @@ namespace CoinBot.Business.Builders
             , BotSettings settings, decimal lastBuy = 0, decimal lastSell = 0, TradeType tradeType = TradeType.BUY)
         {
             _trader = trader;
+            _fileRepo = new FileRepository();
             SetBotSettings(settings);
             if (lastBuy != 0)
             {
@@ -278,6 +280,9 @@ namespace CoinBot.Business.Builders
         private bool SellCryptoCheck()
         {
             var price = _trader.GetResistance();
+
+            price = _trader.OrderBookBuyCheck(price);
+
             if (price != 0.00000000M //&& _lastBuy > 0.00000000M 
                 || (!_botSettings.tradingCompetition && price >= _lastBuy))
             {
@@ -306,6 +311,9 @@ namespace CoinBot.Business.Builders
         private bool BuyCryptoCheck()
         {
             var price = _trader.GetSupport();
+
+            price = _trader.OrderBookBuyCheck(price);
+
             if (price != 0.00000000M 
                 || (!_botSettings.tradingCompetition && price <= _lastSell))
             {
