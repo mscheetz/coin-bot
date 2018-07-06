@@ -65,12 +65,13 @@ namespace CoinBot.Data
         /// <param name="size">stick size</param>
         /// <param name="limit">number of sticks</param>
         /// <returns>ChartValue object</returns>
-        public async Task<ChartValue> GetCandlesticks(string symbol, int size, int limit)
+        public async Task<ChartValue> GetCandlesticks(string symbol, Interval size, int limit)
         {
             var kuPair = _helper.CreateDashedPair(symbol);
-            var to = _dtHelper.UTCtoUnixTime();
-            var from = to - (size * limit * 60);
-            var endpoint = $"/v1/open/chart/history?symbol={kuPair}&resolution={size}&from={from}&to={to}";
+            var to = _dtHelper.UTCEndOfMinuteToUnixTime();// _dtHelper.UTCtoUnixTime();
+            var from = _helper.GetFromUnixTime(to, size, (limit + 2));
+            var kuSize = _helper.IntervalToKuCoinStringInterval(size);
+            var endpoint = $"/v1/open/chart/history?symbol={kuPair}&resolution={kuSize}&from={from}&to={to}";
             var url = baseUrl + endpoint;
 
             try

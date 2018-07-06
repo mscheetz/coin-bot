@@ -29,7 +29,7 @@ namespace CoinBot.Data.Interface
         /// <param name="size">stick size</param>
         /// <param name="limit">number of sticks</param>
         /// <returns>ChartValue object</returns>
-        Task<ChartValue> GetCandlesticks(string symbol, int size, int limit);
+        Task<ChartValue> GetCandlesticks(string symbol, Interval size, int limit);
 
         /// <summary>
         /// Get account balance
