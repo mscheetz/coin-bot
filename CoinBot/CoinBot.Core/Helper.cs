@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CoinBot.Business.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -170,6 +171,111 @@ namespace CoinBot.Core
             decimal newValue = value / (decimal)pow;
 
             return newValue;
+        }
+        
+        /// <summary>
+        /// Convert interval to kucoin interval
+        /// </summary>
+        /// <param name="interval">Interval value</param>
+        /// <returns>Int of kucoin interval</returns>
+        public int IntervalToKuCoinInterval(Interval interval)
+        {
+            switch (interval)
+            {
+                case Interval.OneM:
+                    return 0;
+                case Interval.FiveM:
+                    return 1;
+                case Interval.FifteenM:
+                    return 2;
+                case Interval.ThirtyM:
+                    return 3;
+                case Interval.OneH:
+                    return 4;
+                case Interval.FourH:
+                    return 5;
+                case Interval.OneD:
+                    return 6;
+                case Interval.OneW:
+                    return 7;
+                default:
+                    return 0;
+            }
+        }
+
+        /// <summary>
+        /// Convert interval to kucoin string interval
+        /// </summary>
+        /// <param name="interval">Interval value</param>
+        /// <returns>String of kucoin interval</returns>
+        public string IntervalToKuCoinStringInterval(Interval interval)
+        {
+            switch (interval)
+            {
+                case Interval.OneM:
+                    return "1";
+                case Interval.FiveM:
+                    return "5";
+                case Interval.FifteenM:
+                    return "15";
+                case Interval.ThirtyM:
+                    return "30";
+                case Interval.OneH:
+                    return "60";
+                case Interval.FourH:
+                    return "480";
+                case Interval.OneD:
+                    return "D";
+                case Interval.OneW:
+                    return "W";
+                default:
+                    return "1";
+            }
+        }
+
+        /// <summary>
+        /// Convert interval to total seconds
+        /// </summary>
+        /// <param name="interval">Interval value</param>
+        /// <returns>Long of seconds</returns>
+        public long IntervalToSeconds(Interval interval)
+        {
+            switch (interval)
+            {
+                case Interval.OneM:
+                    return (60 * 1);
+                case Interval.FiveM:
+                    return (60 * 5);
+                case Interval.FifteenM:
+                    return (60 * 15);
+                case Interval.ThirtyM:
+                    return (60 * 30);
+                case Interval.OneH:
+                    return (60 * 60);
+                case Interval.FourH:
+                    return (60 * 60 * 5);
+                case Interval.OneD:
+                    return (60 * 60 * 24);
+                case Interval.OneW:
+                    return (60 * 60 * 24 * 7);
+                default:
+                    return (60 * 1);
+            }
+        }
+
+        /// <summary>
+        /// Get unix time off-set from current unix time
+        /// </summary>
+        /// <param name="ending">Ending time</param>
+        /// <param name="interval">Stick interval</param>
+        /// <param name="stickNumber">Number of sticks</param>
+        /// <returns>Long of off-set time</returns>
+        public long GetFromUnixTime(long ending, Interval interval, int stickNumber)
+        {
+            var seconds = IntervalToSeconds(interval);
+            var totalSeconds = seconds * stickNumber;
+
+            return ending - totalSeconds;
         }
     }
 }
