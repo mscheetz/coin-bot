@@ -329,7 +329,7 @@ namespace CoinBot.Business.Builders
             price = _trader.OrderBookBuyCheck(price);
 
             if (price != 0.00000000M 
-                && (!_botSettings.tradingCompetition && price <= _lastSell))
+                && ((!_botSettings.tradingCompetition && price <= _lastSell) || _botSettings.tradingCompetition))
             {
                 _trader.BuyCrypto(price, TradeType.BUY, false, false);
                 _tradeType = TradeType.SELL;
