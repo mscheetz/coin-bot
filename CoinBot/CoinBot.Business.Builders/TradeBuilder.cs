@@ -1224,6 +1224,7 @@ namespace CoinBot.Business.Builders
                 else
                 {
                     buyPrice = iteration == 0 ? startingPrice : currentStick.close;
+                    checkToBuy = false;
                 }
             }
             return buyPrice;
