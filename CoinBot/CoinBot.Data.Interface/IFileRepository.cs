@@ -26,6 +26,13 @@ namespace CoinBot.Data.Interface
         ApiInformation GetConfig();
 
         /// <summary>
+        /// Set App configuration data
+        /// </summary>
+        /// <param name="apiInformation">Updated settings</param>
+        /// <returns>Boolean when completee</returns>
+        bool SetConfig(ApiInformation apiInformation);
+
+        /// <summary>
         /// Get BotSettings
         /// </summary>
         /// <returns>BotSettings object</returns>

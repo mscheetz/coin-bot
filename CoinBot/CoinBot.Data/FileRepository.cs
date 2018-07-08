@@ -62,6 +62,22 @@ namespace CoinBot.Data
         }
 
         /// <summary>
+        /// Set App configuration data
+        /// </summary>
+        /// <param name="apiInformation">Updated settings</param>
+        /// <returns>Boolean when completee</returns>
+        public bool SetConfig(ApiInformation apiInformation)
+        {
+            var json = JsonConvert.SerializeObject(apiInformation);
+
+            File.WriteAllText(configPath, json);
+
+            json = null;
+
+            return true;
+        }
+
+        /// <summary>
         /// Get BotSettings
         /// </summary>
         /// <returns>BotSettings object</returns>
