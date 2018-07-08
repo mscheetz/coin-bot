@@ -6,6 +6,7 @@ namespace CoinBot.Business.Entities
 {
     public enum Exchange
     {
+        NONE,
         BINANCE,
         GDAX,
         KUCOIN
