@@ -52,6 +52,19 @@ namespace CoinBot.Business.Builders.Interface
         bool SetBotSettings(BotSettings settings);
 
         /// <summary>
+        /// Set api information
+        /// </summary>
+        /// <param name="apiInformation">Updated ApiInformation</param>
+        /// <returns>Boolean when complete</returns>
+        bool SetApiInformation(ApiInformation apiInformation);
+
+        /// <summary>
+        /// Get Api Key from disc
+        /// </summary>
+        /// <returns>String of api key</returns>
+        string GetApiKey();
+
+        /// <summary>
         /// Update balances and get initial trade type
         /// </summary>
         /// <returns>TradeType value</returns>
@@ -314,8 +327,8 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Open orders check
         /// </summary>
-        /// <returns>Boolean of status</returns>
-        bool OpenOrdersCheck();
+        /// <returns>Nullable decimal of open price</returns>
+        decimal? OpenOrdersCheck();
         
         /// <summary>
         /// Gets latest buy and sell prices for the current pair

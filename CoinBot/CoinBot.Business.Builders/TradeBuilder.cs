@@ -208,13 +208,22 @@ namespace CoinBot.Business.Builders
             {
                 buyPercent = _botSettings.buyPercent,
                 chartInterval = _botSettings.chartInterval,
+                exchange = _botSettings.exchange,
+                lastBuy = _botSettings.lastBuy,
+                lastSell = _botSettings.lastSell,
+                mooningTankingPercent = _botSettings.mooningTankingPercent,
                 mooningTankingTime = _botSettings.mooningTankingTime,
+                orderBookQuantity = _botSettings.orderBookQuantity,
                 priceCheck = _botSettings.priceCheck,
                 sellPercent = _botSettings.sellPercent,
                 startBotAutomatically = _botSettings.startBotAutomatically,
                 startingAmount = _botSettings.startingAmount,
                 stopLoss = _botSettings.stopLoss,
+                stopLossCheck = _botSettings.stopLossCheck,
                 tradePercent = _botSettings.tradePercent,
+                tradeValidationCheck = _botSettings.tradeValidationCheck,
+                traderResetInterval = _botSettings.traderResetInterval,
+                tradingFee = _botSettings.tradingFee,
                 tradingPair = _botSettings.tradingPair,
                 tradingStatus = _botSettings.tradingStatus,
                 tradingStrategy = _botSettings.tradingStrategy,
@@ -225,8 +234,16 @@ namespace CoinBot.Business.Builders
                 updatedSettings.buyPercent = settings.buyPercent;
             if (settings.chartInterval != Interval.None)
                 updatedSettings.chartInterval = settings.chartInterval;
+            if (settings.exchange != Exchange.NONE)
+                updatedSettings.exchange = settings.exchange;
+            if (settings.lastBuy > 0)
+                updatedSettings.lastBuy = settings.lastBuy;
+            if (settings.lastSell > 0)
+                updatedSettings.lastSell = settings.lastSell;
             if (settings.mooningTankingTime > 0)
                 updatedSettings.mooningTankingTime = settings.mooningTankingTime;
+            if (settings.orderBookQuantity > 0)
+                updatedSettings.orderBookQuantity = settings.orderBookQuantity;
             if (settings.priceCheck > 0)
                 updatedSettings.priceCheck = settings.priceCheck;
             if (settings.sellPercent > 0)
@@ -239,6 +256,10 @@ namespace CoinBot.Business.Builders
                 updatedSettings.stopLoss = settings.stopLoss;
             if (settings.tradePercent > 0)
                 updatedSettings.tradePercent = settings.tradePercent;
+            if (settings.traderResetInterval > 0)
+                updatedSettings.traderResetInterval = settings.traderResetInterval;
+            if (settings.tradeValidationCheck > 0)
+                updatedSettings.tradeValidationCheck = settings.tradeValidationCheck;
             if (!string.IsNullOrEmpty(settings.tradingPair))
                 updatedSettings.tradingPair = settings.tradingPair;
             if (settings.tradingStatus != TradeStatus.None)
@@ -246,7 +267,12 @@ namespace CoinBot.Business.Builders
             if (settings.tradingStrategy != Strategy.None)
                 updatedSettings.tradingStrategy = settings.tradingStrategy;
 
+
+            updatedSettings.mooningTankingPercent = settings.mooningTankingPercent;
             updatedSettings.runBot = settings.runBot;
+            updatedSettings.stopLossCheck = settings.stopLossCheck;
+            updatedSettings.tradingCompetition = settings.tradingCompetition;
+            updatedSettings.tradingFee = settings.tradingFee;
 
             _fileRepo.UpdateBotSettings(updatedSettings);
             _botSettings = updatedSettings;
@@ -272,6 +298,29 @@ namespace CoinBot.Business.Builders
             _exchBldr.SetExchangeApi(apiInfo);
 
             return true;
+        }
+
+        /// <summary>
+        /// Set api information
+        /// </summary>
+        /// <param name="apiInformation">Updated ApiInformation</param>
+        /// <returns>Boolean when complete</returns>
+        public bool SetApiInformation(ApiInformation apiInformation)
+        {
+            var result = _fileRepo.SetConfig(apiInformation);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get Api Key from disc
+        /// </summary>
+        /// <returns>String of api key</returns>
+        public string GetApiKey()
+        {
+            var apiInfo = _fileRepo.GetConfig();
+
+            return apiInfo != null ? apiInfo.apiKey : string.Empty;
         }
 
         /// <summary>
@@ -610,11 +659,12 @@ namespace CoinBot.Business.Builders
             var detail = _exchBldr.GetResistance(_symbol, _botSettings.orderBookQuantity);
             var resistance = detail.price;
             var places = detail.position;
+            var limit = _botSettings.tradingCompetition ? 1 : 3;
             var sellPrice = places == 0 
                 ? resistance 
                 : resistance - _helper.DecimalValueAtPrecision(detail.precision);
 
-            return places <= 3 ? sellPrice : 0.00000000M;
+            return places <= limit ? sellPrice : 0.00000000M;
         }
 
         /// <summary>
@@ -626,11 +676,12 @@ namespace CoinBot.Business.Builders
             var detail = _exchBldr.GetSupport(_symbol, _botSettings.orderBookQuantity);
             var support = detail.price;
             var places = detail.position;
+            var limit = _botSettings.tradingCompetition ? 1 : 3;
             var buyPrice = places == 0
                 ? support
                 : support + _helper.DecimalValueAtPrecision(detail.precision);
 
-            return places <= 3 ? buyPrice : 0.00000000M;
+            return places <= limit ? buyPrice : 0.00000000M;
         }
 
         #endregion OrderBook
@@ -1095,34 +1146,41 @@ namespace CoinBot.Business.Builders
                                     , BotStick prevStick = null
                                     , int iteration = 0)
         {
-            var sticks = GetNextCandlestick();
-            var currentStick = sticks[0];
-            var lastStick = sticks[1];
+            var checkToSell = true;
+            decimal sellPrice = 0.00000000M;
+            while (checkToSell)
+            {
+                var sticks = GetNextCandlestick();
+                var currentStick = sticks[0];
+                var lastStick = sticks[1];
 
-            if (prevStick == null)
-            {
-                prevStick = lastStick;
-            }
-            
-            if (startingPrice < currentStick.close
-                && currentStick.open < currentStick.close
-                && prevStick.close < currentStick.close)
-            {
-                // TODO: set the latest price as the starting price to see if it is increasing during current candle
-                // TODO: do same on tanking
-                // If current price is greater than the previous check 
-                //  (price is increasing)
-                // and sell percent reached
-                // keep checking if increasing more
-                iteration++;
-                OrderBookSellCheck(startingPrice, lastStick, iteration);
-            }
-            else
-            {
-                return iteration == 0 ? startingPrice : currentStick.close;
+                if (prevStick == null)
+                {
+                    prevStick = lastStick;
+                }
+
+                if ((startingPrice > 0.00000000M && startingPrice < currentStick.close)
+                    && currentStick.open < currentStick.close
+                    && prevStick.close < currentStick.close)
+                {
+                    // TODO: set the latest price as the starting price to see if it is increasing during current candle
+                    // TODO: do same on tanking
+                    // If current price is greater than the previous check 
+                    //  (price is increasing)
+                    // and sell percent reached
+                    // keep checking if increasing more
+                    iteration++;
+                    //sellPrice = OrderBookSellCheck(startingPrice, lastStick, iteration);
+                    prevStick = lastStick;
+                }
+                else
+                {
+                    sellPrice = iteration == 0 ? startingPrice : currentStick.close;
+                    checkToSell = false;
+                }
             }
 
-            return 0.00000000M;
+            return sellPrice;
         }
 
         /// <summary>
@@ -1136,34 +1194,39 @@ namespace CoinBot.Business.Builders
                                     , BotStick prevStick = null
                                     , int iteration = 0)
         {
-            var sticks = GetNextCandlestick();
-
-            var currentStick = sticks[0];
-            var lastStick = sticks[1];
-
-            if (prevStick == null)
+            var checkToBuy = true;
+            decimal buyPrice = 0.00000000M;
+            while (checkToBuy)
             {
-                prevStick = lastStick;
-            }
+                var sticks = GetNextCandlestick();
 
-            if (startingPrice > currentStick.close
-                && currentStick.open > currentStick.close
-                && lastStick.close > currentStick.close
-                && prevStick.close > currentStick.close)
-            {
-                // If current price is less than the previous check 
-                //  (price is dropping)
-                // and buy percent reached
-                // keep checking if dropping more
-                iteration++;
-                OrderBookBuyCheck(startingPrice, lastStick, iteration);
-            }
-            else
-            {
-                return iteration == 0 ? startingPrice : currentStick.close;
-            }
+                var currentStick = sticks[0];
+                var lastStick = sticks[1];
 
-            return 0.00000000M;
+                if (prevStick == null)
+                {
+                    prevStick = lastStick;
+                }
+
+                if ((startingPrice > 0.00000000M && startingPrice > currentStick.close)
+                    && currentStick.open > currentStick.close
+                    && lastStick.close > currentStick.close
+                    && prevStick.close > currentStick.close)
+                {
+                    // If current price is less than the previous check 
+                    //  (price is dropping)
+                    // and buy percent reached
+                    // keep checking if dropping more
+                    iteration++;
+                    //buyPrice = OrderBookBuyCheck(startingPrice, lastStick, iteration);
+                    prevStick = lastStick;
+                }
+                else
+                {
+                    buyPrice = iteration == 0 ? startingPrice : currentStick.close;
+                }
+            }
+            return buyPrice;
         }
 
         /// <summary>
@@ -1414,8 +1477,8 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Open orders check
         /// </summary>
-        /// <returns>Boolean of status</returns>
-        public bool OpenOrdersCheck()
+        /// <returns>Nullable decimal of open price</returns>
+        public decimal? OpenOrdersCheck()
         {
             return _exchBldr.OpenOrdersExist(_symbol);
         }
