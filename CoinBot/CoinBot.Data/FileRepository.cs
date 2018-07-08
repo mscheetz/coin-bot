@@ -66,14 +66,16 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="apiInformation">Updated settings</param>
         /// <returns>Boolean when completee</returns>
-        public bool SetConfig(ApiInformation apiInformation)
+        public bool SetConfig(ApiInformation apiInformation, bool noWrite = true)
         {
-            var json = JsonConvert.SerializeObject(apiInformation);
+            if (!noWrite)
+            {
+                var json = JsonConvert.SerializeObject(apiInformation);
 
-            File.WriteAllText(configPath, json);
+                File.WriteAllText(configPath, json);
 
-            json = null;
-
+                json = null;
+            }
             return true;
         }
 
@@ -100,14 +102,16 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="botSettings">Updated BotSettings</param>
         /// <returns>Boolean when complete</returns>
-        public bool UpdateBotSettings(BotSettings botSettings)
+        public bool UpdateBotSettings(BotSettings botSettings, bool noWrite = true)
         {
-            var json = JsonConvert.SerializeObject(botSettings);
+            if (!noWrite)
+            {
+                var json = JsonConvert.SerializeObject(botSettings);
 
-            File.WriteAllText(settingsPath, json);
+                File.WriteAllText(settingsPath, json);
 
-            json = null;
-
+                json = null;
+            }
             return true;
         }
 
@@ -136,18 +140,22 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="tradeInformation">TradeInformation to write</param>
         /// <returns>Boolean when complete</returns>
-        public bool LogTransaction(TradeInformation tradeInformation)
+        public bool LogTransaction(TradeInformation tradeInformation, bool noWrite = true)
         {
-            var json = JsonConvert.SerializeObject(tradeInformation);
-
-            using (StreamWriter s = File.AppendText(transactionPath))
+            if (!noWrite)
             {
-                s.WriteLine(json + ",");
+                var json = JsonConvert.SerializeObject(tradeInformation);
 
-                json = null;
+                using (StreamWriter s = File.AppendText(transactionPath))
+                {
+                    s.WriteLine(json + ",");
 
-                return true;
+                    json = null;
+
+                    return true;
+                }
             }
+            return true;
         }
 
         /// <summary>
@@ -175,18 +183,22 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="botBalance">BotBalances to write</param>
         /// <returns>Boolean when complete</returns>
-        public bool LogBalances(List<BotBalance> botBalance)
+        public bool LogBalances(List<BotBalance> botBalance, bool noWrite = true)
         {
-            var json = JsonConvert.SerializeObject(botBalance);
-
-            using (StreamWriter s = File.AppendText(balancePath))
+            if (!noWrite)
             {
-                s.WriteLine(json + ",");
+                var json = JsonConvert.SerializeObject(botBalance);
 
-                json = null;
+                using (StreamWriter s = File.AppendText(balancePath))
+                {
+                    s.WriteLine(json + ",");
 
-                return true;
+                    json = null;
+
+                    return true;
+                }
             }
+            return true;
         }
 
         /// <summary>
@@ -214,18 +226,22 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="signal">TradeSignal to write</param>
         /// <returns>Boolean when complete</returns>
-        public bool LogSignal(TradeSignal signal)
+        public bool LogSignal(TradeSignal signal, bool noWrite = true)
         {
-            var json = JsonConvert.SerializeObject(signal);
-
-            using (StreamWriter s = File.AppendText(signalPath))
+            if (!noWrite)
             {
-                s.WriteLine(json + ",");
+                var json = JsonConvert.SerializeObject(signal);
 
-                json = null;
+                using (StreamWriter s = File.AppendText(signalPath))
+                {
+                    s.WriteLine(json + ",");
 
-                return true;
+                    json = null;
+
+                    return true;
+                }
             }
+            return true;
         }
 
         /// <summary>
@@ -235,19 +251,23 @@ namespace CoinBot.Data
         /// <param name="message">Message to log</param>
         /// <param name="obj">Object to log</param>
         /// <returns>Boolean when complete</returns>
-        public bool LogError<T>(string message, T obj)
+        public bool LogError<T>(string message, T obj, bool noWrite = true)
         {
-            var json = JsonConvert.SerializeObject(obj);
-
-            using (StreamWriter s = File.AppendText(errorPath))
+            if (!noWrite)
             {
-                s.WriteLine($"ERROR {DateTime.UtcNow} {message}");
-                s.WriteLine("    Invalid object: " + json);
+                var json = JsonConvert.SerializeObject(obj);
 
-                json = null;
+                using (StreamWriter s = File.AppendText(errorPath))
+                {
+                    s.WriteLine($"ERROR {DateTime.UtcNow} {message}");
+                    s.WriteLine("    Invalid object: " + json);
 
-                return true;
+                    json = null;
+
+                    return true;
+                }
             }
+            return true;
         }
 
         /// <summary>
@@ -255,14 +275,19 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="message">Message to log</param>
         /// <returns>Boolean when complete</returns>
-        public bool LogError(string message)
+        public bool LogError(string message, bool noWrite = true)
         {
-            using (StreamWriter s = File.AppendText(errorPath))
+            if (!noWrite)
             {
-                s.WriteLine($"ERROR {DateTime.UtcNow} {message}");
+                using (StreamWriter s = File.AppendText(errorPath))
+                {
+                    s.WriteLine($"ERROR {DateTime.UtcNow} {message}");
 
-                return true;
+                    return true;
+                }
             }
+
+            return true;
         }
     }
 }

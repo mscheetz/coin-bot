@@ -30,7 +30,7 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <param name="apiInformation">Updated settings</param>
         /// <returns>Boolean when completee</returns>
-        bool SetConfig(ApiInformation apiInformation);
+        bool SetConfig(ApiInformation apiInformation, bool noWrite = true);
 
         /// <summary>
         /// Get BotSettings
@@ -43,7 +43,7 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <param name="botSettings">Updated BotSettings</param>
         /// <returns>Boolean when complete</returns>
-        bool UpdateBotSettings(BotSettings botSettings);
+        bool UpdateBotSettings(BotSettings botSettings, bool noWrite = true);
 
         /// <summary>
         /// Get Transactions
@@ -56,7 +56,7 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <param name="tradeInformation">TradeInformation to write</param>
         /// <returns>Boolean when complete</returns>
-        bool LogTransaction(TradeInformation tradeInformation);
+        bool LogTransaction(TradeInformation tradeInformation, bool noWrite = true);
 
         /// <summary>
         /// Get Transactions
@@ -69,7 +69,7 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <param name="botBalance">BotBalances to write</param>
         /// <returns>Boolean when complete</returns>
-        bool LogBalances(List<BotBalance> botBalance);
+        bool LogBalances(List<BotBalance> botBalance, bool noWrite = true);
         
         /// <summary>
         /// Get TradeSignals
@@ -82,7 +82,7 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <param name="signal">TradeSignal to write</param>
         /// <returns>Boolean when complete</returns>
-        bool LogSignal(TradeSignal signal);
+        bool LogSignal(TradeSignal signal, bool noWrite = true);
 
         /// <summary>
         /// Log an error with an object
@@ -91,13 +91,13 @@ namespace CoinBot.Data.Interface
         /// <param name="message">Message to log</param>
         /// <param name="obj">Object to log</param>
         /// <returns>Boolean when complete</returns>
-        bool LogError<T>(string message, T obj);
+        bool LogError<T>(string message, T obj, bool noWrite = true);
 
         /// <summary>
         /// Log an error
         /// </summary>
         /// <param name="message">Message to log</param>
         /// <returns>Boolean when complete</returns>
-        bool LogError(string message);
+        bool LogError(string message, bool noWrite = true);
     }
 }
