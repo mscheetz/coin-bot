@@ -30,6 +30,20 @@ namespace CoinBot.Api.Controllers
         }
 
         /// <summary>
+        /// Get bot settings
+        /// </summary>
+        /// <remarks>
+        /// Get bot settings
+        /// </remarks>
+        /// <returns>BotSettings object</returns>
+        /// GET: api/coinbot/settings
+        [HttpGet("settings")]
+        public BotSettings GetBotSettings()
+        {
+            return _service.GetBotSettings();
+        }
+
+        /// <summary>
         /// Update bot settings
         /// </summary>
         /// <remarks>
@@ -42,6 +56,35 @@ namespace CoinBot.Api.Controllers
         public bool UpdateBotSettings(BotSettings botSettings)
         {
             return _service.UpdateBotSettings(botSettings);
+        }
+
+        /// <summary>
+        /// Get exchange api key
+        /// </summary>
+        /// <remarks>
+        /// Get exchange api key
+        /// </remarks>
+        /// <returns>String of api key</returns>
+        /// GET: api/coinbot/settings/api
+        [HttpGet("settings/api")]
+        public string GetApiKey()
+        {
+            return _service.GetApiKey();
+        }
+
+        /// <summary>
+        /// Update Exchange api settings
+        /// </summary>
+        /// <remarks>
+        /// Update Exchange api settings
+        /// </remarks>
+        /// <param name="apiInformation">New api settings</param>
+        /// <returns>Boolean value when complete</returns>
+        /// POST: api/coinbot/settings/api
+        [HttpPost("settings/api")]
+        public bool UpdateApiSettings(ApiInformation apiInformation)
+        {
+            return _service.UpdateApiAccess(apiInformation);
         }
 
         /// <summary>

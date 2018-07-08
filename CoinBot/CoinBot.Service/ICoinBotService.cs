@@ -14,6 +14,25 @@ namespace CoinBot.Service
         bool UpdateBotSettings(BotSettings botSettings);
 
         /// <summary>
+        /// Update bot settings
+        /// </summary>
+        /// <param name="botSettings">New bot settings</param>
+        /// <returns>Boolean value when complete</returns>
+        bool UpdateApiAccess(ApiInformation apiInformation);
+
+        /// <summary>
+        /// Get current BotSettings
+        /// </summary>
+        /// <returns>BotSettings object</returns>
+        BotSettings GetBotSettings();
+
+        /// <summary>
+        /// Get current Exchange API Key
+        /// </summary>
+        /// <returns>String of api key</returns>
+        string GetApiKey();
+
+        /// <summary>
         /// Start trading
         /// </summary>
         /// <param name="interval">Candlestick interval</param>

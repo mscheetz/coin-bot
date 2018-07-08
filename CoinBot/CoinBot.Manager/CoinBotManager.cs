@@ -14,7 +14,6 @@ namespace CoinBot.Manager
         private IVolumeTradeBuilderOG _volumeBuilderOG;
         private IOrderBookTradeBuilder _orderBookTradeBuilder;
         private ITradeBuilder _tradeBuilder;
-        private Balance _balance;
         private BotSettings _botSettings;
 
         public CoinBotManager(IBollingerBandTradeBuilder bollingerBuilder,
@@ -30,6 +29,24 @@ namespace CoinBot.Manager
         }
 
         /// <summary>
+        /// Get current BotSettings
+        /// </summary>
+        /// <returns>BotSettings object</returns>
+        public BotSettings GetBotSettings()
+        {
+            return _tradeBuilder.GetBotSettings();
+        }
+
+        /// <summary>
+        /// Get current Exchange API Key
+        /// </summary>
+        /// <returns>String of api key</returns>
+        public string GetApiKey()
+        {
+            return _tradeBuilder.GetApiKey();
+        }
+
+        /// <summary>
         /// Update bot settings
         /// </summary>
         /// <param name="botSettings">New bot settings</param>
@@ -39,6 +56,19 @@ namespace CoinBot.Manager
             ServiceReady();
             var result = _tradeBuilder.SetBotSettings(botSettings);
             _botSettings = _tradeBuilder.GetBotSettings();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Update bot settings
+        /// </summary>
+        /// <param name="botSettings">New bot settings</param>
+        /// <returns>Boolean value when complete</returns>
+        public bool UpdateApiAccess(ApiInformation apiInformation)
+        {
+            ServiceReady();
+            var result = _tradeBuilder.SetApiInformation(apiInformation);
 
             return result;
         }
