@@ -170,6 +170,7 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.KUCOIN)
             {
+                range = 10;
                 var values = _kuRepo.GetCandlesticks(symbol, interval, range).Result;
                 while ((values == null || values.close.Length == 0) && i < 3)
                 {
@@ -504,8 +505,8 @@ namespace CoinBot.Business.Builders
         /// Check if open orders exist
         /// </summary>
         /// <param name="symbol">Trading pair to check</param>
-        /// <returns>Boolean of result</returns>
-        public bool OpenOrdersExist(string symbol)
+        /// <returns>Nullable decimal of open price</returns>
+        public decimal? OpenOrdersExist(string symbol)
         {
             OrderResponse[] response = null;
             int i = 0;
@@ -518,7 +519,7 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.GDAX)
             {
-                return false;
+                return null;
             }
             else if (_thisExchange == Exchange.KUCOIN)
             {
@@ -538,10 +539,10 @@ namespace CoinBot.Business.Builders
             }
             else
             {
-                return false;
+                return null;
             }
 
-            return response.Length > 0 ? true : false;
+            return response != null && response.Length > 0 ? (decimal?)response[0].price : null;
         }
 
         /// <summary>
@@ -709,9 +710,6 @@ namespace CoinBot.Business.Builders
             OrderBookDetail response;
             int i = 0;
             int precision = 0;
-            //var pair = symbol.Substring(symbol.Length - 4) == "USDT"
-            //                ? symbol.Substring(symbol.Length - 4)
-            //                : symbol.Substring(symbol.Length - 3);
             var orderBook = GetOrderBook(symbol);
             while (orderBook == null && i < 3)
             {
@@ -928,44 +926,49 @@ namespace CoinBot.Business.Builders
             var botStickList = new List<BotStick>();
 
             int i = values.close.Length;
-            //Array.Reverse(values.close);
-            //Array.Reverse(values.timestamp);
-            //Array.Reverse(values.high);
-            //Array.Reverse(values.low);
-            //Array.Reverse(values.open);
-            //Array.Reverse(values.volume);
 
             for (int j = 0; j < i; j++)
             {
                 var iVal = j;
                 var volume = values.volume[iVal];
-                if(values.close[j] == 0)
+                var close = values.close[j];
+                if(close == 0)
                 {
-                    if ((j+1) < i && values.close[j + 1] != 0)
+                    var k = j;
+                    while (k < (i - 1))
                     {
-                        iVal = j + 1;
+                        k++;
+                        close = values.close[k];
+                        if (k < (i - 1) && close != 0)
+                        {
+                            iVal = k;
+                        }
                     }
-                    else if ((j + 2) < i && values.close[j + 2] != 0)
+                    if (close == 0 && j > 0)
                     {
-                        iVal = j + 2;
-                    }
-                    else
-                    {
-                        iVal = j - 1;
+                        k = j - 1;
+                        close = values.close[k];
+                        if (close != 0)
+                        {
+                            iVal = k;
+                        }
                     }
                     volume = 0M;
                 }
-                var botStick = new BotStick
+                if (values.close != null)
                 {
-                    close = values.close[iVal],
-                    closeTime = values.timestamp[iVal],
-                    high = values.high[iVal],
-                    low = values.low[iVal],
-                    open = values.open[iVal],
-                    volume = volume
-                };
+                    var botStick = new BotStick
+                    {
+                        close = values.close[iVal],
+                        closeTime = values.timestamp[iVal],
+                        high = values.high[iVal],
+                        low = values.low[iVal],
+                        open = values.open[iVal],
+                        volume = volume
+                    };
 
-                botStickList.Add(botStick);
+                    botStickList.Add(botStick);
+                }
             }
 
             return botStickList.ToArray();

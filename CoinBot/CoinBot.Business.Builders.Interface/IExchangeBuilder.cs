@@ -85,8 +85,8 @@ namespace CoinBot.Business.Builders.Interface
         /// Check if open orders exist
         /// </summary>
         /// <param name="symbol">Trading pair to check</param>
-        /// <returns>Boolean of result</returns>
-        bool OpenOrdersExist(string symbol);
+        /// <returns>Nullable decimal of open price</returns>
+        decimal? OpenOrdersExist(string symbol);
 
         /// <summary>
         /// Get open orders
