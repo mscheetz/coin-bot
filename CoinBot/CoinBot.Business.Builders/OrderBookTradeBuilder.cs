@@ -30,6 +30,8 @@ namespace CoinBot.Business.Builders
         private string _asset = string.Empty;
         private string _pair = string.Empty;
         private decimal _moonTankPrice = 0.00000000M;
+        private decimal _lastPrice = 0.00000000M;
+        private int _samePriceCheck = 0;
 
         /// <summary>
         /// Constructor
@@ -151,20 +153,21 @@ namespace CoinBot.Business.Builders
                     _tradeType = _trader.GetTradingType();
                     _trader.UpdateBotSettings(_lastBuy, _lastSell);
                     SetBotSettings(_trader.GetBotSettings());
+                    currentlyTrading = _botSettings.runBot;
                 }
                 
                 var tradeOpen = _trader.OpenOrdersCheck();
 
-                if(tradeOpen)
+                if (tradeOpen != null)
                 {
-                    UpdateLastPrices();
                     if (_botSettings.tradingCompetition)
                     {
-                        tradeOpen = TradingCompetitionCheck();
+                        tradeOpen = TradingCompetitionCheck(tradeOpen);
+                        //UpdateLastPrices();
                     }
                     else
                     {
-                        tradeOpen = CeilingFloorCheck();
+                        tradeOpen = CeilingFloorCheck(tradeOpen);
                     }
                 }
 
@@ -175,7 +178,7 @@ namespace CoinBot.Business.Builders
                     tradeOpen = _trader.OpenOrdersCheck();
                 }
 
-                if (!tradeOpen)
+                if (tradeOpen == null)
                 {
                     UpdateLastPrices();
 
@@ -235,7 +238,7 @@ namespace CoinBot.Business.Builders
         /// If the set orders have moved out of range, cancel open orders
         /// </summary>
         /// <returns>Boolean when complete</returns>
-        private bool CeilingFloorCheck()
+        private decimal? CeilingFloorCheck(decimal? openPrice)
         {
             var price = 0.00000000M;
             if (_tradeType == TradeType.SELL)
@@ -250,27 +253,37 @@ namespace CoinBot.Business.Builders
             if (price == 0.00000000M)
             {
                 _trader.CancelOpenOrders();
-                return false;
+                return null;
             }
 
-            return true;
+            return openPrice;
         }
 
         /// <summary>
         /// If a trading competition, cancel open trade if outside 1st position
         /// </summary>
         /// <returns>Boolean when complete</returns>
-        private bool TradingCompetitionCheck()
+        private decimal? TradingCompetitionCheck(decimal? openPrice)
         {
             var lastPrice = _tradeType == TradeType.BUY ? _lastSell : _lastBuy;
-            int? position = _trader.GetPricePostion(lastPrice);
-            if(position >= 3)
-            { 
+            var currentPrice = _trader.GetResistance();
+            if(currentPrice == _lastPrice)
+            {
+                _samePriceCheck++;
+            }
+            else
+            {
+                _samePriceCheck = 0;
+            }
+            _lastPrice = currentPrice;
+            int? position = _trader.GetPricePostion((decimal)openPrice);
+            if(position >= 3 && _samePriceCheck < 19)
+            {
                 _trader.CancelOpenOrders();
-                return false;
+                return null;
             }
 
-            return true;
+            return openPrice;
         }
 
         /// <summary>
@@ -281,13 +294,14 @@ namespace CoinBot.Business.Builders
         {
             var price = _trader.GetResistance();
 
-            price = _trader.OrderBookBuyCheck(price);
+            price = _trader.OrderBookSellCheck(price);
 
-            if (price != 0.00000000M //&& _lastBuy > 0.00000000M 
-                || (!_botSettings.tradingCompetition && price >= _lastBuy))
+            if ((price != 0.00000000M //&& _lastBuy > 0.00000000M 
+                && price >= _lastBuy) || _samePriceCheck >= 20)
             {
                 _trader.SellCrypto(price, TradeType.SELL, false);
                 _tradeType = TradeType.BUY;
+                _lastSell = price;
                 var signal = new TradeSignal
                 {
                     lastBuy = _lastBuy,
@@ -315,10 +329,11 @@ namespace CoinBot.Business.Builders
             price = _trader.OrderBookBuyCheck(price);
 
             if (price != 0.00000000M 
-                || (!_botSettings.tradingCompetition && price <= _lastSell))
+                && (!_botSettings.tradingCompetition && price <= _lastSell))
             {
                 _trader.BuyCrypto(price, TradeType.BUY, false, false);
                 _tradeType = TradeType.SELL;
+                _lastBuy = price;
                 var signal = new TradeSignal
                 {
                     lastBuy = _lastBuy,
