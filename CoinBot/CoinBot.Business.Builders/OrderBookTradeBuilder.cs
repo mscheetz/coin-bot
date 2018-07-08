@@ -32,6 +32,8 @@ namespace CoinBot.Business.Builders
         private decimal _moonTankPrice = 0.00000000M;
         private decimal _lastPrice = 0.00000000M;
         private int _samePriceCheck = 0;
+        private bool _supportGotten = false;
+        private bool _resistanceGotten = false;
 
         /// <summary>
         /// Constructor
@@ -155,6 +157,8 @@ namespace CoinBot.Business.Builders
                     SetBotSettings(_trader.GetBotSettings());
                     currentlyTrading = _botSettings.runBot;
                 }
+                _supportGotten = false;
+                _resistanceGotten = false;
                 
                 var tradeOpen = _trader.OpenOrdersCheck();
 
@@ -163,7 +167,6 @@ namespace CoinBot.Business.Builders
                     if (_botSettings.tradingCompetition)
                     {
                         tradeOpen = TradingCompetitionCheck(tradeOpen);
-                        //UpdateLastPrices();
                     }
                     else
                     {
@@ -243,11 +246,13 @@ namespace CoinBot.Business.Builders
             var price = 0.00000000M;
             if (_tradeType == TradeType.SELL)
             {
-                price = _trader.GetResistance();
+                price = OrderBookSellPrice();
+                _resistanceGotten = true;
             }
             else
             {
-                price = _trader.GetSupport();
+                price = OrderBookBuyPrice();
+                _supportGotten = true;
             }
 
             if (price == 0.00000000M)
@@ -266,7 +271,8 @@ namespace CoinBot.Business.Builders
         private decimal? TradingCompetitionCheck(decimal? openPrice)
         {
             var lastPrice = _tradeType == TradeType.BUY ? _lastSell : _lastBuy;
-            var currentPrice = _trader.GetResistance();
+            var currentPrice = OrderBookSellPrice();
+            _resistanceGotten = true;
             if(currentPrice == _lastPrice)
             {
                 _samePriceCheck++;
@@ -292,7 +298,7 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean when complete</returns>
         private bool SellCryptoCheck()
         {
-            var price = _trader.GetResistance();
+            var price = OrderBookSellPrice();
 
             price = _trader.OrderBookSellCheck(price);
 
@@ -324,7 +330,7 @@ namespace CoinBot.Business.Builders
         /// <returns>Boolean when complete</returns>
         private bool BuyCryptoCheck()
         {
-            var price = _trader.GetSupport();
+            var price = OrderBookBuyPrice();
 
             price = _trader.OrderBookBuyCheck(price);
 
@@ -369,7 +375,10 @@ namespace CoinBot.Business.Builders
         /// <returns>Decimal of price</returns>
         private decimal OrderBookBuyPrice()
         {
-            return _trader.GetSupport();
+            var getNew = _supportGotten ? false : true;
+            _supportGotten = true;
+
+            return _trader.GetSupport(getNew);
         }
 
         /// <summary>
@@ -378,7 +387,10 @@ namespace CoinBot.Business.Builders
         /// <returns>Decimal of price</returns>
         private decimal OrderBookSellPrice()
         {
-            return _trader.GetResistance();
+            var getNew = _resistanceGotten ? false : true;
+            _resistanceGotten = true;
+
+            return _trader.GetResistance(getNew);
         }
 
         /// <summary>

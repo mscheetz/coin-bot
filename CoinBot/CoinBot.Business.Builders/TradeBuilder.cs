@@ -35,6 +35,8 @@ namespace CoinBot.Business.Builders
         private decimal _lastPrice = 0.00000000M;
         private decimal _lastQty = 0.00000000M;
         private TradeType _lastTradeType;
+        private decimal _resistance = 0.00000000M;
+        private decimal _support = 0.00000000M;
 
         #endregion Private Members
 
@@ -653,35 +655,47 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Get next resistance level if within 3 spots of bottom resistance
         /// </summary>
+        /// <param name="getNew">Boolean to get a new value</param>
         /// <returns>Decimal of next resistance</returns>
-        public decimal GetResistance()
+        public decimal GetResistance(bool getNew = false)
         {
-            var detail = _exchBldr.GetResistance(_symbol, _botSettings.orderBookQuantity);
-            var resistance = detail.price;
-            var places = detail.position;
-            var limit = _botSettings.tradingCompetition ? 1 : 3;
-            var sellPrice = places == 0 
-                ? resistance 
-                : resistance - _helper.DecimalValueAtPrecision(detail.precision);
+            if (getNew)
+            {
+                var detail = _exchBldr.GetResistance(_symbol, _botSettings.orderBookQuantity);
+                var resistance = detail.price;
+                var places = detail.position;
+                var limit = _botSettings.tradingCompetition ? 1 : 3;
+                var sellPrice = places == 0
+                    ? resistance
+                    : resistance - _helper.DecimalValueAtPrecision(detail.precision);
 
-            return places <= limit ? sellPrice : 0.00000000M;
+                _resistance = places <= limit ? sellPrice : 0.00000000M; ;
+            }
+
+            return _resistance;
         }
 
         /// <summary>
         /// Get next support level if within 3 spots of top support level
         /// </summary>
+        /// <param name="getNew">Boolean to get a new value</param>
         /// <returns>Decimal of next support</returns>
-        public decimal GetSupport()
+        public decimal GetSupport(bool getNew = false)
         {
-            var detail = _exchBldr.GetSupport(_symbol, _botSettings.orderBookQuantity);
-            var support = detail.price;
-            var places = detail.position;
-            var limit = _botSettings.tradingCompetition ? 1 : 3;
-            var buyPrice = places == 0
-                ? support
-                : support + _helper.DecimalValueAtPrecision(detail.precision);
+            if (getNew)
+            {
+                var detail = _exchBldr.GetSupport(_symbol, _botSettings.orderBookQuantity);
+                var support = detail.price;
+                var places = detail.position;
+                var limit = _botSettings.tradingCompetition ? 1 : 3;
+                var buyPrice = places == 0
+                    ? support
+                    : support + _helper.DecimalValueAtPrecision(detail.precision);
 
-            return places <= limit ? buyPrice : 0.00000000M;
+                _support = places <= limit ? buyPrice : 0.00000000M;
+            }
+
+            return _support;
         }
 
         #endregion OrderBook

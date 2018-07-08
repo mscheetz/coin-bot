@@ -196,14 +196,16 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Get next resistance level
         /// </summary>
+        /// <param name="getNew">Boolean to get a new value</param>
         /// <returns>Decimal of next resistance</returns>
-        decimal GetResistance();
+        decimal GetResistance(bool getNew = false);
 
         /// <summary>
         /// Get next support level
         /// </summary>
+        /// <param name="getNew">Boolean to get a new value</param>
         /// <returns>Decimal of next support</returns>
-        decimal GetSupport();
+        decimal GetSupport(bool getNew = false);
 
         /// <summary>
         /// Place a trade
