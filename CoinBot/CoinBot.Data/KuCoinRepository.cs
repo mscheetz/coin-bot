@@ -384,6 +384,7 @@ namespace CoinBot.Data
             headers.Add("KC-API-KEY", _apiInfo.apiKey);
             headers.Add("KC-API-NONCE", nonce);
             headers.Add("KC-API-SIGNATURE", GetSignature(endpoint, nonce, queryString, 0));
+            headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)");
 
             return headers;
         }
@@ -396,6 +397,7 @@ namespace CoinBot.Data
             headers.Add("KC-API-KEY", _apiInfo.apiKey);
             headers.Add("KC-API-NONCE", nonce);
             headers.Add("KC-API-SIGNATURE", GetSignature(endpoint, nonce, queryString, postData));
+            headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)");
 
             return headers;
         }

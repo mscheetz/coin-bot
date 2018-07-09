@@ -1,7 +1,6 @@
 ﻿using CoinBot.Business.Entities;
 using CoinBot.Core;
 using CoinBot.Data.Interface;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
