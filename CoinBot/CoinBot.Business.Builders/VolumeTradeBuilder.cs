@@ -149,6 +149,9 @@ namespace CoinBot.Business.Builders
                     _tradeType = _trader.GetTradingType();
                     _trader.UpdateBotSettings(_lastBuy, _lastSell);
                     SetBotSettings(_trader.GetBotSettings());
+                    currentlyTrading = _tradeType == TradeType.NONE
+                        ? false
+                        : _botSettings.runBot;
                 }
                 var candleStickArray = _trader.GetCandlesticks(_symbol, interval, 5);
                 int i = candleStickArray.Length - 1;

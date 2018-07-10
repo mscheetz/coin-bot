@@ -14,7 +14,7 @@ namespace CoinBot.Business.Builders
     public class TradeBuilder : ITradeBuilder
     {
         #region Private Members
-
+        
         private IFileRepository _fileRepo;
         private IExchangeBuilder _exchBldr;
         private DateTimeHelper _dtHelper = new DateTimeHelper();
@@ -363,15 +363,20 @@ namespace CoinBot.Business.Builders
             var assetQty = _botBalances.Where(b => b.symbol.Equals(_asset)).Select(b => b.quantity).FirstOrDefault();
             var pairQty = _botBalances.Where(b => b.symbol.Equals(_pair)).Select(b => b.quantity).FirstOrDefault();
 
-            if ((_pair == "USD" || _pair == "USDT")
+            if (((_pair == "USD" || _pair == "USDT")
                 && pairQty < 10.0M)
+                || ((_pair == "BTC" || _pair == "ETH")
+                && pairQty < 0.0002M))
             {
-                return TradeType.SELL;
-            }
-            else if ((_pair == "BTC" || _pair == "ETH")
-                && pairQty < 0.0002M)
-            {
-                return TradeType.SELL;
+                if (((_asset == "BTC" || _asset == "ETH") && assetQty < 0.0002M)
+                    || assetQty < 0.5M)
+                {
+                    return TradeType.NONE;
+                }
+                else
+                {
+                    return TradeType.SELL;
+                }
             }
             else
             {
