@@ -144,6 +144,7 @@ namespace CoinBot.Business.Builders
             _trader.SetupRepository();
             _tradeType = TradeType.BUY;
             bool currentlyTrading = tradingStatus != null ? (bool)tradingStatus : _currentlyTrading;
+            currentlyTrading = GetCompetitionStatus(currentlyTrading);
 
             _trader.SetBalances();
             _tradeType = _trader.GetInitialTradeType();
@@ -160,10 +161,7 @@ namespace CoinBot.Business.Builders
                         ? false 
                         :_botSettings.runBot;
                 }
-                if(currentlyTrading && _botSettings.tradingCompetitionEndTimeStamp >= _dtHelper.UTCtoUnixTime())
-                {
-                    currentlyTrading = false;
-                }
+                currentlyTrading = GetCompetitionStatus(currentlyTrading);
                 if (currentlyTrading)
                 {
                     _supportGotten = false;
@@ -209,6 +207,24 @@ namespace CoinBot.Business.Builders
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Get trading status based on competition end time
+        /// </summary>
+        /// <param name="currentlyTrading">Boolean of currently trading status</param>
+        /// <returns>Boolean of currently trading status</returns>
+        private bool GetCompetitionStatus(bool currentlyTrading)
+        {
+            if (currentlyTrading
+                    && _botSettings.tradingCompetition
+                    && _botSettings.tradingCompetitionEndTimeStamp > 0
+                    && _botSettings.tradingCompetitionEndTimeStamp <= _dtHelper.UTCtoUnixTime())
+            {
+                currentlyTrading = false;
+            }
+
+            return currentlyTrading;
         }
 
         /// <summary>
