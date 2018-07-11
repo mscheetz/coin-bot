@@ -23,10 +23,11 @@ namespace CoinBot.Data.Tests
             IKuCoinRepository repo = new KuCoinRepository();
             IFileRepository fileRepo = new FileRepository();
             var apiInfo = fileRepo.GetConfig();
+            var interval = Interval.FifteenM;
             repo.SetExchangeApi(apiInfo);
             var symbol = "ETH-BTC";
 
-            var sticks = repo.GetCandlesticks(symbol, 15, 10).Result;
+            var sticks = repo.GetCandlesticks(symbol, interval, 10).Result;
 
             Assert.True(sticks != null);
             Assert.True(sticks.close.Length > 0);

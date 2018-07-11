@@ -46,7 +46,7 @@ namespace CoinBot.Business.Builders.Tests
             _exchangeBldr.Setup(b => b.GetOrderDetail(It.IsAny<TradeResponse>(), It.IsAny<string>())).Returns(_testObjects.GetOrderResponse());
             _exchangeBldr.Setup(b => b.PlaceTrade(It.IsAny<TradeParams>())).Returns(_testObjects.GetTradeResponse());
             _exchangeBldr.Setup(b => b.GetBalance(It.IsAny<string>(), It.IsAny<string>())).Returns(_testObjects.GetBalanceList());
-            _fileRepo.Setup(f => f.LogTransaction(It.IsAny<TradeInformation>())).Returns(true);
+            _fileRepo.Setup(f => f.LogTransaction(It.IsAny<TradeInformation>(), It.IsAny<bool>())).Returns(true);
             _fileRepo.Setup(f => f.GetSettings()).Returns(_testObjects.GetBotSettings());
 
             _tradeBuilder = new TradeBuilder(_fileRepo.Object, _exchangeBldr.Object, _testObjects.GetBotBalanceList());
