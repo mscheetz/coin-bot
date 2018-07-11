@@ -1497,8 +1497,8 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// Open orders check
         /// </summary>
-        /// <returns>Nullable decimal of open price</returns>
-        public decimal? OpenOrdersCheck()
+        /// <returns>OpenOrderDetail of open order</returns>
+        public OpenOrderDetail OpenOrdersCheck()
         {
             return _exchBldr.OpenOrdersExist(_symbol);
         }

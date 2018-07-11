@@ -505,10 +505,11 @@ namespace CoinBot.Business.Builders
         /// Check if open orders exist
         /// </summary>
         /// <param name="symbol">Trading pair to check</param>
-        /// <returns>Nullable decimal of open price</returns>
-        public decimal? OpenOrdersExist(string symbol)
+        /// <returns>OpenOrderDetail of open order</returns>
+        public Entities.OpenOrderDetail OpenOrdersExist(string symbol)
         {
             OrderResponse[] response = null;
+            Entities.OpenOrderDetail ooDetail = null;
             int i = 0;
             if (_thisExchange == Exchange.BINANCE)
             {
@@ -542,7 +543,13 @@ namespace CoinBot.Business.Builders
                 return null;
             }
 
-            return response != null && response.Length > 0 ? (decimal?)response[0].price : null;
+            if(response != null && response.Length > 0)
+            {
+                ooDetail.price = response[0].price;
+                ooDetail.timestamp = response[0].time;
+            }
+
+            return ooDetail;
         }
 
         /// <summary>
@@ -887,7 +894,7 @@ namespace CoinBot.Business.Builders
             return orderResponses;
         }
 
-        private OrderResponse[] KuCoinOpenOrderDetailToOrderReponse(OpenOrderDetail[] openOrderDetails, TradeType tradeType)
+        private OrderResponse[] KuCoinOpenOrderDetailToOrderReponse(Entities.KuCoinEntities.OpenOrderDetail[] openOrderDetails, TradeType tradeType)
         {
             var orderResponseList = new List<OrderResponse>();
 

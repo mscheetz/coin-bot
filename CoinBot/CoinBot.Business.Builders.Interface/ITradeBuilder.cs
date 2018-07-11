@@ -329,8 +329,8 @@ namespace CoinBot.Business.Builders.Interface
         /// <summary>
         /// Open orders check
         /// </summary>
-        /// <returns>Nullable decimal of open price</returns>
-        decimal? OpenOrdersCheck();
+        /// <returns>OpenOrderDetail of open order</returns>
+        OpenOrderDetail OpenOrdersCheck();
         
         /// <summary>
         /// Gets latest buy and sell prices for the current pair
