@@ -99,6 +99,14 @@ namespace CoinBot.Business.Entities
         /// Trade in trading competition?
         /// </summary>
         public bool tradingCompetition { get; set; }
+        /// <summary>
+        /// Unix timestamp of end of trading competition
+        /// </summary>
+        public long tradingCompetitionEndTimeStamp { get; set; }
+        /// <summary>
+        /// Seconds before canceling an open order
+        /// </summary>
+        public long openOrderTime { get; set; }
 
         public BotSettings()
         {

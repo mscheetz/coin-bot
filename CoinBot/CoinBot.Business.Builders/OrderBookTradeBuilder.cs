@@ -14,6 +14,7 @@ namespace CoinBot.Business.Builders
     public class OrderBookTradeBuilder : IOrderBookTradeBuilder
     {
         private Helper _helper = new Helper();
+        private DateTimeHelper _dtHelper = new DateTimeHelper();
         private ITradeBuilder _trader;
         private IFileRepository _fileRepo;
         private BotSettings _botSettings;
@@ -159,46 +160,53 @@ namespace CoinBot.Business.Builders
                         ? false 
                         :_botSettings.runBot;
                 }
-                _supportGotten = false;
-                _resistanceGotten = false;
-                
-                var tradeOpen = _trader.OpenOrdersCheck();
-
-                if (tradeOpen != null)
+                if(currentlyTrading && _botSettings.tradingCompetitionEndTimeStamp >= _dtHelper.UTCtoUnixTime())
                 {
-                    if (_botSettings.tradingCompetition)
-                    {
-                        tradeOpen = TradingCompetitionCheck(tradeOpen);
-                    }
-                    else
-                    {
-                        tradeOpen = CeilingFloorCheck(tradeOpen);
-                    }
+                    currentlyTrading = false;
                 }
-
-                var stopLoss = !_botSettings.stopLossCheck ? false : StopLossCheck();
-
-                if (stopLoss)
+                if (currentlyTrading)
                 {
-                    tradeOpen = _trader.OpenOrdersCheck();
-                }
+                    _supportGotten = false;
+                    _resistanceGotten = false;
 
-                if (tradeOpen == null)
-                {
-                    UpdateLastPrices();
+                    var tradeOpen = _trader.OpenOrdersCheck();
 
-                    _tradeType = _trader.GetTradingType();
-
-                    if (_tradeType == TradeType.BUY)
+                    if (tradeOpen != null)
                     {
-                        BuyCryptoCheck();
+                        if (_botSettings.tradingCompetition)
+                        {
+                            tradeOpen = TradingCompetitionCheck(tradeOpen);
+                        }
+                        else
+                        {
+                            tradeOpen = CeilingFloorCheck(tradeOpen);
+                        }
                     }
-                    else if (_tradeType == TradeType.SELL)
+
+                    var stopLoss = !_botSettings.stopLossCheck ? false : StopLossCheck();
+
+                    if (stopLoss)
                     {
-                        SellCryptoCheck();
+                        tradeOpen = _trader.OpenOrdersCheck();
                     }
+
+                    if (tradeOpen == null)
+                    {
+                        UpdateLastPrices();
+
+                        _tradeType = _trader.GetTradingType();
+
+                        if (_tradeType == TradeType.BUY)
+                        {
+                            BuyCryptoCheck();
+                        }
+                        else if (_tradeType == TradeType.SELL)
+                        {
+                            SellCryptoCheck();
+                        }
+                    }
+                    cycle++;
                 }
-                cycle++;
             }
             return true;
         }
@@ -242,8 +250,8 @@ namespace CoinBot.Business.Builders
         /// <summary>
         /// If the set orders have moved out of range, cancel open orders
         /// </summary>
-        /// <returns>Boolean when complete</returns>
-        private decimal? CeilingFloorCheck(decimal? openPrice)
+        /// <returns>OpenOrderDetail when complete</returns>
+        private OpenOrderDetail CeilingFloorCheck(OpenOrderDetail ooDetail)
         {
             var price = 0.00000000M;
             if (_tradeType == TradeType.SELL)
@@ -263,14 +271,14 @@ namespace CoinBot.Business.Builders
                 return null;
             }
 
-            return openPrice;
+            return ooDetail;
         }
 
         /// <summary>
         /// If a trading competition, cancel open trade if outside 1st position
         /// </summary>
-        /// <returns>Boolean when complete</returns>
-        private decimal? TradingCompetitionCheck(decimal? openPrice)
+        /// <returns>OpenOrderDetail when complete</returns>
+        private OpenOrderDetail TradingCompetitionCheck(OpenOrderDetail ooDetail)
         {
             var lastPrice = _tradeType == TradeType.BUY ? _lastSell : _lastBuy;
             var currentPrice = OrderBookSellPrice();
@@ -284,14 +292,22 @@ namespace CoinBot.Business.Builders
                 _samePriceCheck = 0;
             }
             _lastPrice = currentPrice;
-            int? position = _trader.GetPricePostion((decimal)openPrice);
-            if(position >= 3 && _samePriceCheck < 19)
+            int? position = _trader.GetPricePostion(ooDetail.price);
+            long unixTime = 0;
+            long timeDiff = 0;
+            if (_botSettings.openOrderTime > 0)
+            {
+                unixTime = _dtHelper.UTCtoUnixTime();
+                timeDiff = ooDetail.timestamp + _botSettings.openOrderTime;
+            }
+            if((position >= 3 && _samePriceCheck < 19) 
+                || (unixTime > 0 && unixTime >= timeDiff))
             {
                 _trader.CancelOpenOrders();
                 return null;
             }
 
-            return openPrice;
+            return ooDetail;
         }
 
         /// <summary>
