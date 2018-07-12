@@ -55,6 +55,7 @@ namespace CoinBot.Api.Controllers
             return _service.GetBotConfig();
         }
 
+#if DEBUG
         /// <summary>
         /// Update bot config
         /// </summary>
@@ -74,6 +75,7 @@ namespace CoinBot.Api.Controllers
             }
             return _service.UpdateBotConfig(botConfig);
         }
+#endif
 
         /// <summary>
         /// Get exchange api key
@@ -94,6 +96,7 @@ namespace CoinBot.Api.Controllers
             return _service.GetApiKey();
         }
 
+#if DEBUG
         /// <summary>
         /// Update Exchange api settings
         /// </summary>
@@ -113,6 +116,7 @@ namespace CoinBot.Api.Controllers
             }
             return _service.UpdateApiAccess(apiInformation);
         }
+#endif
 
         /// <summary>
         /// Start trading with 1 Minute interval on candlesticks

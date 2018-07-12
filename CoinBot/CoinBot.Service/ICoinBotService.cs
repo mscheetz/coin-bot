@@ -12,7 +12,8 @@ namespace CoinBot.Service
         /// <param name="attemptPassword">Attempted password</param>
         /// <returns>Boolean of match attempt</returns>
         bool ValidatePassword(string attemptPassword);
-        
+
+#if DEBUG
         /// <summary>
         /// Update bot password
         /// </summary>
@@ -33,6 +34,7 @@ namespace CoinBot.Service
         /// <param name="botConfig">New bot settings</param>
         /// <returns>Boolean value when complete</returns>
         bool UpdateApiAccess(ApiInformation apiInformation);
+#endif
 
         /// <summary>
         /// Get current BotConfig

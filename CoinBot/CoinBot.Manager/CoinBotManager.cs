@@ -42,6 +42,7 @@ namespace CoinBot.Manager
             return attemptPassword.Equals(password) ? true : false;
         }
 
+#if DEBUG
         /// <summary>
         /// Update bot password
         /// </summary>
@@ -54,6 +55,7 @@ namespace CoinBot.Manager
 
             return response;
         }
+#endif
 
         /// <summary>
         /// Get current BotConfig
