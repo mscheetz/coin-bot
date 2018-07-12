@@ -14,6 +14,7 @@ namespace CoinBot.Manager
         private IVolumeTradeBuilderOG _volumeBuilderOG;
         private IOrderBookTradeBuilder _orderBookTradeBuilder;
         private ITradeBuilder _tradeBuilder;
+        private BotConfig _botConfig;
         private BotSettings _botSettings;
 
         public CoinBotManager(IBollingerBandTradeBuilder bollingerBuilder,
@@ -25,16 +26,48 @@ namespace CoinBot.Manager
             this._volumeBuilderOG = volumeBuilderOG;
             this._orderBookTradeBuilder = orderBookTradeBuilder;
             this._tradeBuilder = tradeBuilder;
-            _botSettings = _tradeBuilder.GetBotSettings();
+
+            _botSettings = tradeBuilder.GetBotSettings();
+            _botConfig = _tradeBuilder.GetBotConfig();
         }
 
         /// <summary>
-        /// Get current BotSettings
+        /// Validate passwords match
         /// </summary>
-        /// <returns>BotSettings object</returns>
-        public BotSettings GetBotSettings()
+        /// <param name="attemptPassword">Attempted password</param>
+        /// <returns>Boolean of match attempt</returns>
+        public bool ValidatePassword(string attemptPassword)
         {
-            return _tradeBuilder.GetBotSettings();
+            ServiceReady();
+            var password = _tradeBuilder.GetPassword();
+
+            return attemptPassword.Equals(password) ? true : false;
+        }
+
+        /// <summary>
+        /// Update bot password
+        /// </summary>
+        /// <param name="password">String of new password</param>
+        /// <returns>Bool when complete</returns>
+        public bool UpdatePassword(string password)
+        {
+            ServiceReady();
+            var response = _tradeBuilder.UpdatePassword(password);
+            _botSettings = _tradeBuilder.GetBotSettings();
+
+            return response;
+        }
+
+        /// <summary>
+        /// Get current BotConfig
+        /// </summary>
+        /// <returns>BotConfig object</returns>
+        public BotConfig GetBotConfig()
+        {
+            ServiceReady();
+            var botConfig = _tradeBuilder.GetBotConfig();
+
+            return botConfig;
         }
 
         /// <summary>
@@ -43,18 +76,20 @@ namespace CoinBot.Manager
         /// <returns>String of api key</returns>
         public string GetApiKey()
         {
+            ServiceReady();
             return _tradeBuilder.GetApiKey();
         }
 
         /// <summary>
-        /// Update bot settings
+        /// Update BotConfig
         /// </summary>
-        /// <param name="botSettings">New bot settings</param>
+        /// <param name="botConfig">New bot settings</param>
         /// <returns>Boolean value when complete</returns>
-        public bool UpdateBotSettings(BotSettings botSettings)
+        public bool UpdateBotConfig(BotConfig botConfig)
         {
             ServiceReady();
-            var result = _tradeBuilder.SetBotSettings(botSettings);
+            var result = _tradeBuilder.SetBotSettings(botConfig);
+            _botConfig = _tradeBuilder.GetBotConfig();
             _botSettings = _tradeBuilder.GetBotSettings();
 
             return result;
@@ -78,13 +113,13 @@ namespace CoinBot.Manager
         /// </summary>
         /// <param name="interval">Candlestick interval</param>
         public bool StartBot(Interval interval)
-        {
+        {            
             ServiceReady();
-            if (_botSettings.tradingStrategy == Strategy.BollingerBands)
+            if (_botConfig.tradingStrategy == Strategy.BollingerBands)
                 _bollingerBuilder.StartTrading(interval);
-            else if (_botSettings.tradingStrategy == Strategy.Volume)
+            else if (_botConfig.tradingStrategy == Strategy.Volume)
                 _volumeBuilderOG.StartTrading(interval);
-            else if (_botSettings.tradingStrategy == Strategy.OrderBook)
+            else if (_botConfig.tradingStrategy == Strategy.OrderBook)
                 _orderBookTradeBuilder.StartTrading(interval);
 
             return true;
@@ -171,6 +206,7 @@ namespace CoinBot.Manager
         /// <returns>Boolean when complete</returns>
         public bool CancelAllGdaxTrades()
         {
+            ServiceReady();
             try
             {
                 _tradeBuilder.CancelTrade(0, "");
@@ -193,6 +229,8 @@ namespace CoinBot.Manager
             {
                 throw new Exception("No BotSettings file exists!");
             }
+
+            _tradeBuilder.SetBotSettings(_botSettings);
         }
     }
 }

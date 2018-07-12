@@ -7,24 +7,38 @@ namespace CoinBot.Service
     public interface ICoinBotService
     {
         /// <summary>
-        /// Update bot settings
+        /// Validate passwords match
         /// </summary>
-        /// <param name="botSettings">New bot settings</param>
-        /// <returns>Boolean value when complete</returns>
-        bool UpdateBotSettings(BotSettings botSettings);
+        /// <param name="attemptPassword">Attempted password</param>
+        /// <returns>Boolean of match attempt</returns>
+        bool ValidatePassword(string attemptPassword);
+        
+        /// <summary>
+        /// Update bot password
+        /// </summary>
+        /// <param name="password">String of new password</param>
+        /// <returns>Bool when complete</returns>
+        bool UpdatePassword(string password);
 
         /// <summary>
         /// Update bot settings
         /// </summary>
-        /// <param name="botSettings">New bot settings</param>
+        /// <param name="botConfig">New bot settings</param>
+        /// <returns>Boolean value when complete</returns>
+        bool UpdateBotConfig(BotConfig botConfig);
+
+        /// <summary>
+        /// Update bot settings
+        /// </summary>
+        /// <param name="botConfig">New bot settings</param>
         /// <returns>Boolean value when complete</returns>
         bool UpdateApiAccess(ApiInformation apiInformation);
 
         /// <summary>
-        /// Get current BotSettings
+        /// Get current BotConfig
         /// </summary>
-        /// <returns>BotSettings object</returns>
-        BotSettings GetBotSettings();
+        /// <returns>BotConfig object</returns>
+        BotConfig GetBotConfig();
 
         /// <summary>
         /// Get current Exchange API Key
