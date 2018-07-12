@@ -145,6 +145,27 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Get password
+        /// </summary>
+        /// <returns>String of password</returns>
+        public string GetPassword()
+        {
+            return _botSettings.botPassword;
+        }
+
+        /// <summary>
+        /// Update bot password
+        /// </summary>
+        /// <param name="password">String of new password</param>
+        /// <returns>Bool when complete</returns>
+        public bool UpdatePassword(string password)
+        {
+            _botSettings.botPassword = password;
+                        
+            return _botSettings.botPassword.Equals(password);
+        }
+
+        /// <summary>
         /// Get BotSettings
         /// </summary>
         /// <returns>BotSettings object</returns>
@@ -154,6 +175,85 @@ namespace CoinBot.Business.Builders
                 LoadBotSettingsFile();
 
             return _botSettings;
+        }
+
+        /// <summary>
+        /// Get BotConfig
+        /// </summary>
+        /// <returns>BotConfig object</returns>
+        public BotConfig GetBotConfig()
+        {
+            var botSettings = GetBotSettings();
+
+            return BotSettingsToBotConfig(botSettings);
+        }
+
+        private BotConfig BotSettingsToBotConfig(BotSettings botSettings)
+        {
+            var botConfig = new BotConfig
+            {
+                buyPercent = botSettings.buyPercent,
+                chartInterval = botSettings.chartInterval,
+                exchange = botSettings.exchange,
+                lastBuy = botSettings.lastBuy,
+                lastSell = botSettings.lastSell,
+                mooningTankingPercent = botSettings.mooningTankingPercent,
+                mooningTankingTime = botSettings.mooningTankingTime,
+                openOrderTimeMS = botSettings.openOrderTimeMS,
+                orderBookQuantity = botSettings.orderBookQuantity,
+                priceCheck = botSettings.priceCheck,
+                runBot = botSettings.runBot,
+                sellPercent = botSettings.sellPercent,
+                startBotAutomatically = botSettings.startBotAutomatically,
+                startingAmount = botSettings.startingAmount,
+                stopLoss = botSettings.stopLoss,
+                stopLossCheck = botSettings.stopLossCheck,
+                tradePercent = botSettings.tradePercent,
+                traderResetInterval = botSettings.traderResetInterval,
+                tradeValidationCheck = botSettings.tradeValidationCheck,
+                tradingCompetition = botSettings.tradingCompetition,
+                tradingCompetitionEndTimeStamp = botSettings.tradingCompetitionEndTimeStamp,
+                tradingFee = botSettings.tradingFee,
+                tradingPair = botSettings.tradingPair,
+                tradingStatus = botSettings.tradingStatus,
+                tradingStrategy = botSettings.tradingStrategy
+            };
+
+            return botConfig;
+        }
+
+        private BotSettings BotConfigToBotSettings(BotConfig botConfig)
+        {
+            var botSettings = new BotSettings
+            {
+                buyPercent = botConfig.buyPercent,
+                chartInterval = botConfig.chartInterval,
+                exchange = botConfig.exchange,
+                lastBuy = botConfig.lastBuy,
+                lastSell = botConfig.lastSell,
+                mooningTankingPercent = botConfig.mooningTankingPercent,
+                mooningTankingTime = botConfig.mooningTankingTime,
+                openOrderTimeMS = botConfig.openOrderTimeMS,
+                orderBookQuantity = botConfig.orderBookQuantity,
+                priceCheck = botConfig.priceCheck,
+                runBot = botConfig.runBot,
+                sellPercent = botConfig.sellPercent,
+                startBotAutomatically = botConfig.startBotAutomatically,
+                startingAmount = botConfig.startingAmount,
+                stopLoss = botConfig.stopLoss,
+                stopLossCheck = botConfig.stopLossCheck,
+                tradePercent = botConfig.tradePercent,
+                traderResetInterval = botConfig.traderResetInterval,
+                tradeValidationCheck = botConfig.tradeValidationCheck,
+                tradingCompetition = botConfig.tradingCompetition,
+                tradingCompetitionEndTimeStamp = botConfig.tradingCompetitionEndTimeStamp,
+                tradingFee = botConfig.tradingFee,
+                tradingPair = botConfig.tradingPair,
+                tradingStatus = botConfig.tradingStatus,
+                tradingStrategy = botConfig.tradingStrategy
+            };
+
+            return botSettings;
         }
 
         /// <summary>
@@ -197,6 +297,18 @@ namespace CoinBot.Business.Builders
             GetAssetAndPair();
 
             return true;
+        }
+
+        /// <summary>
+        /// Set BotSettings in builder
+        /// </summary>
+        /// <param name="botConfig">Updated BotConfig values</param>
+        /// <returns>Boolean when complete</returns>
+        public bool SetBotSettings(BotConfig botConfig)
+        {
+            var settings = BotConfigToBotSettings(botConfig);
+
+            return SetBotSettings(settings);
         }
 
         /// <summary>
@@ -268,7 +380,8 @@ namespace CoinBot.Business.Builders
                 updatedSettings.tradingStatus = settings.tradingStatus;
             if (settings.tradingStrategy != Strategy.None)
                 updatedSettings.tradingStrategy = settings.tradingStrategy;
-
+            if (!string.IsNullOrEmpty(settings.botPassword))
+                updatedSettings.botPassword = settings.botPassword;
 
             updatedSettings.mooningTankingPercent = settings.mooningTankingPercent;
             updatedSettings.runBot = settings.runBot;
@@ -419,6 +532,7 @@ namespace CoinBot.Business.Builders
         #endregion Signal History
 
         #region Balance Managers
+
         /// <summary>
         /// Get current balance
         /// </summary>
@@ -575,6 +689,7 @@ namespace CoinBot.Business.Builders
 
             LogBalances();
         }
+
         #endregion Balance Managers
 
         #region Logging

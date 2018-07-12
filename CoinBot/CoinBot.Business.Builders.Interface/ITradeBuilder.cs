@@ -18,12 +18,31 @@ namespace CoinBot.Business.Builders.Interface
         /// </summary>
         /// <returns>Boolean of result</returns>
         bool SettingsFileExists();
+        
+        /// <summary>
+        /// Get password
+        /// </summary>
+        /// <returns>String of password</returns>
+        string GetPassword();
+
+        /// <summary>
+        /// Update bot password
+        /// </summary>
+        /// <param name="password">String of new password</param>
+        /// <returns>Bool when complete</returns>
+        bool UpdatePassword(string password);
 
         /// <summary>
         /// Get BotSettings
         /// </summary>
         /// <returns>BotSettings object</returns>
         BotSettings GetBotSettings();
+
+        /// <summary>
+        /// Get BotConfig
+        /// </summary>
+        /// <returns>BotConfig object</returns>
+        BotConfig GetBotConfig();
 
         /// <summary>
         /// Get current balances
@@ -43,6 +62,13 @@ namespace CoinBot.Business.Builders.Interface
         /// <param name="_lastSell">Last sell value</param>
         /// <returns>Boolean when complete</returns>
         bool UpdateBotSettings(decimal _lastBuy, decimal _lastSell);
+
+        /// <summary>
+        /// Set BotSettings in builder
+        /// </summary>
+        /// <param name="botConfig">Updated BotConfig values</param>
+        /// <returns>Boolean when complete</returns>
+        bool SetBotSettings(BotConfig botConfig);
 
         /// <summary>
         /// Set BotSettings in builder
