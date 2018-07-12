@@ -219,7 +219,7 @@ namespace CoinBot.Business.Builders
             if (currentlyTrading
                     && _botSettings.tradingCompetition
                     && _botSettings.tradingCompetitionEndTimeStamp > 0
-                    && _botSettings.tradingCompetitionEndTimeStamp <= _dtHelper.UTCtoUnixTime())
+                    && _botSettings.tradingCompetitionEndTimeStamp <= _dtHelper.UTCtoUnixTimeMilliseconds())
             {
                 currentlyTrading = false;
             }

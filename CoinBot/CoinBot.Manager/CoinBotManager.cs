@@ -15,7 +15,6 @@ namespace CoinBot.Manager
         private IOrderBookTradeBuilder _orderBookTradeBuilder;
         private ITradeBuilder _tradeBuilder;
         private BotConfig _botConfig;
-        private BotSettings _botSettings;
 
         public CoinBotManager(IBollingerBandTradeBuilder bollingerBuilder,
                               IVolumeTradeBuilderOG volumeBuilderOG,
@@ -27,7 +26,6 @@ namespace CoinBot.Manager
             this._orderBookTradeBuilder = orderBookTradeBuilder;
             this._tradeBuilder = tradeBuilder;
 
-            _botSettings = tradeBuilder.GetBotSettings();
             _botConfig = _tradeBuilder.GetBotConfig();
         }
 
@@ -53,7 +51,6 @@ namespace CoinBot.Manager
         {
             ServiceReady();
             var response = _tradeBuilder.UpdatePassword(password);
-            _botSettings = _tradeBuilder.GetBotSettings();
 
             return response;
         }
@@ -80,6 +77,7 @@ namespace CoinBot.Manager
             return _tradeBuilder.GetApiKey();
         }
 
+#if DEBUG
         /// <summary>
         /// Update BotConfig
         /// </summary>
@@ -90,7 +88,6 @@ namespace CoinBot.Manager
             ServiceReady();
             var result = _tradeBuilder.SetBotSettings(botConfig);
             _botConfig = _tradeBuilder.GetBotConfig();
-            _botSettings = _tradeBuilder.GetBotSettings();
 
             return result;
         }
@@ -107,6 +104,7 @@ namespace CoinBot.Manager
 
             return result;
         }
+#endif
 
         /// <summary>
         /// Start trading
@@ -229,8 +227,6 @@ namespace CoinBot.Manager
             {
                 throw new Exception("No BotSettings file exists!");
             }
-
-            _tradeBuilder.SetBotSettings(_botSettings);
         }
     }
 }

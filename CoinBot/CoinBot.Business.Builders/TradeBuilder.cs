@@ -327,6 +327,7 @@ namespace CoinBot.Business.Builders
                 lastSell = _botSettings.lastSell,
                 mooningTankingPercent = _botSettings.mooningTankingPercent,
                 mooningTankingTime = _botSettings.mooningTankingTime,
+                openOrderTimeMS = _botSettings.openOrderTimeMS,
                 orderBookQuantity = _botSettings.orderBookQuantity,
                 priceCheck = _botSettings.priceCheck,
                 sellPercent = _botSettings.sellPercent,
@@ -337,6 +338,7 @@ namespace CoinBot.Business.Builders
                 tradePercent = _botSettings.tradePercent,
                 tradeValidationCheck = _botSettings.tradeValidationCheck,
                 traderResetInterval = _botSettings.traderResetInterval,
+                tradingCompetitionEndTimeStamp = _botSettings.tradingCompetitionEndTimeStamp,
                 tradingFee = _botSettings.tradingFee,
                 tradingPair = _botSettings.tradingPair,
                 tradingStatus = _botSettings.tradingStatus,
@@ -387,6 +389,7 @@ namespace CoinBot.Business.Builders
             updatedSettings.runBot = settings.runBot;
             updatedSettings.stopLossCheck = settings.stopLossCheck;
             updatedSettings.tradingCompetition = settings.tradingCompetition;
+            updatedSettings.tradingCompetitionEndTimeStamp = settings.tradingCompetitionEndTimeStamp;
             updatedSettings.tradingFee = settings.tradingFee;
 
             _fileRepo.UpdateBotSettings(updatedSettings);
