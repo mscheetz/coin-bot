@@ -49,18 +49,6 @@ namespace CoinBot.Tests.Entities
             return settings;
         }
 
-        public BotConfig GetBotConfig()
-        {
-            var botConfig = new BotConfig
-            {
-                apiKey = It.IsAny<string>(),
-                apiSecret = It.IsAny<string>(),
-                privateToken = It.IsAny<string>()
-            };
-
-            return botConfig;
-        }
-
         public ApiInformation GetApiInfo()
         {
             var apiInfo = new ApiInformation
