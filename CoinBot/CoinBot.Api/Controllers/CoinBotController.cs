@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using CoinBot.Business.Entities;
 using CoinBot.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,11 @@ namespace CoinBot.Api.Controllers
             _service = service;
         }
 
+        private bool Auth(string password)
+        {
+            return _service.ValidatePassword(password);
+        }
+
         /// <summary>
         /// Check if service is running
         /// </summary>
@@ -30,32 +36,43 @@ namespace CoinBot.Api.Controllers
         }
 
         /// <summary>
-        /// Get bot settings
+        /// Get bot config
         /// </summary>
         /// <remarks>
-        /// Get bot settings
+        /// Get bot config
         /// </remarks>
-        /// <returns>BotSettings object</returns>
+        /// <returns>BotConfig object</returns>
         /// GET: api/coinbot/settings
-        [HttpGet("settings")]
-        public BotSettings GetBotSettings()
+        [HttpGet("config/{password}")]
+        public BotConfig GetBotConfig(string password)
         {
-            return _service.GetBotSettings();
+            if (!Auth(password))
+            {
+                HttpContext.Response.StatusCode = 401;
+                return null;
+            }
+
+            return _service.GetBotConfig();
         }
 
         /// <summary>
-        /// Update bot settings
+        /// Update bot config
         /// </summary>
         /// <remarks>
-        /// Update bot settings
+        /// Update bot config
         /// </remarks>
-        /// <param name="botSettings">New bot settings</param>
+        /// <param name="botConfig">New bot config</param>
         /// <returns>Boolean value when complete</returns>
-        /// POST: api/coinbot/settings
-        [HttpPost("settings")]
-        public bool UpdateBotSettings(BotSettings botSettings)
+        /// POST: api/coinbot/config
+        [HttpPost("config/")]
+        public bool UpdateBotConfig(string password, BotConfig botConfig)
         {
-            return _service.UpdateBotSettings(botSettings);
+            if (!Auth(password))
+            {
+                HttpContext.Response.StatusCode = 401;
+                return false;
+            }
+            return _service.UpdateBotConfig(botConfig);
         }
 
         /// <summary>
@@ -65,10 +82,15 @@ namespace CoinBot.Api.Controllers
         /// Get exchange api key
         /// </remarks>
         /// <returns>String of api key</returns>
-        /// GET: api/coinbot/settings/api
-        [HttpGet("settings/api")]
-        public string GetApiKey()
+        /// GET: api/coinbot/config/api
+        [HttpGet("config/api/{password}")]
+        public string GetApiKey(string password)
         {
+            if (!Auth(password))
+            {
+                HttpContext.Response.StatusCode = 401;
+                return null;
+            }
             return _service.GetApiKey();
         }
 
@@ -80,10 +102,15 @@ namespace CoinBot.Api.Controllers
         /// </remarks>
         /// <param name="apiInformation">New api settings</param>
         /// <returns>Boolean value when complete</returns>
-        /// POST: api/coinbot/settings/api
-        [HttpPost("settings/api")]
-        public bool UpdateApiSettings(ApiInformation apiInformation)
+        /// POST: api/coinbot/config/api
+        [HttpPost("config/api")]
+        public bool UpdateApiSettings(string password, ApiInformation apiInformation)
         {
+            if (!Auth(password))
+            {
+                HttpContext.Response.StatusCode = 401;
+                return false;
+            }
             return _service.UpdateApiAccess(apiInformation);
         }
 
@@ -95,9 +122,14 @@ namespace CoinBot.Api.Controllers
         /// </remarks>
         /// <param name="interval">Candlestick interval</param>
         /// GET: api/coinbot/start
-        [HttpGet("start")]
-        public bool StartBot()
+        [HttpGet("start/{password}")]
+        public bool StartBot(string password)
         {
+            if (!Auth(password))
+            {
+                HttpContext.Response.StatusCode = 401;
+                return false;
+            }
             return _service.StartBot(Interval.OneM);
         }
 
@@ -109,9 +141,14 @@ namespace CoinBot.Api.Controllers
         /// </remarks>
         /// <param name="interval">Candlestick interval</param>
         /// GET: api/coinbot/start/{interval}
-        [HttpGet("start/{interval}")]
-        public bool StartBot(Interval interval)
+        [HttpGet("start/{password}/{interval}")]
+        public bool StartBot(string password, Interval interval)
         {
+            if (!Auth(password))
+            {
+                HttpContext.Response.StatusCode = 401;
+                return false;
+            }
             return _service.StartBot(interval);
         }
 
@@ -122,12 +159,18 @@ namespace CoinBot.Api.Controllers
         /// Stop Trading
         /// </remarks>
         /// GET: api/coinbot/stop
-        [HttpGet("stop")]
-        public bool StopBot()
+        [HttpGet("stop/{password}")]
+        public bool StopBot(string password)
         {
+            if (!Auth(password))
+            {
+                HttpContext.Response.StatusCode = 401;
+                return false;
+            }
             return _service.StopBot();
         }
-
+        
+#if DEBUG
         /// <summary>
         /// Get last 10 transactions
         /// </summary>
@@ -243,6 +286,7 @@ namespace CoinBot.Api.Controllers
         {
             return _service.GetStopLosses();
         }
+#endif
 
         /// <summary>
         /// Cancel all GDAX trades
@@ -252,10 +296,14 @@ namespace CoinBot.Api.Controllers
         /// </remarks>
         /// <returns>Boolean when complete</returns>
         /// GET: api/coinbot/trades/cancel
-        [HttpGet("trades/cancel")]
-
-        public bool CancelAllTrades()
+        [HttpGet("trades/cancel/{password}")]
+        public bool CancelAllTrades(string password)
         {
+            if (!Auth(password))
+            {
+                HttpContext.Response.StatusCode = 401;
+                return false;
+            }
             return _service.CancelAllGdaxTrades();
         }
     }
