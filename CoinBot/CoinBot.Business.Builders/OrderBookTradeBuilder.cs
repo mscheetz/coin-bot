@@ -311,10 +311,10 @@ namespace CoinBot.Business.Builders
             int? position = _trader.GetPricePostion(ooDetail.price);
             long unixTime = 0;
             long timeDiff = 0;
-            if (_botSettings.openOrderTime > 0)
+            if (_botSettings.openOrderTimeMS > 0)
             {
-                unixTime = _dtHelper.UTCtoUnixTime();
-                timeDiff = ooDetail.timestamp + _botSettings.openOrderTime;
+                unixTime = _dtHelper.UTCtoUnixTimeMilliseconds();
+                timeDiff = ooDetail.timestamp + _botSettings.openOrderTimeMS;
             }
             if((position >= 3 && _samePriceCheck < 19) 
                 || (unixTime > 0 && unixTime >= timeDiff))
