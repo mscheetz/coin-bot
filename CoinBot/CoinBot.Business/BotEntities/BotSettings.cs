@@ -7,6 +7,10 @@ namespace CoinBot.Business.Entities
     public class BotSettings
     {
         /// <summary>
+        /// Password for bot
+        /// </summary>
+        public string botPassword { get; set; }
+        /// <summary>
         /// Trading Pair
         /// </summary>
         public string tradingPair { get; set; }
@@ -104,9 +108,9 @@ namespace CoinBot.Business.Entities
         /// </summary>
         public long tradingCompetitionEndTimeStamp { get; set; }
         /// <summary>
-        /// Seconds before canceling an open order
+        /// Milliseconds before canceling an open order
         /// </summary>
-        public long openOrderTime { get; set; }
+        public long openOrderTimeMS { get; set; }
 
         public BotSettings()
         {
