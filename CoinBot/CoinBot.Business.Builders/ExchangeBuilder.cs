@@ -1,5 +1,6 @@
 ﻿using CoinBot.Business.Builders.Interface;
 using CoinBot.Business.Entities;
+using CoinBot.Business.Entities.GDAX;
 using CoinBot.Business.Entities.KuCoinEntities;
 using CoinBot.Core;
 using CoinBot.Data;
@@ -213,12 +214,12 @@ namespace CoinBot.Business.Builders
 
                 for (i = 0; i < accountList.Count(); i++)
                 {
-                    if (accountList[i].Currency.ToString().Equals(asset)
-                        || accountList[i].Currency.ToString().Equals(pair))
+                    if (accountList[i].Currency.Equals(asset)
+                        || accountList[i].Currency.Equals(pair))
                     {
                         var balance = new Entities.Balance
                         {
-                            asset = accountList[i].Currency.ToString(),
+                            asset = accountList[i].Currency,
                             free = accountList[i].Available,
                             locked = accountList[i].Hold
                         };
@@ -288,9 +289,19 @@ namespace CoinBot.Business.Builders
                 // TODO use new trade api
                 if (tradeParams.type == "STOPLOSS")
                 {
-                    GDAXSharp.Services.Orders.Models.Responses.OrderResponse response = _gdaxRepo.PlaceStopLimit(tradeParams).Result;
+                    var gdaxParams = new GDAXStopLossParams
+                    {
+                        stop = "loss",
+                        stop_price = tradeParams.price,
+                        price = tradeParams.price,
+                        product_id = tradeParams.symbol,
+                        side = tradeParams.side.ToLower(),
+                        size = tradeParams.quantity,
+                        post_only = true
+                    };
+                    GDAXOrderResponse response = _gdaxRepo.PlaceStopLimit(gdaxParams).Result;
 
-                    return GdaxOrderResponseToTradeResponse(response);
+                    return GdaxRestOrderResponseToTradeResponse(response);
                 }
                 else
                 {
@@ -300,7 +311,8 @@ namespace CoinBot.Business.Builders
                         product_id = tradeParams.symbol,
                         side = tradeParams.side.ToLower(),
                         size = tradeParams.quantity,
-                        type = "limit"
+                        type = "limit",
+                        post_only = true
                     };
                     GDAXOrderResponse response = _gdaxRepo.PlaceRestTrade(gdaxParams).Result;
 
@@ -481,7 +493,15 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.GDAX)
             {
-                return null;
+                var gdaxOrders = _gdaxRepo.GetRestOrders().Result;
+                
+                while(gdaxOrders == null && i < 3)
+                {
+                    gdaxOrders = _gdaxRepo.GetRestOrders().Result;
+                    i++;
+                }
+
+                return GDAXFillArrayToOrderResponseArray(gdaxOrders, symbol);
             }
             else if (_thisExchange == Exchange.KUCOIN)
             {
@@ -520,7 +540,16 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.GDAX)
             {
-                return null;
+                var gdaxOrders = _gdaxRepo.GetOpenOrders().Result;
+
+                while (gdaxOrders == null && i < 3)
+                {
+                    gdaxOrders = _gdaxRepo.GetOpenOrders().Result;
+                    i++;
+                }
+
+                if (gdaxOrders != null)
+                    response = GDAXOrderResponseArrayToOrderResponseArray(gdaxOrders, symbol);
             }
             else if (_thisExchange == Exchange.KUCOIN)
             {
@@ -570,6 +599,16 @@ namespace CoinBot.Business.Builders
             }
             else if (_thisExchange == Exchange.GDAX)
             {
+                var gdaxOrders = _gdaxRepo.GetOpenOrders().Result;
+
+                while (gdaxOrders == null && i < 3)
+                {
+                    gdaxOrders = _gdaxRepo.GetOpenOrders().Result;
+                    i++;
+                }
+
+                if (gdaxOrders != null)
+                    response = GDAXOrderResponseArrayToOrderResponseArray(gdaxOrders, symbol);
             }
             else if (_thisExchange == Exchange.KUCOIN)
             {
@@ -648,9 +687,6 @@ namespace CoinBot.Business.Builders
             int i = 0;
             int precision = 0;
             OrderBookDetail response;
-            //var pair = symbol.Substring(symbol.Length - 4) == "USDT"
-            //                ? symbol.Substring(symbol.Length - 4)
-            //                : symbol.Substring(symbol.Length - 3);
             var orderBook = GetOrderBook(symbol);
 
             while (orderBook == null && i < 3)
@@ -817,6 +853,16 @@ namespace CoinBot.Business.Builders
             else if(_thisExchange == Exchange.GDAX)
             {
                 var gdaxBook = _gdaxRepo.GetOrderBook(symbol).Result;
+
+                while (gdaxBook == null && i < 3)
+                {
+                    gdaxBook = _gdaxRepo.GetOrderBook(symbol).Result;
+                    i++;
+                }
+
+                if (gdaxBook != null)
+                    orderBook = GDAXOrderBookToOrderBook(gdaxBook);
+
             }
             else if(_thisExchange == Exchange.KUCOIN)
             {
@@ -916,7 +962,7 @@ namespace CoinBot.Business.Builders
             return orderResponseList.ToArray();
         }
 
-        private Entities.OrderBook KuCoinOrderBookToOrderBook(OrderBookResponse orderBookResponse)
+        private Entities.OrderBook KuCoinOrderBookToOrderBook(Entities.KuCoinEntities.OrderBookResponse orderBookResponse)
         {
             var orderBook = new Entities.OrderBook
             {
@@ -1092,6 +1138,108 @@ namespace CoinBot.Business.Builders
             };
 
             return tradeResponse;
+        }
+
+        private OrderResponse GDAXOrderResponseToOrderResponse(GDAXOrderResponse order, string symbol)
+        {
+            var orderStatus = order.executed_value > 0 ? OrderStatus.PARTIALLY_FILLED : OrderStatus.NEW;
+            var response = new OrderResponse
+            {
+                clientOrderId = order.id,
+                executedQty = order.executed_value,
+                price = order.price,
+                side = order.side.Equals("buy") ? TradeType.BUY : TradeType.SELL,
+                status = orderStatus,
+                symbol = symbol,
+                time = _dtHelper.LocalTimetoUnixTimeMilliseconds(order.created_at),
+                type = OrderType.LIMIT
+            };
+
+            return response;
+        }
+
+        private OrderResponse[] GDAXOrderResponseArrayToOrderResponseArray(GDAXOrderResponse[] gdaxOrders, string symbol)
+        {
+            var responses = new List<OrderResponse>();
+            var gdaxPair = _helper.CreateDashedPair(symbol);
+            for (int i = 0; i < gdaxOrders.Length; i++)
+            {
+                var order = gdaxOrders[i];
+                if (order.product_id == gdaxPair)
+                {
+                    var response = GDAXOrderResponseToOrderResponse(order, symbol);
+
+                    responses.Add(response);
+                }
+            }
+
+            return responses.ToArray();
+        }
+
+        private Entities.OrderBook GDAXOrderBookToOrderBook(Entities.GDAX.OrderBookResponse orderBookResponse)
+        {
+            var orderBook = new Entities.OrderBook
+            {
+                lastUpdateId = orderBookResponse.sequence,
+                asks = GDAXOrdersToBinanceOrders(orderBookResponse.sells),
+                bids = GDAXOrdersToBinanceOrders(orderBookResponse.buys)
+            };
+
+            return orderBook;
+        }
+
+        private BinanceOrders[] GDAXOrdersToBinanceOrders(Entities.GDAX.OrderBook[] gdaxOrders)
+        {
+            var orderList = new List<BinanceOrders>();
+
+            for (int i = 0; i < gdaxOrders.Length; i++)
+            {
+                var order = new BinanceOrders
+                {
+                    //ignore = kuOrders[i].pairTotal,
+                    price = gdaxOrders[i].price,
+                    quantity = gdaxOrders[i].size
+                };
+
+                orderList.Add(order);
+            }
+
+            return orderList.ToArray();
+        }
+
+        private OrderResponse GDAXFillToOrderResponse(GDAXFill fill, string symbol)
+        {
+            var response = new OrderResponse
+            {
+                clientOrderId = fill.order_id,
+                executedQty = fill.size,
+                price = fill.price,
+                side = fill.side.Equals("buy") ? TradeType.BUY : TradeType.SELL,
+                status = OrderStatus.FILLED,
+                symbol = symbol,
+                time = _dtHelper.LocalTimetoUnixTimeMilliseconds(fill.created_at),
+                type = OrderType.LIMIT
+            };
+
+            return response;
+        }
+
+        private OrderResponse[] GDAXFillArrayToOrderResponseArray(GDAXFill[] gdaxFills, string symbol)
+        {
+            var responses = new List<OrderResponse>();
+            var gdaxPair = _helper.CreateDashedPair(symbol);
+            for (int i = 0; i < gdaxFills.Length; i++)
+            {
+                var order = gdaxFills[i];
+                if (order.product_id == gdaxPair)
+                {
+                    var response = GDAXFillToOrderResponse(order, symbol);
+
+                    responses.Add(response);
+                }
+            }
+
+            return responses.ToArray();
         }
 
         /// <summary>
