@@ -1,4 +1,5 @@
 ﻿using CoinBot.Business.Entities;
+using CoinBot.Business.Entities.GDAX;
 using CoinBot.Core;
 using CoinBot.Data.Interface;
 using GDAXSharp.Network.Authentication;
@@ -31,7 +32,7 @@ namespace CoinBot.Data
         private Helper _helper;
         private Security _security;
         private ApiInformation _apiInfo;
-        private string baseUrl = "https://api.gdax.com";
+        private string baseUrl = "https://api.pro.coinbase.com";
         private IFileRepository _fileRepo;
 
         /// <summary>
@@ -143,13 +144,16 @@ namespace CoinBot.Data
         /// Get Current Order book
         /// </summary>
         /// <param name="pair">Trading pair</param>
+        /// <param name="level">Request level, default = 2</param>
         /// <returns>ProductsOrderBookResponse object</returns>
-        public async Task<ProductsOrderBookResponse> GetOrderBook(string pair)
+        public async Task<OrderBookResponse> GetOrderBook(string pair, int level = 2)
         {
             ProductType productType;
             Enum.TryParse(pair, out productType);
+            var gdaxPair = _helper.CreateDashedPair(pair);
+            var url = baseUrl + $"/products/{gdaxPair}/book?level={level}";
 
-            var response = await gdaxClient.ProductsService.GetProductOrderBookAsync(productType, ProductLevel.One);
+            var response = await _restRepo.GetApiStream<OrderBookResponse>(url, GetRequestHeaders());
 
             return response;
         }
@@ -190,13 +194,12 @@ namespace CoinBot.Data
 
             return response;
         }
-
-
+        
         /// <summary>
         /// Get Balances for GDAX account
         /// </summary>
         /// <returns>Accout object</returns>
-        public async Task<GDAXAccount[]> GetBalanceRest()
+        public async Task<GDAXAccount[]> GetBalance()
         {
             var url = baseUrl + "/accounts";
             var req = new Request
@@ -207,17 +210,6 @@ namespace CoinBot.Data
             };
 
             var accountList = await _restRepo.GetApi<GDAXAccount[]>(url, GetRequestHeaders(true, req));
-
-            return accountList;
-        }
-
-        /// <summary>
-        /// Get Balances for GDAX account
-        /// </summary>
-        /// <returns>Accout object</returns>
-        public async Task<IEnumerable<GDAXSharp.Services.Accounts.Models.Account>> GetBalance()
-        {
-            var accountList = await gdaxClient.AccountsService.GetAllAccountsAsync();
 
             return accountList;
         }
@@ -299,7 +291,7 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="tradeParams">GDAXStopLostParams for setting the SL</param>
         /// <returns>GDAXOrderResponse object</returns>
-        public async Task<GDAXOrderResponse> PlaceStopLimit(GDAXStopLostParams tradeParams)
+        public async Task<GDAXOrderResponse> PlaceStopLimit(GDAXStopLossParams tradeParams)
         {
             var gdaxPair = _helper.CreateDashedPair(tradeParams.product_id);
             tradeParams.product_id = gdaxPair;
@@ -311,7 +303,7 @@ namespace CoinBot.Data
             };
             var url = baseUrl + req.path;
 
-            var response = await _restRepo.PostApi<GDAXOrderResponse, GDAXStopLostParams>(url, tradeParams, GetRequestHeaders(true, req));
+            var response = await _restRepo.PostApi<GDAXOrderResponse, GDAXStopLossParams>(url, tradeParams, GetRequestHeaders(true, req));
 
             return response;
         }
@@ -344,6 +336,52 @@ namespace CoinBot.Data
             var url = baseUrl + req.path;
 
             var response = await _restRepo.GetApi<GDAXOrder>(url, GetRequestHeaders(true, req));
+
+            return response;
+        }
+
+        /// <summary>
+        /// Get all fills
+        /// </summary>
+        /// <returns>GDAXFill array</returns>
+        public async Task<GDAXFill[]> GetRestOrders()
+        {
+            var req = new Request
+            {
+                method = "GET",
+                path = $"/fills",
+                body = ""
+            };
+            var url = baseUrl + req.path;
+
+            var response = await _restRepo.GetApiStream<GDAXFill[]>(url, GetRequestHeaders(true, req));
+
+            return response;
+        }
+
+        /// <summary>
+        /// Get all open orders
+        /// </summary>
+        /// <param name="pair">Trading pair</param>
+        /// <returns>GDAXOrderResponse array</returns>
+        public async Task<GDAXOrderResponse[]> GetOpenOrders(string pair = "")
+        {
+            var gdaxPair = string.Empty;
+            var queryParam = string.Empty;
+            if (pair != "")
+            {
+                gdaxPair = _helper.CreateDashedPair(pair);
+                queryParam = $"?product_id={gdaxPair}";
+            }
+            var req = new Request
+            {
+                method = "GET",
+                path = $"/orders{queryParam}",
+                body = ""
+            };
+            var url = baseUrl + req.path + queryParam;
+
+            var response = await _restRepo.GetApiStream<GDAXOrderResponse[]>(url, GetRequestHeaders(true, req));
 
             return response;
         }

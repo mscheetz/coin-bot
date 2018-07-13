@@ -1,4 +1,5 @@
 ﻿using CoinBot.Business.Entities;
+using CoinBot.Business.Entities.GDAX;
 using GDAXSharp.Services.Orders.Models.Responses;
 using GDAXSharp.Services.Products.Models;
 using GDAXSharp.Services.Products.Models.Responses;
@@ -46,8 +47,9 @@ namespace CoinBot.Data.Interface
         /// Get Current Order book
         /// </summary>
         /// <param name="pair">Trading pair</param>
+        /// <param name="level">Request level, default = 2</param>
         /// <returns>ProductsOrderBookResponse object</returns>
-        Task<ProductsOrderBookResponse> GetOrderBook(string pair);
+        Task<OrderBookResponse> GetOrderBook(string pair, int level = 2);
 
         /// <summary>
         /// Get recent trades
@@ -64,13 +66,7 @@ namespace CoinBot.Data.Interface
         /// Get Balances for GDAX account
         /// </summary>
         /// <returns>Accout object array</returns>
-        Task<GDAXAccount[]> GetBalanceRest();
-
-        /// <summary>
-        /// Get Balances for GDAX account
-        /// </summary>
-        /// <returns>Accout object</returns>
-        Task<IEnumerable<GDAXSharp.Services.Accounts.Models.Account>> GetBalance();
+        Task<GDAXAccount[]> GetBalance();
         
         /// <summary>
         /// Place a limit order trade
@@ -98,7 +94,7 @@ namespace CoinBot.Data.Interface
         /// </summary>
         /// <param name="tradeParams">GDAXStopLostParams for setting the SL</param>
         /// <returns>GDAXOrderResponse object</returns>
-        Task<GDAXOrderResponse> PlaceStopLimit(GDAXStopLostParams tradeParams);
+        Task<GDAXOrderResponse> PlaceStopLimit(GDAXStopLossParams tradeParams);
 
 
         /// <summary>
@@ -114,6 +110,19 @@ namespace CoinBot.Data.Interface
         /// <param name="id">Order Id</param>
         /// <returns>OrderResponse object</returns>
         Task<GDAXOrder> GetRestOrder(string id);
+
+        /// <summary>
+        /// Get all fills
+        /// </summary>
+        /// <returns>GDAXFill array</returns>
+        Task<GDAXFill[]> GetRestOrders();
+
+        /// <summary>
+        /// Get all open orders
+        /// </summary>
+        /// <param name="pair">Trading pair</param>
+        /// <returns>GDAXOrderResponse array</returns>
+        Task<GDAXOrderResponse[]> GetOpenOrders(string pair = "");
 
         /// <summary>
         /// Cancel a placed trade

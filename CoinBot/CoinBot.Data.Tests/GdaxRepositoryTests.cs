@@ -56,7 +56,7 @@ namespace CoinBot.Data.Tests
             IGdaxRepository repo = new GdaxRepository();
             repo.SetExchangeApi(apiInfo, false);
 
-            var accounts = repo.GetBalanceRest().Result;
+            var accounts = repo.GetBalance().Result;
 
             Assert.True(accounts != null);
         }
@@ -132,6 +132,33 @@ namespace CoinBot.Data.Tests
         }
 
         [Fact]
+        public void GetGdaxOpenOrders_Test()
+        {
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, false);
+            var pair = "";
+
+            var orders = repo.GetOpenOrders(pair).Result;
+
+            Assert.True(orders != null);
+        }
+
+        [Fact]
+        public void GetGdaxOrders_Test()
+        {
+            IFileRepository fileRepo = new FileRepository();
+            var apiInfo = fileRepo.GetConfig();
+            IGdaxRepository repo = new GdaxRepository();
+            repo.SetExchangeApi(apiInfo, false);
+
+            var orders = repo.GetRestOrders().Result;
+
+            Assert.True(orders != null);
+        }
+
+        [Fact]
         public void GDAXPlaceTradeStopLoss_Test()
         {
             IFileRepository fileRepo = new FileRepository();
@@ -191,9 +218,9 @@ namespace CoinBot.Data.Tests
             repo.SetExchangeApi(_exchangeApi);
             var pair = "BTCUSD";
 
-            var candleSticks = repo.GetOrderBook(pair).Result;
+            var orderBook = repo.GetOrderBook(pair).Result;
 
-            Assert.True(candleSticks != null);
+            Assert.True(orderBook != null);
         }
 
         [Fact]
