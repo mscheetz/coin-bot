@@ -5,8 +5,6 @@ using CoinBot.Business.Entities.KuCoinEntities;
 using CoinBot.Core;
 using CoinBot.Data;
 using CoinBot.Data.Interface;
-using GDAXSharp.Services.Products.Models;
-using GDAXSharp.Services.Products.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1087,16 +1085,6 @@ namespace CoinBot.Business.Builders
         private BotStick[] BinanceStickToBotStick(Candlestick[] binanceArray)
         {
             return this._helper.MapEntity<Candlestick[], BotStick[]>(binanceArray);
-        }
-
-        /// <summary>
-        /// Convert GDAX Candle array to BotStick array
-        /// </summary>
-        /// <param name="gdaxArray">GDAX Candle array</param>
-        /// <returns>BotStick array</returns>
-        private BotStick[] GdaxStickToBotStick(Candle[] gdaxArray)
-        {
-            return this._helper.MapEntity<Candle[], BotStick[]>(gdaxArray);
         }
 
         /// <summary>
