@@ -1618,7 +1618,10 @@ namespace CoinBot.Business.Builders
         /// <returns>OpenOrderDetail of open order</returns>
         public OpenOrderDetail OpenOrdersCheck()
         {
-            return _exchBldr.OpenOrdersExist(_symbol);
+            if (_botSettings.tradingStatus == TradeStatus.LiveTrading)
+                return _exchBldr.OpenOrdersExist(_symbol);
+            else
+                return null;
         }
 
         /// <summary>
