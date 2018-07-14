@@ -21,5 +21,7 @@
   "orderBookQuantity": 0.15, //Total volume at a price to trigger an order book buy/sell
   "traderResetInterval": 30, //# of cycles to verify trading type, reload bot settings (if they have been updated)
   "runBot": true, //Run the bot?
-  "tradingCompetition": false //Is this for a trading competition?
+  "tradingCompetition": false, //Is this for a trading competition?
+  "tradingCompetitionEndTimeStamp": 1532102400000, //UTC Unix time to milliseconds of end of trading competition
+  "openOrderTimeMS": 300000 //For order book trading, cancel an open trade if it has been open for this many milliseconds
 }
