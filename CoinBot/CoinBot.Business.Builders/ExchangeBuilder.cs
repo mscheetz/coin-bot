@@ -570,10 +570,13 @@ namespace CoinBot.Business.Builders
                 return null;
             }
 
-            if(response != null && response.Length > 0)
+            if (response != null && response.Length > 0)
             {
-                ooDetail.price = response[0].price;
-                ooDetail.timestamp = response[0].time;
+                ooDetail = new Entities.OpenOrderDetail
+                {
+                    price = response[0].price,
+                    timestamp = response[0].time
+                };
             }
 
             return ooDetail;
