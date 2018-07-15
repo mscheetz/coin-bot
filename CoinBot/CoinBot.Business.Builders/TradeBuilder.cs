@@ -203,6 +203,7 @@ namespace CoinBot.Business.Builders
                 orderBookQuantity = botSettings.orderBookQuantity,
                 priceCheck = botSettings.priceCheck,
                 runBot = botSettings.runBot,
+                samePriceLimit = botSettings.samePriceLimit,
                 sellPercent = botSettings.sellPercent,
                 startBotAutomatically = botSettings.startBotAutomatically,
                 startingAmount = botSettings.startingAmount,
@@ -237,6 +238,7 @@ namespace CoinBot.Business.Builders
                 orderBookQuantity = botConfig.orderBookQuantity,
                 priceCheck = botConfig.priceCheck,
                 runBot = botConfig.runBot,
+                samePriceLimit = botConfig.samePriceLimit,
                 sellPercent = botConfig.sellPercent,
                 startBotAutomatically = botConfig.startBotAutomatically,
                 startingAmount = botConfig.startingAmount,
@@ -330,6 +332,7 @@ namespace CoinBot.Business.Builders
                 openOrderTimeMS = _botSettings.openOrderTimeMS,
                 orderBookQuantity = _botSettings.orderBookQuantity,
                 priceCheck = _botSettings.priceCheck,
+                samePriceLimit = _botSettings.samePriceLimit,
                 sellPercent = _botSettings.sellPercent,
                 startBotAutomatically = _botSettings.startBotAutomatically,
                 startingAmount = _botSettings.startingAmount,
@@ -387,6 +390,7 @@ namespace CoinBot.Business.Builders
 
             updatedSettings.mooningTankingPercent = settings.mooningTankingPercent;
             updatedSettings.runBot = settings.runBot;
+            updatedSettings.samePriceLimit = settings.samePriceLimit;
             updatedSettings.stopLossCheck = settings.stopLossCheck;
             updatedSettings.tradingCompetition = settings.tradingCompetition;
             updatedSettings.tradingCompetitionEndTimeStamp = settings.tradingCompetitionEndTimeStamp;

@@ -107,5 +107,12 @@ namespace CoinBot.Business.Entities
         /// Milliseconds before canceling an open order
         /// </summary>
         public long openOrderTimeMS { get; set; }
+        /// <summary>
+        /// If price is the same for this many cycles, use current price as new price
+        /// ie if you bought at a higer price and it is sitting lower, after this many cycles
+        /// sell at new, lower price
+        /// used for trading competitions
+        /// </summary>
+        public long samePriceLimit { get; set; }
     }
 }
