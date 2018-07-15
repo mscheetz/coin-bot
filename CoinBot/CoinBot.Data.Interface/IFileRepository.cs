@@ -91,13 +91,13 @@ namespace CoinBot.Data.Interface
         /// <param name="message">Message to log</param>
         /// <param name="obj">Object to log</param>
         /// <returns>Boolean when complete</returns>
-        bool LogError<T>(string message, T obj, bool noWrite = true);
+        bool LogError<T>(string message, T obj, bool noWrite = false);
 
         /// <summary>
         /// Log an error
         /// </summary>
         /// <param name="message">Message to log</param>
         /// <returns>Boolean when complete</returns>
-        bool LogError(string message, bool noWrite = true);
+        bool LogError(string message, bool noWrite = false);
     }
 }

@@ -251,7 +251,7 @@ namespace CoinBot.Data
         /// <param name="message">Message to log</param>
         /// <param name="obj">Object to log</param>
         /// <returns>Boolean when complete</returns>
-        public bool LogError<T>(string message, T obj, bool noWrite = true)
+        public bool LogError<T>(string message, T obj, bool noWrite = false)
         {
             if (!noWrite)
             {
@@ -276,7 +276,7 @@ namespace CoinBot.Data
         /// </summary>
         /// <param name="message">Message to log</param>
         /// <returns>Boolean when complete</returns>
-        public bool LogError(string message, bool noWrite = true)
+        public bool LogError(string message, bool noWrite = false)
         {
             if (!noWrite)
             {

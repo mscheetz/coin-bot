@@ -191,6 +191,7 @@ namespace CoinBot.Business.Builders
                     if (tradeOpen == null)
                     {
                         UpdateLastPrices();
+                        CheckLastPrice();
 
                         _tradeType = _trader.GetTradingType();
 
@@ -291,6 +292,34 @@ namespace CoinBot.Business.Builders
         }
 
         /// <summary>
+        /// Check last price vs current price
+        /// </summary>
+        /// <returns>Boolean when complete</returns>
+        private bool CheckLastPrice()
+        {
+            var currentPrice = 0.00000000M;
+            if (_tradeType == TradeType.BUY)
+            {
+                currentPrice = OrderBookBuyPrice();
+            }
+            else
+            {
+                currentPrice = OrderBookSellPrice();
+            }
+            if (currentPrice == _lastPrice)
+            {
+                _samePriceCheck++;
+            }
+            else
+            {
+                _samePriceCheck = 0;
+            }
+            _lastPrice = currentPrice;
+
+            return true;
+        }
+
+        /// <summary>
         /// If a trading competition, cancel open trade if outside 1st position
         /// </summary>
         /// <returns>OpenOrderDetail when complete</returns>
@@ -337,7 +366,7 @@ namespace CoinBot.Business.Builders
             price = _trader.OrderBookSellCheck(price);
 
             if ((price != 0.00000000M //&& _lastBuy > 0.00000000M 
-                && price >= _lastBuy) || _samePriceCheck >= 2)
+                && price >= _lastBuy) || _samePriceCheck >= _botSettings.samePriceLimit)
             {
                 _trader.SellCrypto(price, TradeType.SELL, false);
                 _tradeType = TradeType.BUY;
