@@ -191,9 +191,9 @@ namespace CoinBot.Business.Builders
                     if (tradeOpen == null)
                     {
                         UpdateLastPrices();
-                        CheckLastPrice();
 
                         _tradeType = _trader.GetTradingType();
+                        CheckLastPrice();
 
                         if (_tradeType == TradeType.BUY)
                         {
