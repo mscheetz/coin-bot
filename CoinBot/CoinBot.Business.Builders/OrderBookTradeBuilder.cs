@@ -326,7 +326,15 @@ namespace CoinBot.Business.Builders
         private OpenOrderDetail TradingCompetitionCheck(OpenOrderDetail ooDetail)
         {
             var lastPrice = _tradeType == TradeType.BUY ? _lastSell : _lastBuy;
-            var currentPrice = OrderBookSellPrice();
+            var currentPrice = 0.00000000M;
+            if (_tradeType == TradeType.SELL)
+            {
+                currentPrice = OrderBookSellPrice();
+            }
+            else
+            {
+                currentPrice = OrderBookBuyPrice();
+            }
             _resistanceGotten = true;
             if(currentPrice == _lastPrice)
             {
@@ -336,7 +344,6 @@ namespace CoinBot.Business.Builders
             {
                 _samePriceCheck = 0;
             }
-            _lastPrice = currentPrice;
             int? position = _trader.GetPricePostion(ooDetail.price);
             long unixTime = 0;
             long timeDiff = 0;
@@ -346,11 +353,13 @@ namespace CoinBot.Business.Builders
                 timeDiff = ooDetail.timestamp + _botSettings.openOrderTimeMS;
             }
             if((position >= 3 && _samePriceCheck < 19) 
-                || (unixTime > 0 && unixTime >= timeDiff))
+                || (unixTime > 0 && unixTime >= timeDiff && currentPrice != _lastPrice))
             {
+                _lastPrice = currentPrice;
                 _trader.CancelOpenOrders();
                 return null;
             }
+            _lastPrice = currentPrice;
 
             return ooDetail;
         }
