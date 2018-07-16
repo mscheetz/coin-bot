@@ -327,7 +327,7 @@ namespace CoinBot.Business.Builders
         {
             var lastPrice = _tradeType == TradeType.BUY ? _lastSell : _lastBuy;
             var currentPrice = 0.00000000M;
-            if (_tradeType == TradeType.SELL)
+            if (_tradeType == TradeType.BUY)
             {
                 currentPrice = OrderBookSellPrice();
             }
@@ -343,6 +343,10 @@ namespace CoinBot.Business.Builders
             else
             {
                 _samePriceCheck = 0;
+            }
+            if(currentPrice == lastPrice)
+            {
+                return ooDetail;
             }
             int? position = _trader.GetPricePostion(ooDetail.price);
             long unixTime = 0;
