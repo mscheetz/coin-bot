@@ -1,26 +1,21 @@
 ﻿// -----------------------------------------------------------------------------
-// <copyright file="IRangeService" company="Matt Scheetz">
+// <copyright file="IBollingerBandService" company="Matt Scheetz">
 //     Copyright (c) Matt Scheetz All Rights Reserved
 // </copyright>
-// <author name="Matt Scheetz" date="1/29/2019 8:38:12 PM" />
+// <author name="Matt Scheetz" date="2/15/2019 5:20:23 PM" />
 // -----------------------------------------------------------------------------
 
-namespace range_bot
+namespace coinbot.strategies.Contracts.Interfaces
 {
     #region Usings
 
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using System.Threading.Tasks;
 
     #endregion Usings
 
-    public interface IRangeService
+    public interface IBollingerBandService
     {
-        /// <summary>
-        /// Run bot
-        /// </summary>
-        Task RunBot();
     }
 }

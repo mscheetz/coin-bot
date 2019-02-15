@@ -5,7 +5,7 @@
 // <author name="Matt Scheetz" date="1/24/2019 8:12:24 PM" />
 // -----------------------------------------------------------------------------
 
-namespace range_bot.Models
+namespace coinbot.strategies.Contracts.Models
 {
     #region Usings
 

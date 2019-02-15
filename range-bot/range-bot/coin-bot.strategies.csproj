@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>range_bot</RootNamespace>
+    <RootNamespace>coinbot.strategies</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DateTimeHelpers" Version="1.3.2" />
     <PackageReference Include="ExchangeHub" Version="0.1.9" />
   </ItemGroup>
 

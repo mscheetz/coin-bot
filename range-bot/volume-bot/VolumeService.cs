@@ -1,11 +1,11 @@
 // -----------------------------------------------------------------------------
-// <copyright file="ApiCredentials" company="Matt Scheetz">
+// <copyright file="VolumeService" company="Matt Scheetz">
 //     Copyright (c) Matt Scheetz All Rights Reserved
 // </copyright>
-// <author name="Matt Scheetz" date="1/24/2019 7:56:17 PM" />
+// <author name="Matt Scheetz" date="2/15/2019 4:26:39 PM" />
 // -----------------------------------------------------------------------------
 
-namespace range_bot.Models
+namespace volume_bot
 {
     #region Usings
 
@@ -15,18 +15,9 @@ namespace range_bot.Models
 
     #endregion Usings
 
-    public class ApiCredentials
+    public class VolumeService
     {
         #region Properties
-
-        public string ApiKey { get; set; }
-
-        public string ApiSecret { get; set; }
-
-        public string ApiPassword { get; set; }
-
-        public string WIF { get; set; }
-
         #endregion Properties
     }
 }

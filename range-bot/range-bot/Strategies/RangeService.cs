@@ -5,13 +5,14 @@
 // <author name="Matt Scheetz" date="1/24/2019 7:50:32 PM" />
 // -----------------------------------------------------------------------------
 
-namespace range_bot
+namespace coinbot.strategies
 {
+    using coinbot.strategies.Contracts.Interfaces;
+    using coinbot.strategies.Contracts.Models;
     #region Usings
 
     using ExchangeHub;
     using ExchangeHub.Contracts;
-    using range_bot.Models;
     using System.Linq;
     using System.Threading.Tasks;
 
