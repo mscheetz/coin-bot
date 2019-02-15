@@ -14,6 +14,7 @@ namespace coinbot.strategies.Strategies
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading.Tasks;
 
     #endregion Usings
 
@@ -37,6 +38,13 @@ namespace coinbot.strategies.Strategies
         {
             this._settings = settings;
             this._exchange = exchange;
+        }
+
+        /// <summary>
+        /// Run bot
+        /// </summary>
+        public virtual async Task RunBot()
+        {
         }
     }
 }

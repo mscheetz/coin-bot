@@ -9,6 +9,7 @@ namespace coinbot.strategies
 {
     using coinbot.strategies.Contracts.Interfaces;
     using coinbot.strategies.Contracts.Models;
+    using coinbot.strategies.Strategies;
     #region Usings
 
     using ExchangeHub;
@@ -18,7 +19,7 @@ namespace coinbot.strategies
 
     #endregion Usings
 
-    public class RangeService : IRangeService
+    public class RangeService : StrategyBase, IRangeService
     {
         #region Properties
 
@@ -34,7 +35,7 @@ namespace coinbot.strategies
         /// </summary>
         /// <param name="settings">Bot settings</param>
         /// <param name="exchange">Exchange to trade on</param>
-        public RangeService(Settings settings, ExchangeHub exchange)
+        public RangeService(Settings settings, ExchangeHub exchange) : base(settings, exchange)
         {
             this._settings = settings;
             this._exchange = exchange;
@@ -43,7 +44,7 @@ namespace coinbot.strategies
         /// <summary>
         /// Run bot
         /// </summary>
-        public async Task RunBot()
+        public override async Task RunBot()
         {
             await Task.Run(async () =>
             {
